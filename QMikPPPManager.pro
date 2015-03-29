@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -13,8 +13,16 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        QMikPPPManager.cpp
+        QMikPPPManager.cpp \
+    Comm.cpp \
+    QIniFile.cpp \
+    QMD5.cpp \
+    QSentences.cpp
 
-HEADERS  += QMikPPPManager.h
+HEADERS  += QMikPPPManager.h \
+    Comm.h \
+    QIniFile.h \
+    QMD5.h \
+    QSentences.h
 
 FORMS    += QMikPPPManager.ui
