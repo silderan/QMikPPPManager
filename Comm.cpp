@@ -255,19 +255,17 @@ int Comm::receiveWordCount()
 	if( incomingWordSize == ++incomingWordPos )
 	{
 #if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
-		((char*)&incomingWordCount)[0] = wordCountBuf[0];
-		((char*)&incomingWordCount)[1] = wordCountBuf[1];
-		((char*)&incomingWordCount)[2] = wordCountBuf[2];
-		((char*)&incomingWordCount)[3] = wordCountBuf[3];
+		incomingWordCount = 0;
+		for( int i = 0; i < incomingWordSize; i++ )
+			((char*)&incomingWordCount)[i] = wordCountBuf[(incomingWordSize-1)-i];
 #else
 		((char*)&incomingWordCount)[0] = wordCountBuf[3];
 		((char*)&incomingWordCount)[1] = wordCountBuf[2];
 		((char*)&incomingWordCount)[2] = wordCountBuf[1];
 		((char*)&incomingWordCount)[3] = wordCountBuf[0];
 #endif
-		return 1;
 	}
-	return 0;
+	return 1;
 }
 
 /**

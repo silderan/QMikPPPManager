@@ -228,7 +228,11 @@ void QMikPPPManager::pideUsuarios()
 	ui->twUsuarios->clear();
 	if( !tagUsuarios.isEmpty() )
 		mktAPI.sendCancel(tagUsuarios);
-	mktAPI.sendSentence( "/ppp/secret/getall", tagUsuarios = "Usuarios" );
+	ROS::QSentence s("/ppp/secret/getall");
+	s.setTag(tagUsuarios = "Usuarios");
+	s.queries().addQuery("profile", "5/1");
+	s.queries().addQuery("#|");
+	mktAPI.sendSentence( s );
 }
 
 void QMikPPPManager::pideCambios()
@@ -259,11 +263,14 @@ void QMikPPPManager::onUsuarioRecibido(const ROS::QSentence &s)
 		pideCambios();
 		break;
 	case ROS::QSentence::Reply:
+		ui->statusBar->showMessage(QString("Recibido: %1").arg(s.getID()));
 		addUsuario(s);
 		break;
 	case ROS::QSentence::Trap:
+		addLogText(s.toString());
 		break;
 	case ROS::QSentence::Fatal:
+		addLogText(s.toString());
 		break;
 	}
 }
