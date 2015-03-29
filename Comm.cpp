@@ -89,7 +89,8 @@ void Comm::resetWord()
 	incomingWordSize = -1;
 	incomingWordPos = 0;
 	incomingWordCount = -1;
-	(*(int*)wordCountBuf) = 0;
+	int *i = (int*)wordCountBuf;
+	(*i) = 0;
 }
 
 /**
@@ -444,11 +445,9 @@ void Comm::doLogin()
 			closeCom();
 		}
 		break;
-#ifdef QT_DEBUG
 	case LogedIn:
 		Q_ASSERT_X( 0, "doLogin()", "Trying to login when we are already loged" );
 		break;
-#endif
 	}
 }
 

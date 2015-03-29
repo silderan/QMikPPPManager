@@ -171,6 +171,9 @@ void QMikPPPManager::onReceive(ROS::QSentence &s)
 	if( s.tag() == tagPerfiles )
 		onPerfilRecibido(s);
 	else
+	if( s.tag() == tagListening )
+		actualizaUsuario(s);
+	else
 	if( s.getResultType() != ROS::QSentence::Done )
 		addLogText(s.toString());
 /*	switch( estado )
@@ -228,6 +231,13 @@ void QMikPPPManager::pideUsuarios()
 	mktAPI.sendSentence( "/ppp/secret/getall", tagUsuarios = "Usuarios" );
 }
 
+void QMikPPPManager::pideCambios()
+{
+	if( !tagListening.isEmpty() )
+		mktAPI.sendCancel(tagListening);
+	mktAPI.sendSentence( "/ppp/active/listen", tagListening = "Listening" );
+}
+
 void QMikPPPManager::addUsuario(const ROS::QSentence &s)
 {
 	QTreeWidgetItem *it = new QTreeWidgetItem( QStringList() << s.attribute("name") << "" << "" << s.attribute("comment"));
@@ -244,7 +254,9 @@ void QMikPPPManager::onUsuarioRecibido(const ROS::QSentence &s)
 	case ROS::QSentence::None:
 		break;
 	case ROS::QSentence::Done:
+		ui->statusBar->showMessage(tr("Usuarios recibidos"));
 		tagUsuarios.clear();
+		pideCambios();
 		break;
 	case ROS::QSentence::Reply:
 		addUsuario(s);
@@ -282,4 +294,9 @@ void QMikPPPManager::onPerfilRecibido(const ROS::QSentence &s)
 	case ROS::QSentence::Fatal:
 		break;
 	}
+}
+
+void QMikPPPManager::actualizaUsuario(const ROS::QSentence &s)
+{
+	s.getID();
 }

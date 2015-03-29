@@ -61,6 +61,7 @@ class QMikPPPManager : public QMainWindow
 	QStringList perfiles;
 	QString tagPerfiles;
 	QString tagUsuarios;
+	QString tagListening;
 	enum Estado
 	{
 		Desconectado,
@@ -71,11 +72,13 @@ class QMikPPPManager : public QMainWindow
 	QComboBox *newListaPerfiles(const ROS::QSentence &s);
 	void pidePerfiles();
 	void pideUsuarios();
+	void pideCambios();
 	void addLogText(const QString &txt);
 	void addUsuario(const ROS::QSentence &s);
 	void onUsuarioRecibido(const ROS::QSentence &s);
 	void addPerfil(const ROS::QSentence &s);
 	void onPerfilRecibido(const ROS::QSentence &s);
+	void actualizaUsuario(const ROS::QSentence &s);
 
 private slots:
 	void on_pbConnect_clicked();
