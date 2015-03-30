@@ -226,11 +226,11 @@ void QMikPPPManager::pidePerfiles()
 void QMikPPPManager::pideUsuarios()
 {
 	ui->twUsuarios->clear();
+	ui->twUsuarios->setHorizontalHeaderLabels(QStringList() << "Nombre" << "Perfil" << "Estado" << "Notas");
 	if( !tagUsuarios.isEmpty() )
 		mktAPI.sendCancel(tagUsuarios);
 	ROS::QSentence s("/ppp/secret/getall");
 	s.setTag(tagUsuarios = "Usuarios");
-	s.queries().addQuery("profile", "5/1");
 	s.queries().addQuery("#|");
 	mktAPI.sendSentence( s );
 }
@@ -244,11 +244,16 @@ void QMikPPPManager::pideCambios()
 
 void QMikPPPManager::addUsuario(const ROS::QSentence &s)
 {
-	QTreeWidgetItem *it = new QTreeWidgetItem( QStringList() << s.attribute("name") << "" << "" << s.attribute("comment"));
-	ui->twUsuarios->addTopLevelItem( it );
-	ui->twUsuarios->setItemWidget(it, 1, newListaPerfiles(s) );
-	it->setData(0, Qt::UserRole, s.attribute(".id"));
-	it->setToolTip(0, tr("ID = %1").arg(s.getID()));
+	int row = ui->twUsuarios->rowCount();
+	ui->twUsuarios->insertRow(row);
+	QTableWidgetItem *itNombre = new QTableWidgetItem( s.attribute("name") );
+	QTableWidgetItem *itNotas = new QTableWidgetItem( s.attribute("comment") );
+	itNombre->setData(Qt::UserRole, s.attribute(".id"));
+	itNombre->setToolTip(tr("ID = %1").arg(s.getID()));
+
+	ui->twUsuarios->setItem(row, 0, itNombre);
+	ui->twUsuarios->setItem(row, 3, itNotas);
+	ui->twUsuarios->setCellWidget(row, 1, newListaPerfiles(s));
 }
 
 void QMikPPPManager::onUsuarioRecibido(const ROS::QSentence &s)

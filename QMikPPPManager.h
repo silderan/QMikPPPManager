@@ -6,6 +6,7 @@
 #include "QSentences.h"
 #include "QIniFile.h"
 #include <QTreeWidgetItem>
+#include <QTableWidgetItem>
 #include <QComboBox>
 
 namespace Ui
