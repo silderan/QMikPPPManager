@@ -47,6 +47,20 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 			 this, SLOT(onLoginChanged(ROS::Comm::LoginState)) );
 
 	connect( &mktAPI, SIGNAL(comReceive(ROS::QSentence&)), this, SLOT(onReceive(ROS::QSentence&)) );
+
+	ui->twUsuarios->setColumnCount(NumColumnas);
+	nombresColumnas.reserve(NumColumnas);
+	nombresColumnas.append("Usuario");
+	nombresColumnas.append("Perfil");
+	nombresColumnas.append("Estado");
+	nombresColumnas.append("Nombre");
+	nombresColumnas.append("Dirección");
+	nombresColumnas.append("Población");
+	nombresColumnas.append("Teléfonos");
+	nombresColumnas.append("Instalador");
+	nombresColumnas.append("Notas");
+	Q_ASSERT(nombresColumnas.count() == NumColumnas);
+	ui->twUsuarios->setHorizontalHeaderLabels(nombresColumnas);
 }
 
 QMikPPPManager::~QMikPPPManager()
@@ -68,6 +82,11 @@ void QMikPPPManager::addLogText(const QString &txt)
 	{
 		ui->statusBar->showMessage(txt);
 	}
+}
+
+void QMikPPPManager::addSecret(const ROS::QSentence &s)
+{
+	secretList.append(s);
 }
 
 void QMikPPPManager::on_pbConnect_clicked()
@@ -204,16 +223,38 @@ void QMikPPPManager::onReceive(ROS::QSentence &s)
 */
 }
 
-QComboBox *QMikPPPManager::newListaPerfiles(const ROS::QSentence &s)
+QTableWidgetItem *QMikPPPManager::newTextItem(const QSecretData &s, const QString &txt)
 {
-	QString perfil = s.attribute("profile");
-	QString id = s.getID();
+	QTableWidgetItem *it = new QTableWidgetItem( txt );
+	it->setData(Qt::UserRole, s.ID());
+	return it;
+}
+
+QComboBox *QMikPPPManager::newListaPerfiles(const QSecretData &s)
+{
+	QString perfil = s.perfilOriginal();
+	QString id = s.ID();
 	QComboBox *cb = new QComboBox();
 	cb->addItems(perfiles);
 	cb->setCurrentText(perfil);
 	cb->setProperty("ID", id);
 	connect(cb, SIGNAL(currentIndexChanged(QString)), this, SLOT(onNewProfileSelected(QString)));
 	return cb;
+}
+
+QCheckBox *QMikPPPManager::newEstado(const QSecretData &s)
+{
+	QCheckBox *cb = new QCheckBox("Activo");
+	cb->setChecked(s.activo());
+	cb->setProperty("ID", s.ID());
+	return cb;
+}
+
+void QMikPPPManager::setCellData(int row, int col, const QSecretData &s, const QString &txt, QWidget *w)
+{
+	ui->twUsuarios->setItem(row, col, newTextItem(s, txt));
+	if( w )
+		ui->twUsuarios->setCellWidget(row, col, w);
 }
 
 void QMikPPPManager::pidePerfiles()
@@ -225,8 +266,6 @@ void QMikPPPManager::pidePerfiles()
 
 void QMikPPPManager::pideUsuarios()
 {
-	ui->twUsuarios->clear();
-	ui->twUsuarios->setHorizontalHeaderLabels(QStringList() << "Nombre" << "Perfil" << "Estado" << "Notas");
 	if( !tagUsuarios.isEmpty() )
 		mktAPI.sendCancel(tagUsuarios);
 	ROS::QSentence s("/ppp/secret/getall");
@@ -242,18 +281,16 @@ void QMikPPPManager::pideCambios()
 	mktAPI.sendSentence( "/ppp/active/listen", tagListening = "Listening" );
 }
 
-void QMikPPPManager::addUsuario(const ROS::QSentence &s)
+void QMikPPPManager::addSecretToTable(const QSecretData &s, int row)
 {
-	int row = ui->twUsuarios->rowCount();
-	ui->twUsuarios->insertRow(row);
-	QTableWidgetItem *itNombre = new QTableWidgetItem( s.attribute("name") );
-	QTableWidgetItem *itNotas = new QTableWidgetItem( s.attribute("comment") );
-	itNombre->setData(Qt::UserRole, s.attribute(".id"));
-	itNombre->setToolTip(tr("ID = %1").arg(s.getID()));
-
-	ui->twUsuarios->setItem(row, 0, itNombre);
-	ui->twUsuarios->setItem(row, 3, itNotas);
-	ui->twUsuarios->setCellWidget(row, 1, newListaPerfiles(s));
+	setCellData(row, ColUsuario, s, s.usuario(), 0);
+	setCellData(row, ColPerfil, s, s.perfilOriginal(), newListaPerfiles(s));
+	setCellData(row, ColEstado, s, s.activo() ? "1" : "0", newEstado(s));
+	setCellData(row, ColNombre, s, s.nombre(), 0);
+	setCellData(row, ColDireccion, s, s.direccion(), 0);
+	setCellData(row, ColPoblacion, s, s.poblacion(), 0);
+	setCellData(row, ColTelefonos, s, s.telefonos(), 0);
+	setCellData(row, ColNotas, s, s.notas(), 0);
 }
 
 void QMikPPPManager::onUsuarioRecibido(const ROS::QSentence &s)
@@ -265,11 +302,12 @@ void QMikPPPManager::onUsuarioRecibido(const ROS::QSentence &s)
 	case ROS::QSentence::Done:
 		ui->statusBar->showMessage(tr("Usuarios recibidos"));
 		tagUsuarios.clear();
+		llenaTabla();
 		pideCambios();
 		break;
 	case ROS::QSentence::Reply:
 		ui->statusBar->showMessage(QString("Recibido: %1").arg(s.getID()));
-		addUsuario(s);
+		addSecret(s);
 		break;
 	case ROS::QSentence::Trap:
 		addLogText(s.toString());
@@ -280,10 +318,21 @@ void QMikPPPManager::onUsuarioRecibido(const ROS::QSentence &s)
 	}
 }
 
+void QMikPPPManager::llenaTabla()
+{
+	ui->twUsuarios->clear();
+	ui->twUsuarios->setHorizontalHeaderLabels(nombresColumnas);
+	ui->twUsuarios->setRowCount(secretList.count());
+	ui->twUsuarios->blockSignals(true);
+	for( int i = 0; i < secretList.count(); i++ )
+		addSecretToTable(secretList[i], i);
+	ui->twUsuarios->blockSignals(false);
+}
+
 void QMikPPPManager::addPerfil(const ROS::QSentence &s)
 {
 	QString nombre = s.attribute("name");
-	if( !perfiles.contains(nombre) )
+	if( (nombre != gGlobalConfig.getPerfilInactivo()) && !perfiles.contains(nombre) )
 		perfiles.append(nombre);
 }
 

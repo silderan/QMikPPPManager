@@ -130,6 +130,26 @@
     </item>
     <item row="0" column="1">
      <widget class="QTableWidget" name="twUsuarios">
+      <property name="sortingEnabled">
+       <bool>true</bool>
+      </property>
+      <attribute name="verticalHeaderDefaultSectionSize">
+       <number>23</number>
+      </attribute>
+      <attribute name="verticalHeaderHighlightSections">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="verticalHeaderMinimumSectionSize">
+       <number>22</number>
+      </attribute>
+      <attribute name="verticalHeaderShowSortIndicator" stdset="0">
+       <bool>false</bool>
+      </attribute>
+      <row>
+       <property name="text">
+        <string>New Row</string>
+       </property>
+      </row>
       <column>
        <property name="text">
         <string>Usuario</string>
@@ -160,7 +180,7 @@
      <x>0</x>
      <y>0</y>
      <width>903</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>

@@ -17,12 +17,16 @@ SOURCES += main.cpp\
     Comm.cpp \
     QIniFile.cpp \
     QMD5.cpp \
-    QSentences.cpp
+    QSentences.cpp \
+    QSecretData.cpp \
+    QConfigData.cpp
 
 HEADERS  += QMikPPPManager.h \
     Comm.h \
     QIniFile.h \
     QMD5.h \
-    QSentences.h
+    QSentences.h \
+    QSecretData.h \
+    QConfigData.h
 
 FORMS    += QMikPPPManager.ui

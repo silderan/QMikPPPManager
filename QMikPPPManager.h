@@ -3,56 +3,17 @@
 
 #include <QMainWindow>
 #include "Comm.h"
-#include "QSentences.h"
-#include "QIniFile.h"
+#include "QSecretData.h"
+#include "QConfigData.h"
 #include <QTreeWidgetItem>
 #include <QTableWidgetItem>
 #include <QComboBox>
+#include <QCheckBox>
 
 namespace Ui
 {
 class QMikPPPManager;
 }
-
-class QConfigData
-{
-	QString configFName;
-	QIniData iniData;
-
-public:
-	void defaults()
-	{
-		iniData["remoteHost"] = "192.168.1.1";
-		iniData["remotePort"] = QString("%1").arg(8728);
-		iniData["username"] = "admin";
-		iniData["userpass"] = "";
-	}
-
-	QConfigData() : configFName("config.ini")
-	{
-		defaults();
-	}
-	~QConfigData()
-	{
-		save();
-	}
-	void load() { QIniFile::load(configFName, &iniData); }
-	void save() const { QIniFile::save(configFName, iniData); }
-
-	void setHost(const QString &host) { iniData["remoteHost"] = host; }
-	QString getHost() const { return iniData["remoteHost"]; }
-
-	void setPort(const quint16 &port) { iniData["remotePort"] = QString("%1").arg(port); }
-	quint16 getPort() const { return iniData["remotePort"].toUShort(); }
-
-	void setUserName(const QString &uname) { iniData["username"] = uname;	}
-	QString getUserName() const { return iniData["username"]; }
-
-	void setUserPass(const QString &upass) { iniData["userpass"] = upass;	}
-	QString getUserPass() const { return iniData["userpass"]; }
-};
-
-extern QConfigData gGlobalConfig;
 
 class QMikPPPManager : public QMainWindow
 {
@@ -69,14 +30,34 @@ class QMikPPPManager : public QMainWindow
 		ReciviendoUsuarios,
 		UsuariosRecividos
 	}estado;
+	enum columnas
+	{
+		ColUsuario,
+		ColPerfil,
+		ColEstado,
+		ColNombre,
+		ColDireccion,
+		ColPoblacion,
+		ColTelefonos,
+		ColInstalador,
+		ColNotas,
+		NumColumnas
+	};
+	QSentenceList secretList;
+	QStringList nombresColumnas;
 
-	QComboBox *newListaPerfiles(const ROS::QSentence &s);
+	QTableWidgetItem *newTextItem(const QSecretData &s, const QString &txt);
+	QComboBox *newListaPerfiles(const QSecretData &s);
+	QCheckBox *newEstado(const QSecretData &s);
+	void setCellData(int row, int col, const QSecretData &s, const QString &txt, QWidget*w);
 	void pidePerfiles();
 	void pideUsuarios();
 	void pideCambios();
 	void addLogText(const QString &txt);
-	void addUsuario(const ROS::QSentence &s);
+	void addSecret(const ROS::QSentence &s);
+	void addSecretToTable(const QSecretData &s, int row);
 	void onUsuarioRecibido(const ROS::QSentence &s);
+	void llenaTabla();
 	void addPerfil(const ROS::QSentence &s);
 	void onPerfilRecibido(const ROS::QSentence &s);
 	void actualizaUsuario(const ROS::QSentence &s);
