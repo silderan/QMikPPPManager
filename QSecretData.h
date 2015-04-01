@@ -2,8 +2,9 @@
 #define QSECRETDATA_H
 
 #include "QSentences.h"
+#include <QStandardItemModel>
 
-class QSecretData
+class QSecretData : public QStandardItemModel
 {
 	QString m_ID;
 	QString m_instalador;

@@ -129,47 +129,19 @@
      </layout>
     </item>
     <item row="0" column="1">
-     <widget class="QTableWidget" name="twUsuarios">
+     <widget class="QTableView" name="twUsuarios">
       <property name="sortingEnabled">
        <bool>true</bool>
       </property>
-      <attribute name="verticalHeaderDefaultSectionSize">
-       <number>23</number>
-      </attribute>
-      <attribute name="verticalHeaderHighlightSections">
-       <bool>false</bool>
-      </attribute>
       <attribute name="verticalHeaderMinimumSectionSize">
-       <number>22</number>
+       <number>23</number>
       </attribute>
       <attribute name="verticalHeaderShowSortIndicator" stdset="0">
        <bool>false</bool>
       </attribute>
-      <row>
-       <property name="text">
-        <string>New Row</string>
-       </property>
-      </row>
-      <column>
-       <property name="text">
-        <string>Usuario</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Perfil</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Estado</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Notas</string>
-       </property>
-      </column>
+      <attribute name="verticalHeaderStretchLastSection">
+       <bool>true</bool>
+      </attribute>
      </widget>
     </item>
    </layout>
