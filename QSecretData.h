@@ -2,7 +2,9 @@
 #define QSECRETDATA_H
 
 #include "QSentences.h"
+#include <QTableView>
 #include <QStandardItemModel>
+#include <QStyledItemDelegate>
 
 class QSecretData : public QStandardItemModel
 {
@@ -59,5 +61,36 @@ public:
 	}
 };
 
+class QSecretDataDelegate : public QStyledItemDelegate
+{
+	Q_OBJECT
+
+public:
+	QSecretDataDelegate(QObject *parent = 0);
+
+	QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
+						  const QModelIndex &index) const Q_DECL_OVERRIDE;
+
+	void setEditorData(QWidget *editor, const QModelIndex &index) const Q_DECL_OVERRIDE;
+	void setModelData(QWidget *editor, QAbstractItemModel *model,
+					  const QModelIndex &index) const Q_DECL_OVERRIDE;
+
+	void updateEditorGeometry(QWidget *editor,
+		const QStyleOptionViewItem &option, const QModelIndex &index) const Q_DECL_OVERRIDE;
+};
+
+class QSecretDataTable : public QWidget
+{
+	QSentenceList secrets;
+	QTableView vistaTabla;
+
+public:
+	QSecretDataTable(QObject *papi = 0)
+		: QWidget(papi)
+	{
+		setupTable();
+	}
+	void setupTable();
+};
 
 #endif // QSECRETDATA_H
