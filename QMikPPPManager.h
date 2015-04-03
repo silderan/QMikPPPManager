@@ -43,7 +43,7 @@ class QMikPPPManager : public QMainWindow
 		ColNotas,
 		NumColumnas
 	};
-	QSentenceList secretList;
+	QSecretsList secretList;
 	QStringList nombresColumnas;
 
 	QTableWidgetItem *newTextItem(const QSecretData &s, const QString &txt);

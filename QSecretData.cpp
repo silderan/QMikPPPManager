@@ -241,13 +241,13 @@ QSecretData::QSecretData(const ROS::QSentence &s)
 #include <QStyleOptionViewItem>
 #include <QSpinBox>
 
-QWidget *QSecretDataDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
-	: QStyledItemDelegate(parent)
+QSecretDataDelegate::QSecretDataDelegate(QObject *p)
+	: QStyledItemDelegate(p)
 {
 
 }
 
-void QSecretDataDelegate::createEditor(QWidget *parent,
+QWidget *QSecretDataDelegate::createEditor(QWidget *parent,
 									   const QStyleOptionViewItem &/* option */,
 									   const QModelIndex &/* index */) const
 {
@@ -287,7 +287,32 @@ void QSecretDataDelegate::updateEditorGeometry(QWidget *editor, const QStyleOpti
 #include <QHeaderView>
 void QSecretDataTable::setupTable()
 {
-	QHeaderView *header = new QHeaderView;
-	header->setModel();
-	vistaTabla.setHorizontalHeader(header);
+	im = new QStandardItemModel(0, 10);
+	setModel(im);
+}
+
+void QSecretDataTable::fillupTable()
+{
+	im->clear();
+	im->setColumnCount(NumColumnas);
+	im->setRowCount(secrets.count());
+
+	blockSignals(true);
+	for(int i = 0; i < secrets.count(); i++ )
+	{
+		im->setItem(0, ColUsuario, new QStandardItem(secrets[i].usuario()));
+	}
+	blockSignals(false);
+}
+
+void QSecretDataTable::addPerfil(const ROS::QSentence &s)
+{
+
+}
+
+void QSecretDataTable::addSecret(const ROS::QSentence &s, bool addToTable)
+{
+	QString nombre = s.attribute("name");
+	if( (nombre != gGlobalConfig.getPerfilInactivo()) && !perfiles.contains(nombre) )
+		secrets.append(s);
 }

@@ -48,7 +48,7 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 
 	connect( &mktAPI, SIGNAL(comReceive(ROS::QSentence&)), this, SLOT(onReceive(ROS::QSentence&)) );
 
-	ui->twUsuarios->setColumnCount(NumColumnas);
+//	ui->twUsuarios->setColumnCount(NumColumnas);
 	nombresColumnas.reserve(NumColumnas);
 	nombresColumnas.append("Usuario");
 	nombresColumnas.append("Perfil");
@@ -60,7 +60,7 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 	nombresColumnas.append("Instalador");
 	nombresColumnas.append("Notas");
 	Q_ASSERT(nombresColumnas.count() == NumColumnas);
-	ui->twUsuarios->setHorizontalHeaderLabels(nombresColumnas);
+//	ui->twUsuarios->setHorizontalHeaderLabels(nombresColumnas);
 }
 
 QMikPPPManager::~QMikPPPManager()
@@ -252,9 +252,9 @@ QCheckBox *QMikPPPManager::newEstado(const QSecretData &s)
 
 void QMikPPPManager::setCellData(int row, int col, const QSecretData &s, const QString &txt, QWidget *w)
 {
-	ui->twUsuarios->setItem(row, col, newTextItem(s, txt));
-	if( w )
-		ui->twUsuarios->setCellWidget(row, col, w);
+//	ui->twUsuarios->setItem(row, col, newTextItem(s, txt));
+//	if( w )
+//		ui->twUsuarios->setCellWidget(row, col, w);
 }
 
 void QMikPPPManager::pidePerfiles()
@@ -320,20 +320,14 @@ void QMikPPPManager::onUsuarioRecibido(const ROS::QSentence &s)
 
 void QMikPPPManager::llenaTabla()
 {
-	ui->twUsuarios->clear();
-	ui->twUsuarios->setHorizontalHeaderLabels(nombresColumnas);
-	ui->twUsuarios->setRowCount(secretList.count());
-	ui->twUsuarios->blockSignals(true);
-	for( int i = 0; i < secretList.count(); i++ )
-		addSecretToTable(secretList[i], i);
-	ui->twUsuarios->blockSignals(false);
+//	ui->twUsuarios->clear();
+//	ui->twUsuarios->setHorizontalHeaderLabels(nombresColumnas);
+//	ui->twUsuarios->setRowCount(secretList.count());
+	ui->twUsuarios->fillupTable();
 }
 
 void QMikPPPManager::addPerfil(const ROS::QSentence &s)
 {
-	QString nombre = s.attribute("name");
-	if( (nombre != gGlobalConfig.getPerfilInactivo()) && !perfiles.contains(nombre) )
-		perfiles.append(nombre);
 }
 
 void QMikPPPManager::onPerfilRecibido(const ROS::QSentence &s)
@@ -348,6 +342,7 @@ void QMikPPPManager::onPerfilRecibido(const ROS::QSentence &s)
 		pideUsuarios();
 		break;
 	case ROS::QSentence::Reply:
+		ui->twUsuarios->addSecret(s);
 		addPerfil(s);
 		break;
 	case ROS::QSentence::Trap:

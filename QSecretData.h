@@ -6,7 +6,7 @@
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
 
-class QSecretData : public QStandardItemModel
+class QSecretData
 {
 	QString m_ID;
 	QString m_instalador;
@@ -52,13 +52,35 @@ public:
 	void setPoblacion(const QString &poblacion);
 };
 
-class QSentenceList : public QList<QSecretData>
+class QSecretsList : public QList<QSecretData>
 {
 public:
-	QSentenceList()
+	QSecretsList()
 	{
 
 	}
+};
+
+class QPerfilData
+{
+	QString m_nombre;
+public:
+	const QString &nombre() const { return m_nombre; }
+	void setNombre(const QString &n) { m_nombre = n; }
+	QPerfilData(const ROS::QSentence &s)
+	{
+		m_nombre = s.attribute("name");
+	}
+	bool operator==(const QString &nombre)
+	{
+		return m_nombre == nombre;
+	}
+};
+
+class QPerfilesList : public QList<QPerfilData>
+{
+public:
+	bool contains(const QString &nombre)
 };
 
 class QSecretDataDelegate : public QStyledItemDelegate
@@ -66,8 +88,7 @@ class QSecretDataDelegate : public QStyledItemDelegate
 	Q_OBJECT
 
 public:
-	QSecretDataDelegate(QObject *parent = 0);
-
+	QSecretDataDelegate(QObject *p);
 	QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
 						  const QModelIndex &index) const Q_DECL_OVERRIDE;
 
@@ -79,18 +100,36 @@ public:
 		const QStyleOptionViewItem &option, const QModelIndex &index) const Q_DECL_OVERRIDE;
 };
 
-class QSecretDataTable : public QWidget
+class QSecretDataTable : public QTableView
 {
-	QSentenceList secrets;
-	QTableView vistaTabla;
+	QSecretsList secrets;
+	QStringList perfiles;
+	QStandardItemModel *im;
+
+	enum columnas
+	{
+		ColUsuario,
+		ColPerfil,
+		ColEstado,
+		ColNombre,
+		ColDireccion,
+		ColPoblacion,
+		ColTelefonos,
+		ColInstalador,
+		ColNotas,
+		NumColumnas
+	};
 
 public:
-	QSecretDataTable(QObject *papi = 0)
-		: QWidget(papi)
+	QSecretDataTable(QWidget *papi = 0)
+		: QTableView(papi)
 	{
 		setupTable();
 	}
 	void setupTable();
+	void fillupTable();
+	void addPerfil(const ROS::QSentence &s);
+	void addSecret(const ROS::QSentence &s, bool addToTable = false);
 };
 
 #endif // QSECRETDATA_H
