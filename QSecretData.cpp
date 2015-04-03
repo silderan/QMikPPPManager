@@ -247,35 +247,60 @@ QSecretDataDelegate::QSecretDataDelegate(QObject *p)
 
 }
 
+#include <QComboBox>
 QWidget *QSecretDataDelegate::createEditor(QWidget *parent,
 									   const QStyleOptionViewItem &/* option */,
-									   const QModelIndex &/* index */) const
+									   const QModelIndex &index ) const
 {
-	QSpinBox *editor = new QSpinBox(parent);
-	editor->setFrame(false);
-	editor->setMinimum(0);
-	editor->setMaximum(100);
-
-	return editor;
+	const QSecretDataModel *model = static_cast<const QSecretDataModel*>(index.model());
+	if( index.column() == QSecretDataModel::ColPerfil )
+	{
+		QComboBox *cb = new QComboBox(parent);
+		Q_ASSERT(cb);
+		cb->setFrame(false);
+		const QStringList &perfiles = model->m_perfiles.nombresPerfiles();
+		foreach( QString p, perfiles )
+			cb->addItem(p);
+		return cb;
+	}
+	else
+	{
+		QSpinBox *editor = new QSpinBox(parent);
+		editor->setFrame(false);
+		editor->setMinimum(0);
+		editor->setMaximum(100);
+		return editor;
+	}
 }
 
 void QSecretDataDelegate::setEditorData(QWidget *editor,
 										const QModelIndex &index) const
 {
-	int value = index.model()->data(index, Qt::EditRole).toInt();
+	if( index.column() == QSecretDataModel::ColPerfil )
+	{
+		QString perfil = index.model()->data(index, Qt::EditRole).toString();
+		QComboBox *cb = static_cast<QComboBox*>(editor);
+		cb->setCurrentText(perfil);
+	}
+	else
+	{
 
-	QSpinBox *spinBox = static_cast<QSpinBox*>(editor);
-	spinBox->setValue(value);
+	}
 }
 
 void QSecretDataDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
 								   const QModelIndex &index) const
 {
-	QSpinBox *spinBox = static_cast<QSpinBox*>(editor);
-	spinBox->interpretText();
-	int value = spinBox->value();
+	if( index.column() == QSecretDataModel::ColPerfil )
+	{
+		QComboBox *cb = static_cast<QComboBox*>(editor);
+		QString perfil = cb->currentText();
+		model->setData(index, perfil, Qt::EditRole);
+	}
+	else
+	{
 
-	model->setData(index, value, Qt::EditRole);
+	}
 }
 
 void QSecretDataDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &/* index */) const
@@ -284,35 +309,74 @@ void QSecretDataDelegate::updateEditorGeometry(QWidget *editor, const QStyleOpti
 }
 
 
+bool QPerfilesList::contains(const QString &s) const
+{
+	for( int i = 0; i < count(); i++ )
+		if( at(i) == s )
+			return true;
+	return false;
+}
+
+QSecretDataModel::QSecretDataModel(int rows, const QStringList &cols, QObject *p)
+	:QStandardItemModel(rows, cols.count(), p), m_nombresColumnas(cols)
+{
+
+}
+
 #include <QHeaderView>
+void QSecretDataModel::addSecretToTable(const QSecretData &s, int row)
+{
+	setItem( row, ColUsuario, new QStandardItem(s.usuario()) );
+	setItem( row, ColDireccion, new QStandardItem(s.direccion()) );
+	setItem( row, ColEstado, new QStandardItem(s.activo() ? "activo" : "inactivo") );
+	setItem( row, ColInstalador, new QStandardItem(s.instalador()) );
+	setItem( row, ColNombre, new QStandardItem(s.nombre()) );
+	setItem( row, ColNotas, new QStandardItem(s.notas()) );
+	setItem( row, ColPerfil, new QStandardItem(s.perfilReal()) );
+	setItem( row, ColPoblacion, new QStandardItem(s.poblacion()) );
+	setItem( row, ColTelefonos, new QStandardItem(s.telefonos()) );
+}
+
 void QSecretDataTable::setupTable()
 {
-	im = new QStandardItemModel(0, 10);
+	im = new QSecretDataModel(0, QStringList()
+								<< "Usuario"
+								<< "Perfil"
+								<< "Estado"
+								<< "Nombre"
+								<< "Dirección"
+								<< "Población"
+								<< "Teléfonos"
+								<< "Instalador"
+								<< "Notas");
 	setModel(im);
 }
 
-void QSecretDataTable::fillupTable()
+void QSecretDataModel::fillupTable()
 {
-	im->clear();
-	im->setColumnCount(NumColumnas);
-	im->setRowCount(secrets.count());
+	clear();
+	setColumnCount(m_nombresColumnas.count());
+	setHorizontalHeaderLabels(m_nombresColumnas);
 
-	blockSignals(true);
-	for(int i = 0; i < secrets.count(); i++ )
-	{
-		im->setItem(0, ColUsuario, new QStandardItem(secrets[i].usuario()));
-	}
-	blockSignals(false);
+	setRowCount(m_secrets.count());
+
+	for( int row = 0; row < m_secrets.count(); row++ )
+		addSecretToTable(m_secrets.at(row), row);
 }
 
-void QSecretDataTable::addPerfil(const ROS::QSentence &s)
+void QSecretDataModel::addPerfil(const ROS::QSentence &s)
 {
-
+	m_perfiles.append(s);
 }
 
-void QSecretDataTable::addSecret(const ROS::QSentence &s, bool addToTable)
+void QSecretDataModel::addSecret(const ROS::QSentence &s, bool addToTable)
 {
 	QString nombre = s.attribute("name");
-	if( (nombre != gGlobalConfig.getPerfilInactivo()) && !perfiles.contains(nombre) )
-		secrets.append(s);
+	if( (nombre != gGlobalConfig.getPerfilInactivo()) && !m_perfiles.contains(nombre) )
+		m_secrets.append(s);
+	if( addToTable )
+	{
+		appendRow(0);
+		addSecretToTable(m_secrets.last(), m_secrets.count()-1);
+	}
 }

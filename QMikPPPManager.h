@@ -57,8 +57,6 @@ class QMikPPPManager : public QMainWindow
 	void addSecret(const ROS::QSentence &s);
 	void addSecretToTable(const QSecretData &s, int row);
 	void onUsuarioRecibido(const ROS::QSentence &s);
-	void llenaTabla();
-	void addPerfil(const ROS::QSentence &s);
 	void onPerfilRecibido(const ROS::QSentence &s);
 	void actualizaUsuario(const ROS::QSentence &s);
 

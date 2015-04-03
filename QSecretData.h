@@ -64,6 +64,7 @@ public:
 class QPerfilData
 {
 	QString m_nombre;
+
 public:
 	const QString &nombre() const { return m_nombre; }
 	void setNombre(const QString &n) { m_nombre = n; }
@@ -71,7 +72,7 @@ public:
 	{
 		m_nombre = s.attribute("name");
 	}
-	bool operator==(const QString &nombre)
+	bool operator==(const QString &nombre) const
 	{
 		return m_nombre == nombre;
 	}
@@ -79,8 +80,16 @@ public:
 
 class QPerfilesList : public QList<QPerfilData>
 {
+	QStringList m_nombresPerfiles;
+
 public:
-	bool contains(const QString &nombre)
+	void append(const QPerfilData &s)
+	{
+		m_nombresPerfiles.append(s.nombre());
+		QList::append(s);
+	}
+	bool contains(const QString &s) const;
+	const QStringList &nombresPerfiles()const { return m_nombresPerfiles; }
 };
 
 class QSecretDataDelegate : public QStyledItemDelegate
@@ -100,11 +109,14 @@ public:
 		const QStyleOptionViewItem &option, const QModelIndex &index) const Q_DECL_OVERRIDE;
 };
 
-class QSecretDataTable : public QTableView
+class QSecretDataModel : public QStandardItemModel
 {
-	QSecretsList secrets;
-	QStringList perfiles;
-	QStandardItemModel *im;
+	QSecretsList m_secrets;
+	QPerfilesList m_perfiles;
+	QStringList m_nombresColumnas;
+
+	void addSecretToTable(const QSecretData &s, int row);
+	friend class QSecretDataDelegate;
 
 	enum columnas
 	{
@@ -121,15 +133,33 @@ class QSecretDataTable : public QTableView
 	};
 
 public:
-	QSecretDataTable(QWidget *papi = 0)
-		: QTableView(papi)
-	{
-		setupTable();
-	}
+	QSecretDataModel(int rows, const QStringList &cols, QObject *p = 0);
+
 	void setupTable();
 	void fillupTable();
+	void setColumnas(const QStringList &nombresColumnas) { m_nombresColumnas = nombresColumnas; }
 	void addPerfil(const ROS::QSentence &s);
 	void addSecret(const ROS::QSentence &s, bool addToTable = false);
+};
+
+class QSecretDataTable : public QTableView
+{
+	QSecretDataModel *im;
+	QSecretDataDelegate delegado;
+
+	friend class QSecretDataDelegate;
+
+public:
+	QSecretDataTable(QWidget *papi = 0)
+		: QTableView(papi), delegado(papi)
+	{
+		setupTable();
+		setItemDelegate(&delegado);
+	}
+	void setupTable();
+	void fillupTable() { im->fillupTable(); }
+	void addPerfil(const ROS::QSentence &s) {im->addPerfil(s); }
+	void addSecret(const ROS::QSentence &s, bool addToTable = false) { im->addSecret(s, addToTable); }
 };
 
 #endif // QSECRETDATA_H

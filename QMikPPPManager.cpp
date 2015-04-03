@@ -47,20 +47,6 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 			 this, SLOT(onLoginChanged(ROS::Comm::LoginState)) );
 
 	connect( &mktAPI, SIGNAL(comReceive(ROS::QSentence&)), this, SLOT(onReceive(ROS::QSentence&)) );
-
-//	ui->twUsuarios->setColumnCount(NumColumnas);
-	nombresColumnas.reserve(NumColumnas);
-	nombresColumnas.append("Usuario");
-	nombresColumnas.append("Perfil");
-	nombresColumnas.append("Estado");
-	nombresColumnas.append("Nombre");
-	nombresColumnas.append("Dirección");
-	nombresColumnas.append("Población");
-	nombresColumnas.append("Teléfonos");
-	nombresColumnas.append("Instalador");
-	nombresColumnas.append("Notas");
-	Q_ASSERT(nombresColumnas.count() == NumColumnas);
-//	ui->twUsuarios->setHorizontalHeaderLabels(nombresColumnas);
 }
 
 QMikPPPManager::~QMikPPPManager()
@@ -302,12 +288,12 @@ void QMikPPPManager::onUsuarioRecibido(const ROS::QSentence &s)
 	case ROS::QSentence::Done:
 		ui->statusBar->showMessage(tr("Usuarios recibidos"));
 		tagUsuarios.clear();
-		llenaTabla();
+		ui->twUsuarios->fillupTable();
 		pideCambios();
 		break;
 	case ROS::QSentence::Reply:
 		ui->statusBar->showMessage(QString("Recibido: %1").arg(s.getID()));
-		addSecret(s);
+		ui->twUsuarios->addSecret(s);
 		break;
 	case ROS::QSentence::Trap:
 		addLogText(s.toString());
@@ -316,18 +302,6 @@ void QMikPPPManager::onUsuarioRecibido(const ROS::QSentence &s)
 		addLogText(s.toString());
 		break;
 	}
-}
-
-void QMikPPPManager::llenaTabla()
-{
-//	ui->twUsuarios->clear();
-//	ui->twUsuarios->setHorizontalHeaderLabels(nombresColumnas);
-//	ui->twUsuarios->setRowCount(secretList.count());
-	ui->twUsuarios->fillupTable();
-}
-
-void QMikPPPManager::addPerfil(const ROS::QSentence &s)
-{
 }
 
 void QMikPPPManager::onPerfilRecibido(const ROS::QSentence &s)
@@ -342,8 +316,7 @@ void QMikPPPManager::onPerfilRecibido(const ROS::QSentence &s)
 		pideUsuarios();
 		break;
 	case ROS::QSentence::Reply:
-		ui->twUsuarios->addSecret(s);
-		addPerfil(s);
+		ui->twUsuarios->addPerfil(s);
 		break;
 	case ROS::QSentence::Trap:
 		break;
