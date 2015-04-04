@@ -17,15 +17,20 @@ class QSecretData
 	QString m_direccion;
 	QString m_poblacion;
 	QString m_telefonos;
+	QString m_conseguidor;
+	QString m_email;
+	bool m_VozIP;
 	QString m_notas;
 	QString m_perfilOriginal;
+	QString m_IPEstatica;
+	QString m_IPActiva;
 
 	void parseComment(const QString &comment);
 	void parsePlainComment(QString cm);
 	int firstOf(const QString &txt, const QStringList &ws, int from, int *lenMatched );
 
 public:
-	QSecretData(){}
+	QSecretData():m_VozIP(false) {}
 	QSecretData(const ROS::QSentence &s);
 
 	QString usuario() const				{ return m_usuario;	}
@@ -50,6 +55,16 @@ public:
 	void setInstalador(const QString &instalador);
 	QString poblacion() const;
 	void setPoblacion(const QString &poblacion);
+	QString conseguidor() const;
+	void setConseguidor(const QString &conseguidor);
+	QString email() const;
+	void setEmail(const QString &email);
+	bool VozIP() const;
+	void setVozIP(bool VozIP);
+	QString IPEstatica() const;
+	void setIPEstatica(const QString &IPEstatica);
+	QString IPActiva() const;
+	void setIPActiva(const QString &IPActiva);
 };
 
 class QSecretsList : public QList<QSecretData>
@@ -83,11 +98,7 @@ class QPerfilesList : public QList<QPerfilData>
 	QStringList m_nombresPerfiles;
 
 public:
-	void append(const QPerfilData &s)
-	{
-		m_nombresPerfiles.append(s.nombre());
-		QList::append(s);
-	}
+	void append(const QPerfilData &s);
 	bool contains(const QString &s) const;
 	const QStringList &nombresPerfiles()const { return m_nombresPerfiles; }
 };
@@ -98,7 +109,7 @@ class QSecretDataDelegate : public QStyledItemDelegate
 
 public:
 	QSecretDataDelegate(QObject *p);
-	QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
+	QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &,
 						  const QModelIndex &index) const Q_DECL_OVERRIDE;
 
 	void setEditorData(QWidget *editor, const QModelIndex &index) const Q_DECL_OVERRIDE;
@@ -123,11 +134,15 @@ class QSecretDataModel : public QStandardItemModel
 		ColUsuario,
 		ColPerfil,
 		ColEstado,
+		ColIP,
 		ColNombre,
 		ColDireccion,
 		ColPoblacion,
 		ColTelefonos,
 		ColInstalador,
+		ColConseguidor,
+		ColEMail,
+		ColVozIP,
 		ColNotas,
 		NumColumnas
 	};
