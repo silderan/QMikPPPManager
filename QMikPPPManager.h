@@ -24,6 +24,7 @@ class QMikPPPManager : public QMainWindow
 	QString tagPerfiles;
 	QString tagUsuarios;
 	QString tagListening;
+	QString tagActivos;
 	enum Estado
 	{
 		Desconectado,
@@ -53,11 +54,13 @@ class QMikPPPManager : public QMainWindow
 	void pidePerfiles();
 	void pideUsuarios();
 	void pideCambios();
+	void pideActivos();
 	void addLogText(const QString &txt);
 	void addSecret(const ROS::QSentence &s);
 	void addSecretToTable(const QSecretData &s, int row);
 	void onUsuarioRecibido(const ROS::QSentence &s);
 	void onPerfilRecibido(const ROS::QSentence &s);
+	void onActivoRecibido(const ROS::QSentence &s);
 	void actualizaUsuario(const ROS::QSentence &s);
 
 private slots:
@@ -68,6 +71,10 @@ private slots:
 	void onStateChanged(ROS::Comm::CommState s);
 	void onLoginChanged(ROS::Comm::LoginState s);
 	void onNewProfileSelected(const QString &profileName);
+
+	void on_anyadeUsuario_clicked();
+
+	void on_rangosIP_clicked();
 
 public:
 	explicit QMikPPPManager(QWidget *parent = 0);

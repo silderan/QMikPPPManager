@@ -24,6 +24,8 @@ class QSecretData
 	QString m_perfilOriginal;
 	QString m_IPEstatica;
 	QString m_IPActiva;
+	QString m_sesionID;
+	QStandardItem *firstItem;
 
 	void parseComment(const QString &comment);
 	void parsePlainComment(QString cm);
@@ -65,6 +67,10 @@ public:
 	void setIPEstatica(const QString &IPEstatica);
 	QString IPActiva() const;
 	void setIPActiva(const QString &IPActiva);
+	QStandardItem *getFirstItem() const;
+	QStandardItem *setFirstItem(QStandardItem *value);
+	QString sesionID() const;
+	void setSesionID(const QString &sesionID);
 };
 
 class QSecretsList : public QList<QSecretData>
@@ -126,10 +132,10 @@ class QSecretDataModel : public QStandardItemModel
 	QPerfilesList m_perfiles;
 	QStringList m_nombresColumnas;
 
-	void addSecretToTable(const QSecretData &s, int row);
+	void addSecretToTable(QSecretData &s, int row);
 	friend class QSecretDataDelegate;
 
-	enum columnas
+	enum Columnas
 	{
 		ColUsuario,
 		ColPerfil,
@@ -155,6 +161,11 @@ public:
 	void setColumnas(const QStringList &nombresColumnas) { m_nombresColumnas = nombresColumnas; }
 	void addPerfil(const ROS::QSentence &s);
 	void addSecret(const ROS::QSentence &s, bool addToTable = false);
+	void actualizaUsuario(const ROS::QSentence &s);
+	void setOnline(QSecretData *secret, const QString &IP);
+	QSecretData *findDataByUsername(const QString &usuario);
+	QSecretData *findDataBySesionID(const QString &sesionID);
+	QStandardItem *findItemByUsername(const QString &usuario, Columnas col = ColUsuario);
 };
 
 class QSecretDataTable : public QTableView
@@ -175,6 +186,7 @@ public:
 	void fillupTable() { im->fillupTable(); }
 	void addPerfil(const ROS::QSentence &s) {im->addPerfil(s); }
 	void addSecret(const ROS::QSentence &s, bool addToTable = false) { im->addSecret(s, addToTable); }
+	void actualizaUsuario(const ROS::QSentence &s) { im->actualizaUsuario(s); }
 };
 
 #endif // QSECRETDATA_H

@@ -143,6 +143,26 @@ void QSecretData::setIPActiva(const QString &IPActiva)
 {
 	m_IPActiva = IPActiva;
 }
+
+QStandardItem *QSecretData::getFirstItem() const
+{
+	return firstItem;
+}
+
+QStandardItem *QSecretData::setFirstItem(QStandardItem *value)
+{
+	return firstItem = value;
+}
+
+QString QSecretData::sesionID() const
+{
+	return m_sesionID;
+}
+
+void QSecretData::setSesionID(const QString &sesionID)
+{
+	m_sesionID = sesionID;
+}
 void QSecretData::parseComment(const QString &comment)
 {
 	QStringList fields = comment.split("$");
@@ -325,8 +345,9 @@ QSecretData::QSecretData(const ROS::QSentence &s)
 	  m_usuario(s.attribute("name")),
 	  m_contra(s.attribute("password")),
 	  m_perfilReal(s.attribute("profile")),
+	  m_VozIP(false),
 	  m_IPEstatica(s.attribute("remote-address")),
-	  m_VozIP(false)
+	  firstItem(Q_NULLPTR)
 {
 	parseComment(s.attribute("comment"));
 }
@@ -470,9 +491,9 @@ QSecretDataModel::QSecretDataModel(int rows, const QStringList &cols, QObject *p
 }
 
 #include <QHeaderView>
-void QSecretDataModel::addSecretToTable(const QSecretData &s, int row)
+void QSecretDataModel::addSecretToTable(QSecretData &s, int row)
 {
-	setItem( row, ColUsuario,	new QStandardItem(s.usuario()) );
+	setItem( row, ColUsuario,	s.setFirstItem(new QStandardItem(s.usuario())) );
 	setItem( row, ColPerfil,	new QStandardItem(s.perfilOriginal()) );
 	setItem( row, ColEstado,	new QStandardItem(s.activo() ? "activo" : "inactivo") );
 	setItem( row, ColIP,        new QStandardItem(s.IPEstatica().isEmpty() ? "?" : s.IPEstatica()) );
@@ -504,7 +525,6 @@ void QSecretDataTable::setupTable()
 								<< "VozIP"
 								<< "Notas");
 	setModel(im);
-	setFont(QFont("verdana", 8, 8));
 }
 
 void QSecretDataModel::fillupTable()
@@ -516,7 +536,7 @@ void QSecretDataModel::fillupTable()
 	setRowCount(m_secrets.count());
 
 	for( int row = 0; row < m_secrets.count(); row++ )
-		addSecretToTable(m_secrets.at(row), row);
+		addSecretToTable(m_secrets[row], row);
 }
 
 void QSecretDataModel::addPerfil(const ROS::QSentence &s)
@@ -534,4 +554,76 @@ void QSecretDataModel::addSecret(const ROS::QSentence &s, bool addToTable)
 		appendRow(0);
 		addSecretToTable(m_secrets.last(), m_secrets.count()-1);
 	}
+}
+
+void QSecretDataModel::actualizaUsuario(const ROS::QSentence &s)
+{
+	QSecretData *secret;
+	if( !s.attribute("name").isEmpty() )
+	{
+		secret = findDataByUsername(s.attribute("name"));
+		secret->setSesionID(s.getID());
+		if( secret != Q_NULLPTR )
+			setOnline(secret, s.attribute("address"));
+	}
+	else
+	if( !s.attribute(".dead").isEmpty() )
+	{
+		if( (secret = findDataBySesionID(s.getID())) != Q_NULLPTR )
+			setOnline(secret, "");
+	}
+}
+
+void QSecretDataModel::setOnline(QSecretData *secret, const QString &IP)
+{
+	// Si no está la IP, significa que está offline.
+	QStandardItem *it = item(secret->getFirstItem()->row(), ColIP);
+	if( IP.isEmpty() )
+	{
+		if( secret->IPEstatica().isEmpty() )
+			it->setText("offline");
+		else
+			it->setText( QString("(S)").arg(secret->IPEstatica()) );
+	}
+	else
+	{
+		if( IP == secret->IPEstatica() )
+			it->setText( QString("(S,A) %1").arg(IP) );
+		else
+			it->setText( QString("(A) %1").arg(IP) );
+	}
+}
+
+QSecretData *QSecretDataModel::findDataByUsername(const QString &usuario)
+{
+	for( int i = 0; i < m_secrets.count(); i++ )
+	{
+		if( m_secrets[i].usuario() == usuario )
+			return &(m_secrets[i]);
+	}
+	return Q_NULLPTR;
+}
+
+QSecretData *QSecretDataModel::findDataBySesionID(const QString &sesionID)
+{
+	for( int i = 0; i < m_secrets.count(); i++ )
+	{
+		if( m_secrets[i].sesionID() == sesionID )
+			return &(m_secrets[i]);
+	}
+	return Q_NULLPTR;
+}
+
+QStandardItem *QSecretDataModel::findItemByUsername(const QString &usuario, Columnas col)
+{
+	for( int i = 0; i < m_secrets.count(); i++ )
+	{
+		if( m_secrets[i].usuario() == usuario )
+		{
+			if( col == ColUsuario )
+				return m_secrets[i].getFirstItem();
+			return item(m_secrets[i].getFirstItem()->row(), col);
+		}
+	}
+	return 0;
 }

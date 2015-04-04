@@ -177,36 +177,13 @@ void QMikPPPManager::onReceive(ROS::QSentence &s)
 		onPerfilRecibido(s);
 	else
 	if( s.tag() == tagListening )
+		onActivoRecibido(s);
+	else
+	if( s.tag() == tagActivos )
 		actualizaUsuario(s);
 	else
 	if( s.getResultType() != ROS::QSentence::Done )
 		addLogText(s.toString());
-/*	switch( estado )
-	{
-	case Desconectado:
-		throw "No posible!!!";
-	case ReciviendoUsuarios:
-		switch( s.getResultType() )
-		{
-		case ROS::QSentence::None:
-			break;
-		case ROS::QSentence::Done:
-			estado = UsuariosRecividos;
-			ui->twUsuarios->setEnabled(true);
-			break;
-		case ROS::QSentence::Trap:
-			break;
-		case ROS::QSentence::Fatal:
-			mktAPI.closeCom(false);
-			break;
-		case ROS::QSentence::Reply:
-			addUser(s);
-			break;
-		}
-	case UsuariosRecividos:
-		break;
-	}
-*/
 }
 
 QTableWidgetItem *QMikPPPManager::newTextItem(const QSecretData &s, const QString &txt)
@@ -236,13 +213,6 @@ QCheckBox *QMikPPPManager::newEstado(const QSecretData &s)
 	return cb;
 }
 
-void QMikPPPManager::setCellData(int row, int col, const QSecretData &s, const QString &txt, QWidget *w)
-{
-//	ui->twUsuarios->setItem(row, col, newTextItem(s, txt));
-//	if( w )
-//		ui->twUsuarios->setCellWidget(row, col, w);
-}
-
 void QMikPPPManager::pidePerfiles()
 {
 	if( !tagPerfiles.isEmpty() )
@@ -260,23 +230,18 @@ void QMikPPPManager::pideUsuarios()
 	mktAPI.sendSentence( s );
 }
 
+void QMikPPPManager::pideActivos()
+{
+	if( !tagActivos.isEmpty() )
+		mktAPI.sendCancel(tagActivos);
+	mktAPI.sendSentence( "/ppp/active/print", tagActivos = "Activos" );
+}
+
 void QMikPPPManager::pideCambios()
 {
 	if( !tagListening.isEmpty() )
 		mktAPI.sendCancel(tagListening);
 	mktAPI.sendSentence( "/ppp/active/listen", tagListening = "Listening" );
-}
-
-void QMikPPPManager::addSecretToTable(const QSecretData &s, int row)
-{
-	setCellData(row, ColUsuario, s, s.usuario(), 0);
-	setCellData(row, ColPerfil, s, s.perfilOriginal(), newListaPerfiles(s));
-	setCellData(row, ColEstado, s, s.activo() ? "1" : "0", newEstado(s));
-	setCellData(row, ColNombre, s, s.nombre(), 0);
-	setCellData(row, ColDireccion, s, s.direccion(), 0);
-	setCellData(row, ColPoblacion, s, s.poblacion(), 0);
-	setCellData(row, ColTelefonos, s, s.telefonos(), 0);
-	setCellData(row, ColNotas, s, s.notas(), 0);
 }
 
 void QMikPPPManager::onUsuarioRecibido(const ROS::QSentence &s)
@@ -286,9 +251,10 @@ void QMikPPPManager::onUsuarioRecibido(const ROS::QSentence &s)
 	case ROS::QSentence::None:
 		break;
 	case ROS::QSentence::Done:
-		ui->statusBar->showMessage(tr("Usuarios recibidos"));
+		ui->statusBar->showMessage(tr("Usuarios recibidos. Pidiendo activos"));
 		tagUsuarios.clear();
 		ui->twUsuarios->fillupTable();
+		pideActivos();
 		pideCambios();
 		break;
 	case ROS::QSentence::Reply:
@@ -325,7 +291,38 @@ void QMikPPPManager::onPerfilRecibido(const ROS::QSentence &s)
 	}
 }
 
+void QMikPPPManager::onActivoRecibido(const ROS::QSentence &s)
+{
+	switch( s.getResultType() )
+	{
+	case ROS::QSentence::None:
+		break;
+	case ROS::QSentence::Done:
+		ui->statusBar->showMessage( tr("Activos recibidos. Comprobando cambios en vivo.") );
+		pideCambios();
+		break;
+	case ROS::QSentence::Reply:
+		actualizaUsuario(s);
+		break;
+	case ROS::QSentence::Trap:
+		break;
+	case ROS::QSentence::Fatal:
+		break;
+	}
+}
+
 void QMikPPPManager::actualizaUsuario(const ROS::QSentence &s)
 {
+	ui->twUsuarios->actualizaUsuario(s);
 	s.getID();
+}
+
+void QMikPPPManager::on_anyadeUsuario_clicked()
+{
+
+}
+
+void QMikPPPManager::on_rangosIP_clicked()
+{
+
 }
