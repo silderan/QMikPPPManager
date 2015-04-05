@@ -137,9 +137,9 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="rangosIP">
+       <widget class="QPushButton" name="btConfig">
         <property name="text">
-         <string>Rangos IP</string>
+         <string>Configuración</string>
         </property>
        </widget>
       </item>
@@ -162,7 +162,7 @@
        <bool>false</bool>
       </property>
       <attribute name="verticalHeaderDefaultSectionSize">
-       <number>15</number>
+       <number>17</number>
       </attribute>
       <attribute name="verticalHeaderMinimumSectionSize">
        <number>15</number>

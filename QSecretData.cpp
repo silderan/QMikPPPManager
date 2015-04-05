@@ -2,167 +2,6 @@
 
 #include "QConfigData.h"
 
-QString QSecretData::direccion() const
-{
-	return m_direccion;
-}
-
-void QSecretData::setDireccion(const QString &Direccion)
-{
-	m_direccion = Direccion;
-}
-
-QString QSecretData::telefonos() const
-{
-	return m_telefonos;
-}
-
-void QSecretData::setTelefonos(const QString &Telefonos)
-{
-	m_telefonos = Telefonos;
-}
-
-QString QSecretData::notas() const
-{
-	return m_notas;
-}
-
-void QSecretData::setNotas(const QString &Notas)
-{
-	m_notas = Notas;
-}
-
-
-QString QSecretData::perfilOriginal() const
-{
-	return m_perfilOriginal;
-}
-
-void QSecretData::setPerfilOriginal(const QString &perfilOriginal)
-{
-	m_perfilOriginal = perfilOriginal;
-}
-
-QString QSecretData::perfilReal() const
-{
-	return m_perfilReal;
-}
-
-void QSecretData::setPerfilReal(const QString &perfil)
-{
-	m_perfilReal = perfil;
-}
-
-QString QSecretData::nombre() const
-{
-	return m_nombre;
-}
-
-void QSecretData::setNombre(const QString &Nombre)
-{
-	m_nombre = Nombre;
-}
-
-
-QString QSecretData::ID() const
-{
-	return m_ID;
-}
-
-void QSecretData::setID(const QString &ID)
-{
-	m_ID = ID;
-}
-
-QString QSecretData::instalador() const
-{
-	return m_instalador;
-}
-
-void QSecretData::setInstalador(const QString &instalador)
-{
-	m_instalador = instalador;
-}
-
-QString QSecretData::poblacion() const
-{
-	return m_poblacion;
-}
-
-void QSecretData::setPoblacion(const QString &poblacion)
-{
-	m_poblacion = poblacion;
-}
-
-QString QSecretData::conseguidor() const
-{
-	return m_conseguidor;
-}
-
-void QSecretData::setConseguidor(const QString &conseguidor)
-{
-	m_conseguidor = conseguidor;
-}
-
-QString QSecretData::email() const
-{
-	return m_email;
-}
-
-void QSecretData::setEmail(const QString &email)
-{
-	m_email = email;
-}
-
-bool QSecretData::VozIP() const
-{
-	return m_VozIP;
-}
-
-void QSecretData::setVozIP(bool VozIP)
-{
-	m_VozIP = VozIP;
-}
-
-QString QSecretData::IPEstatica() const
-{
-	return m_IPEstatica;
-}
-
-void QSecretData::setIPEstatica(const QString &IPEstatica)
-{
-	m_IPEstatica = IPEstatica;
-}
-
-QString QSecretData::IPActiva() const
-{
-	return m_IPActiva;
-}
-
-void QSecretData::setIPActiva(const QString &IPActiva)
-{
-	m_IPActiva = IPActiva;
-}
-
-QStandardItem *QSecretData::getFirstItem() const
-{
-	return firstItem;
-}
-
-QStandardItem *QSecretData::setFirstItem(QStandardItem *value)
-{
-	return firstItem = value;
-}
-
-QString QSecretData::sesionID() const
-{
-	return m_sesionID;
-}
-
-void QSecretData::setSesionID(const QString &sesionID)
-{
-	m_sesionID = sesionID;
-}
 void QSecretData::parseComment(const QString &comment)
 {
 	QStringList fields = comment.split("$");
@@ -340,7 +179,7 @@ bool QSecretData::activo() const
 }
 
 QSecretData::QSecretData(const ROS::QSentence &s)
-	: m_ID(s.getID()),
+	: m_secretID(s.getID()),
 	  m_instalador("no_definido"),
 	  m_usuario(s.attribute("name")),
 	  m_contra(s.attribute("password")),
@@ -372,6 +211,7 @@ QWidget *QSecretDataDelegate::createEditor(QWidget *parent,
 	{
 		QComboBox *cb = new QComboBox(parent);
 		Q_ASSERT(cb);
+		cb->setEditable(true);
 		const QStringList &perfiles = model->m_perfiles.nombresPerfiles();
 		foreach( QString p, perfiles )
 			cb->addItem(p);

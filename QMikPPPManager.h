@@ -73,8 +73,10 @@ private slots:
 	void onNewProfileSelected(const QString &profileName);
 
 	void on_anyadeUsuario_clicked();
+	void on_btConfig_clicked();
 
-	void on_rangosIP_clicked();
+public slots:
+	void updateConfig();
 
 public:
 	explicit QMikPPPManager(QWidget *parent = 0);

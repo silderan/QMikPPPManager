@@ -19,7 +19,8 @@ SOURCES += main.cpp\
     QMD5.cpp \
     QSentences.cpp \
     QSecretData.cpp \
-    QConfigData.cpp
+    QConfigData.cpp \
+    DlgConfiguracion.cpp
 
 HEADERS  += QMikPPPManager.h \
     Comm.h \
@@ -27,6 +28,8 @@ HEADERS  += QMikPPPManager.h \
     QMD5.h \
     QSentences.h \
     QSecretData.h \
-    QConfigData.h
+    QConfigData.h \
+    DlgConfiguracion.h
 
-FORMS    += QMikPPPManager.ui
+FORMS    += QMikPPPManager.ui \
+    DlgConfiguracion.ui

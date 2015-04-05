@@ -32,10 +32,7 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 	ui->twUsuarios->setEnabled(false);
 	// Rellenamos el diálogo con la configuración.
 	gGlobalConfig.load();
-	ui->leIP->setText(gGlobalConfig.getHost());
-	ui->sbPort->setValue(gGlobalConfig.getPort());
-	ui->leUser->setText(gGlobalConfig.getUserName());
-	ui->lePass->setText(gGlobalConfig.getUserPass());
+	updateConfig();
 
 	connect( &mktAPI, SIGNAL(comError(ROS::Comm::CommError,QAbstractSocket::SocketError)),
 			 this, SLOT(onComError(ROS::Comm::CommError,QAbstractSocket::SocketError)) );
@@ -53,8 +50,8 @@ QMikPPPManager::~QMikPPPManager()
 {
 	mktAPI.closeCom();
 	// Guardamos los datos del diálogo.
-	gGlobalConfig.setHost(ui->leIP->text());
-	gGlobalConfig.setPort(ui->sbPort->value());
+	gGlobalConfig.setRemoteHost(ui->leIP->text());
+	gGlobalConfig.setRemotePort(ui->sbPort->value());
 	gGlobalConfig.setUserName(ui->leUser->text());
 	gGlobalConfig.setUserPass(ui->lePass->text());
 	gGlobalConfig.save();
@@ -176,10 +173,10 @@ void QMikPPPManager::onReceive(ROS::QSentence &s)
 	if( s.tag() == tagPerfiles )
 		onPerfilRecibido(s);
 	else
-	if( s.tag() == tagListening )
+	if( s.tag() == tagActivos )
 		onActivoRecibido(s);
 	else
-	if( s.tag() == tagActivos )
+	if( s.tag() == tagListening )
 		actualizaUsuario(s);
 	else
 	if( s.getResultType() != ROS::QSentence::Done )
@@ -189,14 +186,14 @@ void QMikPPPManager::onReceive(ROS::QSentence &s)
 QTableWidgetItem *QMikPPPManager::newTextItem(const QSecretData &s, const QString &txt)
 {
 	QTableWidgetItem *it = new QTableWidgetItem( txt );
-	it->setData(Qt::UserRole, s.ID());
+	it->setData(Qt::UserRole, s.secretID());
 	return it;
 }
 
 QComboBox *QMikPPPManager::newListaPerfiles(const QSecretData &s)
 {
 	QString perfil = s.perfilOriginal();
-	QString id = s.ID();
+	QString id = s.secretID();
 	QComboBox *cb = new QComboBox();
 	cb->addItems(perfiles);
 	cb->setCurrentText(perfil);
@@ -209,7 +206,7 @@ QCheckBox *QMikPPPManager::newEstado(const QSecretData &s)
 {
 	QCheckBox *cb = new QCheckBox("Activo");
 	cb->setChecked(s.activo());
-	cb->setProperty("ID", s.ID());
+	cb->setProperty("ID", s.secretID());
 	return cb;
 }
 
@@ -255,7 +252,6 @@ void QMikPPPManager::onUsuarioRecibido(const ROS::QSentence &s)
 		tagUsuarios.clear();
 		ui->twUsuarios->fillupTable();
 		pideActivos();
-		pideCambios();
 		break;
 	case ROS::QSentence::Reply:
 		ui->statusBar->showMessage(QString("Recibido: %1").arg(s.getID()));
@@ -293,15 +289,19 @@ void QMikPPPManager::onPerfilRecibido(const ROS::QSentence &s)
 
 void QMikPPPManager::onActivoRecibido(const ROS::QSentence &s)
 {
+	static int counter;
+
 	switch( s.getResultType() )
 	{
 	case ROS::QSentence::None:
 		break;
 	case ROS::QSentence::Done:
 		ui->statusBar->showMessage( tr("Activos recibidos. Comprobando cambios en vivo.") );
+		counter = 0;
 		pideCambios();
 		break;
 	case ROS::QSentence::Reply:
+		ui->statusBar->showMessage(QString("Activo recibido: %1 (id=%2)").arg(++counter).arg(s.getID()));
 		actualizaUsuario(s);
 		break;
 	case ROS::QSentence::Trap:
@@ -322,7 +322,25 @@ void QMikPPPManager::on_anyadeUsuario_clicked()
 
 }
 
-void QMikPPPManager::on_rangosIP_clicked()
+#include "DlgConfiguracion.h"
+void QMikPPPManager::on_btConfig_clicked()
 {
+	DlgConfiguracion *dlgConfig = new DlgConfiguracion(this);
+	if( dlgConfig->exec() )
+	{
+		updateConfig();
+	}
+}
 
+void QMikPPPManager::updateConfig()
+{
+	ui->leIP->setText(gGlobalConfig.remoteHost());
+	ui->sbPort->setValue(gGlobalConfig.remotePort());
+	ui->leUser->setText(gGlobalConfig.getUserName());
+	ui->lePass->setText(gGlobalConfig.getUserPass());
+
+	QFont tableFont = ui->twUsuarios->font();
+	tableFont.setPixelSize(gGlobalConfig.tamFuente());
+	ui->twUsuarios->setFont(tableFont);
+	ui->twUsuarios->verticalHeader()->setDefaultSectionSize(gGlobalConfig.alturaLinea());
 }
