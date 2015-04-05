@@ -278,7 +278,7 @@ void QMikPPPManager::onPerfilRecibido(const ROS::QSentence &s)
 		pideUsuarios();
 		break;
 	case ROS::QSentence::Reply:
-		ui->twUsuarios->addPerfil(s);
+		gGlobalConfig.addPerfil(s);
 		break;
 	case ROS::QSentence::Trap:
 		break;
@@ -336,8 +336,8 @@ void QMikPPPManager::updateConfig()
 {
 	ui->leIP->setText(gGlobalConfig.remoteHost());
 	ui->sbPort->setValue(gGlobalConfig.remotePort());
-	ui->leUser->setText(gGlobalConfig.getUserName());
-	ui->lePass->setText(gGlobalConfig.getUserPass());
+	ui->leUser->setText(gGlobalConfig.userName());
+	ui->lePass->setText(gGlobalConfig.userPass());
 
 	QFont tableFont = ui->twUsuarios->font();
 	tableFont.setPixelSize(gGlobalConfig.tamFuente());

@@ -33,10 +33,10 @@ void QSecretData::parseComment(const QString &comment)
 	}
 	else
 	{
-		setPerfilOriginal((perfilReal().isEmpty() || (perfilReal() == gGlobalConfig.getPerfilInactivo())) ? gGlobalConfig.getPerfilBasico() : perfilReal());
+		setPerfilOriginal((perfilReal().isEmpty() || (perfilReal() == gGlobalConfig.perfilInactivo())) ? gGlobalConfig.perfilBasico() : perfilReal());
 		parsePlainComment(comment);
 	}
-	if( perfilReal() != gGlobalConfig.getPerfilInactivo() )
+	if( perfilReal() != gGlobalConfig.perfilInactivo() )
 		setPerfilOriginal(perfilReal());
 }
 
@@ -175,7 +175,7 @@ QString QSecretData::comment()
 
 bool QSecretData::activo() const
 {
-	return perfilReal() != gGlobalConfig.getPerfilInactivo();
+	return perfilReal() != gGlobalConfig.perfilInactivo();
 }
 
 QSecretData::QSecretData(const ROS::QSentence &s)
@@ -206,15 +206,17 @@ QWidget *QSecretDataDelegate::createEditor(QWidget *parent,
 									   const QStyleOptionViewItem &/*option*/,
 									   const QModelIndex &index ) const
 {
-	const QSecretDataModel *model = static_cast<const QSecretDataModel*>(index.model());
+//	const QSecretDataModel *model = static_cast<const QSecretDataModel*>(index.model());
 	if( index.column() == QSecretDataModel::ColPerfil )
 	{
 		QComboBox *cb = new QComboBox(parent);
 		Q_ASSERT(cb);
 		cb->setEditable(true);
-		const QStringList &perfiles = model->m_perfiles.nombresPerfiles();
-		foreach( QString p, perfiles )
-			cb->addItem(p);
+		foreach( QString p, gGlobalConfig.perfiles().nombres() )
+		{
+			if( p != gGlobalConfig.perfilInactivo() )
+				cb->addItem(p);
+		}
 		return cb;
 	}
 	else
@@ -309,11 +311,8 @@ void QSecretDataDelegate::updateEditorGeometry(QWidget *editor, const QStyleOpti
 
 void QPerfilesList::append(const QPerfilData &s)
 {
-	if( s.nombre() != gGlobalConfig.getPerfilInactivo() )
-	{
-		m_nombresPerfiles.append(s.nombre());
-		QList::append(s);
-	}
+	m_nombres.append(s.nombre());
+	QList::append(s);
 }
 
 bool QPerfilesList::contains(const QString &s) const
@@ -379,15 +378,10 @@ void QSecretDataModel::fillupTable()
 		addSecretToTable(m_secrets[row], row);
 }
 
-void QSecretDataModel::addPerfil(const ROS::QSentence &s)
-{
-	m_perfiles.append(s);
-}
-
 void QSecretDataModel::addSecret(const ROS::QSentence &s, bool addToTable)
 {
 	QString nombre = s.attribute("name");
-	if( (nombre != gGlobalConfig.getPerfilInactivo()) && !m_perfiles.contains(nombre) )
+	if( (nombre != gGlobalConfig.perfilInactivo()) && !gGlobalConfig.perfiles().contains(nombre) )
 		m_secrets.append(s);
 	if( addToTable )
 	{

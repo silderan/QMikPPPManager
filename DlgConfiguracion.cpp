@@ -25,6 +25,21 @@ DlgConfiguracion::DlgConfiguracion(QWidget *parent) :
 	ui->tableWidget->setRowCount( qMax(10, ins.count()+4) );
 	for( int row = 0; row < ins.count(); row++ )
 		ui->tableWidget->setItem(row, 0, new QTableWidgetItem(ins.at(row)));
+
+	if( gGlobalConfig.perfiles().nombres().isEmpty() )
+	{
+		ui->cbBasico->addItem(gGlobalConfig.perfilBasico());
+		ui->cbInactivo->addItem(gGlobalConfig.perfilInactivo());
+
+	}
+	else
+	{
+		ui->cbBasico->addItems(gGlobalConfig.perfiles().nombres());
+		ui->cbInactivo->addItems(gGlobalConfig.perfiles().nombres());
+
+	}
+	ui->cbBasico->setCurrentText(gGlobalConfig.perfilBasico());
+	ui->cbInactivo->setCurrentText(gGlobalConfig.perfilInactivo());
 }
 
 DlgConfiguracion::~DlgConfiguracion()
@@ -46,6 +61,8 @@ void DlgConfiguracion::on_btAceptar_clicked()
 		if( (ui->tableWidget->item(row, 0) != Q_NULLPTR) && !(s = ui->tableWidget->item(row, 0)->text()).isEmpty() )
 			ins.append(s);
 	gGlobalConfig.setInstaladores(ins);
+	gGlobalConfig.setPerfilBasico(ui->cbBasico->currentText());
+	gGlobalConfig.setPerfilInactivo(ui->cbInactivo->currentText());
 	accept();
 }
 

@@ -99,33 +99,6 @@ public:
 	}
 };
 
-class QPerfilData
-{
-	QString m_nombre;
-
-public:
-	const QString &nombre() const { return m_nombre; }
-	void setNombre(const QString &n) { m_nombre = n; }
-	QPerfilData(const ROS::QSentence &s)
-	{
-		m_nombre = s.attribute("name");
-	}
-	bool operator==(const QString &nombre) const
-	{
-		return m_nombre == nombre;
-	}
-};
-
-class QPerfilesList : public QList<QPerfilData>
-{
-	QStringList m_nombresPerfiles;
-
-public:
-	void append(const QPerfilData &s);
-	bool contains(const QString &s) const;
-	const QStringList &nombresPerfiles()const { return m_nombresPerfiles; }
-};
-
 class QSecretDataDelegate : public QStyledItemDelegate
 {
 	Q_OBJECT
@@ -146,7 +119,6 @@ public:
 class QSecretDataModel : public QStandardItemModel
 {
 	QSecretsList m_secrets;
-	QPerfilesList m_perfiles;
 	QStringList m_nombresColumnas;
 
 	void addSecretToTable(QSecretData &s, int row);
@@ -176,7 +148,6 @@ public:
 	void setupTable();
 	void fillupTable();
 	void setColumnas(const QStringList &nombresColumnas) { m_nombresColumnas = nombresColumnas; }
-	void addPerfil(const ROS::QSentence &s);
 	void addSecret(const ROS::QSentence &s, bool addToTable = false);
 	void actualizaUsuario(const ROS::QSentence &s);
 	void setOnline(QSecretData *secret, const QString &IP);
@@ -201,7 +172,6 @@ public:
 	}
 	void setupTable();
 	void fillupTable() { im->fillupTable(); }
-	void addPerfil(const ROS::QSentence &s) {im->addPerfil(s); }
 	void addSecret(const ROS::QSentence &s, bool addToTable = false) { im->addSecret(s, addToTable); }
 	void actualizaUsuario(const ROS::QSentence &s) { im->actualizaUsuario(s); }
 };
