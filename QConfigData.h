@@ -53,7 +53,7 @@ public:
 		setUserPass("");
 		setPerfilInactivo("SinAcceso");
 		setPerfilBasico("5/1");
-		setTamFuente(8);
+		setTamFuente(10);
 		setAlturaLinea(17);
 		setDeIPV4(192,168,1,50);
 		setAIPV4(192,168,1,254);

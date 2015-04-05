@@ -152,9 +152,6 @@
         <pointsize>8</pointsize>
        </font>
       </property>
-      <property name="editTriggers">
-       <set>QAbstractItemView::EditKeyPressed|QAbstractItemView::SelectedClicked</set>
-      </property>
       <property name="sortingEnabled">
        <bool>true</bool>
       </property>

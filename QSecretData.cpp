@@ -277,30 +277,31 @@ void QSecretDataDelegate::setEditorData(QWidget *editor,
 void QSecretDataDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
 								   const QModelIndex &index) const
 {
+	QString nuevoDato;
 	if( index.column() == QSecretDataModel::ColPerfil )
 	{
 		QComboBox *cb = static_cast<QComboBox*>(editor);
-		QString perfil = cb->currentText();
-		model->setData(index, perfil, Qt::EditRole);
+		model->setData(index, nuevoDato = cb->currentText(), Qt::EditRole);
 	}
 	else
 	if( index.column() == QSecretDataModel::ColEstado )
 	{
 		QComboBox *cb = static_cast<QComboBox*>(editor);
-		model->setData(index, cb->currentIndex() == 0 ? "activo" : "inactivo", Qt::EditRole);
+		model->setData(index, nuevoDato = (cb->currentIndex() == 0 ? "activo" : "inactivo"), Qt::EditRole);
 	}
 	else
 	if( index.column() == QSecretDataModel::ColVozIP )
 	{
 		QComboBox *cb = static_cast<QComboBox*>(editor);
-		model->setData(index, cb->currentIndex() == 0 ? "Sí" : "No", Qt::EditRole);
+		model->setData(index, nuevoDato = (cb->currentIndex() == 0 ? "Sí" : "No"), Qt::EditRole);
 	}
 	else
 	{
 		QLineEdit *le = static_cast<QLineEdit*>(editor);
-		QString txt = le->text();
-		model->setData(index, txt, Qt::EditRole);
+		model->setData(index, nuevoDato = le->text(), Qt::EditRole);
 	}
+	QSecretDataModel *sm = static_cast<QSecretDataModel*>(index.model());
+	sm->onDatoModificado(index.row(), index.column());
 }
 
 void QSecretDataDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &/* index */) const
@@ -326,25 +327,32 @@ bool QPerfilesList::contains(const QString &s) const
 QSecretDataModel::QSecretDataModel(int rows, const QStringList &cols, QObject *p)
 	:QStandardItemModel(rows, cols.count(), p), m_nombresColumnas(cols)
 {
-
 }
 
 #include <QHeaderView>
 void QSecretDataModel::addSecretToTable(QSecretData &s, int row)
 {
-	setItem( row, ColUsuario,	s.setFirstItem(new QStandardItem(s.usuario())) );
-	setItem( row, ColPerfil,	new QStandardItem(s.perfilOriginal()) );
-	setItem( row, ColEstado,	new QStandardItem(s.activo() ? "activo" : "inactivo") );
-	setItem( row, ColIP,        new QStandardItem(s.IPEstatica().isEmpty() ? "?" : s.IPEstatica()) );
-	setItem( row, ColNombre,	new QStandardItem(s.nombre()) );
-	setItem( row, ColDireccion, new QStandardItem(s.direccion()) );
-	setItem( row, ColPoblacion, new QStandardItem(s.poblacion()) );
-	setItem( row, ColTelefonos, new QStandardItem(s.telefonos()) );
-	setItem( row, ColInstalador,new QStandardItem(s.instalador()) );
-	setItem( row, ColConseguidor,new QStandardItem(s.conseguidor()) );
-	setItem( row, ColEMail,		new QStandardItem(s.email()) );
-	setItem( row, ColVozIP,		new QStandardItem(s.VozIP()?"Sí":"No") );
-	setItem( row, ColNotas,		new QStandardItem(s.notas()) );
+	setItem( row, ColUsuario,	s.setFirstItem(new QSecretItem(s.usuario(), s.secretID())) );
+	setItem( row, ColPerfil,	new QSecretItem(s.perfilOriginal(), s.secretID()) );
+	setItem( row, ColEstado,	new QSecretItem(s.activo() ? "activo" : "inactivo", s.secretID()) );
+	setItem( row, ColIP,        new QSecretItem(s.IPEstatica().isEmpty() ? "?" : s.IPEstatica(), s.secretID()) );
+	setItem( row, ColNombre,	new QSecretItem(s.nombre(), s.secretID()) );
+	setItem( row, ColDireccion, new QSecretItem(s.direccion(), s.secretID()) );
+	setItem( row, ColPoblacion, new QSecretItem(s.poblacion(), s.secretID()) );
+	setItem( row, ColTelefonos, new QSecretItem(s.telefonos(), s.secretID()) );
+	setItem( row, ColInstalador,new QSecretItem(s.instalador(), s.secretID()) );
+	setItem( row, ColConseguidor,new QSecretItem(s.conseguidor(), s.secretID()) );
+	setItem( row, ColEMail,		new QSecretItem(s.email(), s.secretID()) );
+	setItem( row, ColVozIP,		new QSecretItem(s.VozIP()?"Sí":"No", s.secretID()) );
+	setItem( row, ColNotas,		new QSecretItem(s.notas(), s.secretID()) );
+}
+
+QSecretDataTable::QSecretDataTable(QWidget *papi)
+	: QTableView(papi), delegado(papi)
+{
+	setupTable();
+	setItemDelegate(&delegado);
+	connect(im, SIGNAL(datoModificado(QSecretDataModel::Columnas,QString,QString)), SIGNAL(datoModificado(QSecretDataModel::Columnas,QString,QString)));
 }
 
 void QSecretDataTable::setupTable()
@@ -411,7 +419,7 @@ void QSecretDataModel::actualizaUsuario(const ROS::QSentence &s)
 void QSecretDataModel::setOnline(QSecretData *secret, const QString &IP)
 {
 	// Si no está la IP, significa que está offline.
-	QStandardItem *it = item(secret->getFirstItem()->row(), ColIP);
+	QSecretItem *it = static_cast<QSecretItem*>(item(secret->getFirstItem()->row(), ColIP));
 	if( IP.isEmpty() )
 	{
 		if( secret->IPEstatica().isEmpty() )
@@ -448,7 +456,7 @@ QSecretData *QSecretDataModel::findDataBySesionID(const QString &sesionID)
 	return Q_NULLPTR;
 }
 
-QStandardItem *QSecretDataModel::findItemByUsername(const QString &usuario, Columnas col)
+QSecretItem *QSecretDataModel::findItemByUsername(const QString &usuario, Columnas col)
 {
 	for( int i = 0; i < m_secrets.count(); i++ )
 	{
@@ -456,8 +464,14 @@ QStandardItem *QSecretDataModel::findItemByUsername(const QString &usuario, Colu
 		{
 			if( col == ColUsuario )
 				return m_secrets[i].getFirstItem();
-			return item(m_secrets[i].getFirstItem()->row(), col);
+			return static_cast<QSecretItem*>(item(m_secrets[i].getFirstItem()->row(), col));
 		}
 	}
 	return 0;
+}
+
+void QSecretDataModel::onDatoModificado(int row, int col)
+{
+	const QSecretItem *it = static_cast<const QSecretItem*>(item(row, col));
+	emit datoModificado(col, it->text(), it->secretID());
 }

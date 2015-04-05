@@ -6,6 +6,19 @@
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
 
+
+class QSecretItem : public QStandardItem
+{
+	QString m_secretID;
+public:
+	const QString &secretID() const { return m_secretID; }
+
+	QSecretItem(const QString &txt, const QString &secret_ID)
+		: QStandardItem(txt), m_secretID(secret_ID)
+	{
+	}
+};
+
 class QSecretData
 {
 	QString m_secretID;
@@ -25,7 +38,7 @@ class QSecretData
 	QString m_IPEstatica;
 	QString m_IPActiva;
 	QString m_sesionID;
-	QStandardItem *firstItem;
+	QSecretItem *firstItem;
 
 	void parseComment(const QString &comment);
 	void parsePlainComment(QString cm);
@@ -80,8 +93,8 @@ public:
 	QString IPActiva() const			{ return m_IPActiva; }
 	void setIPActiva(const QString &ip)	{ m_IPActiva = ip; }
 
-	QStandardItem *getFirstItem() const { return firstItem; }
-	QStandardItem *setFirstItem(QStandardItem *value) { return firstItem = value; }
+	QSecretItem *getFirstItem() const { return firstItem; }
+	QSecretItem *setFirstItem(QSecretItem *value) { return firstItem = value; }
 
 	QString sesionID() const { return m_sesionID;}
 	void setSesionID(const QString &s) { m_sesionID = s; }
@@ -118,12 +131,15 @@ public:
 
 class QSecretDataModel : public QStandardItemModel
 {
+	Q_OBJECT
+
 	QSecretsList m_secrets;
 	QStringList m_nombresColumnas;
 
 	void addSecretToTable(QSecretData &s, int row);
 	friend class QSecretDataDelegate;
 
+public:
 	enum Columnas
 	{
 		ColUsuario,
@@ -142,7 +158,6 @@ class QSecretDataModel : public QStandardItemModel
 		NumColumnas
 	};
 
-public:
 	QSecretDataModel(int rows, const QStringList &cols, QObject *p = 0);
 
 	void setupTable();
@@ -153,7 +168,11 @@ public:
 	void setOnline(QSecretData *secret, const QString &IP);
 	QSecretData *findDataByUsername(const QString &usuario);
 	QSecretData *findDataBySesionID(const QString &sesionID);
-	QStandardItem *findItemByUsername(const QString &usuario, Columnas col = ColUsuario);
+	QSecretItem *findItemByUsername(const QString &usuario, Columnas col = ColUsuario);
+
+	void onDatoModificado(int row, int col);
+signals:
+	void datoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &secretID);
 };
 
 class QSecretDataTable : public QTableView
@@ -164,16 +183,14 @@ class QSecretDataTable : public QTableView
 	friend class QSecretDataDelegate;
 
 public:
-	QSecretDataTable(QWidget *papi = 0)
-		: QTableView(papi), delegado(papi)
-	{
-		setupTable();
-		setItemDelegate(&delegado);
-	}
+	QSecretDataTable(QWidget *papi = 0);
 	void setupTable();
 	void fillupTable() { im->fillupTable(); }
 	void addSecret(const ROS::QSentence &s, bool addToTable = false) { im->addSecret(s, addToTable); }
 	void actualizaUsuario(const ROS::QSentence &s) { im->actualizaUsuario(s); }
+
+signals:
+	void datoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &secretID);
 };
 
 #endif // QSECRETDATA_H
