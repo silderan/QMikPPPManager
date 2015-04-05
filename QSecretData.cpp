@@ -277,38 +277,34 @@ void QSecretDataDelegate::setEditorData(QWidget *editor,
 void QSecretDataDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
 								   const QModelIndex &index) const
 {
-	QString nuevoDato;
 	if( index.column() == QSecretDataModel::ColPerfil )
 	{
 		QComboBox *cb = static_cast<QComboBox*>(editor);
-		model->setData(index, nuevoDato = cb->currentText(), Qt::EditRole);
+		model->setData(index, cb->currentText(), Qt::EditRole);
 	}
 	else
 	if( index.column() == QSecretDataModel::ColEstado )
 	{
 		QComboBox *cb = static_cast<QComboBox*>(editor);
-		model->setData(index, nuevoDato = (cb->currentIndex() == 0 ? "activo" : "inactivo"), Qt::EditRole);
+		model->setData(index, cb->currentIndex() == 0 ? "activo" : "inactivo", Qt::EditRole);
 	}
 	else
 	if( index.column() == QSecretDataModel::ColVozIP )
 	{
 		QComboBox *cb = static_cast<QComboBox*>(editor);
-		model->setData(index, nuevoDato = (cb->currentIndex() == 0 ? "Sí" : "No"), Qt::EditRole);
+		model->setData(index, cb->currentIndex() == 0 ? "Sí" : "No", Qt::EditRole);
 	}
 	else
 	{
 		QLineEdit *le = static_cast<QLineEdit*>(editor);
-		model->setData(index, nuevoDato = le->text(), Qt::EditRole);
+		model->setData(index, le->text(), Qt::EditRole);
 	}
-	QSecretDataModel *sm = static_cast<QSecretDataModel*>(index.model());
-	sm->onDatoModificado(index.row(), index.column());
 }
 
 void QSecretDataDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &/* index */) const
 {
 	editor->setGeometry(option.rect);
 }
-
 
 void QPerfilesList::append(const QPerfilData &s)
 {
@@ -345,6 +341,35 @@ void QSecretDataModel::addSecretToTable(QSecretData &s, int row)
 	setItem( row, ColEMail,		new QSecretItem(s.email(), s.secretID()) );
 	setItem( row, ColVozIP,		new QSecretItem(s.VozIP()?"Sí":"No", s.secretID()) );
 	setItem( row, ColNotas,		new QSecretItem(s.notas(), s.secretID()) );
+}
+
+bool QSecretDataModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+	if( role == Qt::EditRole )
+	{
+		QString ID = secretID(index.row());
+		emit datoModificado(static_cast<Columnas>(index.column()), value.toString(), ID);
+	}
+	return QStandardItemModel::setData(index, value, role);
+}
+
+QString QSecretDataModel::usuario(int row)
+{
+	return index(row, ColUsuario).data(Qt::DisplayRole).toString();
+}
+
+QSecretData *QSecretDataModel::secretData(int row)
+{
+	QString user = usuario(row);
+	return findDataByUsername(user);
+}
+
+QString QSecretDataModel::secretID(int row)
+{
+	QSecretData *s = secretData(row);
+	if( s )
+		return s->secretID();
+	return QString();
 }
 
 QSecretDataTable::QSecretDataTable(QWidget *papi)
@@ -436,42 +461,32 @@ void QSecretDataModel::setOnline(QSecretData *secret, const QString &IP)
 	}
 }
 
-QSecretData *QSecretDataModel::findDataByUsername(const QString &usuario)
+QSecretData *QSecretDataModel::findDataByUsername(const QString &us)
 {
 	for( int i = 0; i < m_secrets.count(); i++ )
 	{
-		if( m_secrets[i].usuario() == usuario )
+		if( m_secrets[i].usuario() == us )
 			return &(m_secrets[i]);
 	}
 	return Q_NULLPTR;
 }
 
-QSecretData *QSecretDataModel::findDataBySesionID(const QString &sesionID)
+QSecretData *QSecretDataModel::findDataBySesionID(const QString &id)
 {
 	for( int i = 0; i < m_secrets.count(); i++ )
 	{
-		if( m_secrets[i].sesionID() == sesionID )
+		if( m_secrets[i].sesionID() == id )
 			return &(m_secrets[i]);
 	}
 	return Q_NULLPTR;
 }
 
-QSecretItem *QSecretDataModel::findItemByUsername(const QString &usuario, Columnas col)
+QSecretData *QSecretDataModel::findDataBySecretID(const QString &id)
 {
 	for( int i = 0; i < m_secrets.count(); i++ )
 	{
-		if( m_secrets[i].usuario() == usuario )
-		{
-			if( col == ColUsuario )
-				return m_secrets[i].getFirstItem();
-			return static_cast<QSecretItem*>(item(m_secrets[i].getFirstItem()->row(), col));
-		}
+		if( m_secrets[i].secretID() == id )
+			return &(m_secrets[i]);
 	}
-	return 0;
-}
-
-void QSecretDataModel::onDatoModificado(int row, int col)
-{
-	const QSecretItem *it = static_cast<const QSecretItem*>(item(row, col));
-	emit datoModificado(col, it->text(), it->secretID());
+	return Q_NULLPTR;
 }

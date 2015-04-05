@@ -44,6 +44,8 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 			 this, SLOT(onLoginChanged(ROS::Comm::LoginState)) );
 
 	connect( &mktAPI, SIGNAL(comReceive(ROS::QSentence&)), this, SLOT(onReceive(ROS::QSentence&)) );
+	connect( ui->twUsuarios, SIGNAL(datoModificado(QSecretDataModel::Columnas,QString,QString)),
+			 this, SLOT(onDatoModificado(QSecretDataModel::Columnas,QString,QString)) );
 }
 
 QMikPPPManager::~QMikPPPManager()
@@ -329,6 +331,146 @@ void QMikPPPManager::on_btConfig_clicked()
 	if( dlgConfig->exec() )
 	{
 		updateConfig();
+	}
+}
+
+void QMikPPPManager::onDatoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &id)
+{
+	switch( col )
+	{
+	case QSecretDataModel::ColUsuario:
+		break;
+	case QSecretDataModel::ColPerfil:
+		{
+			ROS::QSentence s("/ppp/secret/set");
+			s.setID(id);
+			s.addAttribute("profile", dato);
+			mktAPI.sendSentence(s);
+		}
+		break;
+	case QSecretDataModel::ColEstado:
+		break;
+	case QSecretDataModel::ColIP:
+		break;
+	case QSecretDataModel::ColNombre:
+		{
+			QSecretData *sd = ui->twUsuarios->findDataBySecretID(id);
+			if( sd )
+			{
+				sd->setNombre(dato);
+				ROS::QSentence s("/ppp/secret/set");
+				s.setID(id);
+				s.addAttribute("comment", sd->comment());
+				mktAPI.sendSentence(s);
+			}
+		}
+		break;
+	case QSecretDataModel::ColDireccion:
+		{
+			QSecretData *sd = ui->twUsuarios->findDataBySecretID(id);
+			if( sd )
+			{
+				sd->setDireccion(dato);
+				ROS::QSentence s("/ppp/secret/set");
+				s.setID(id);
+				s.addAttribute("comment", sd->comment());
+				mktAPI.sendSentence(s);
+			}
+		}
+		break;
+	case QSecretDataModel::ColPoblacion:
+		{
+			QSecretData *sd = ui->twUsuarios->findDataBySecretID(id);
+			if( sd )
+			{
+				sd->setPoblacion(dato);
+				ROS::QSentence s("/ppp/secret/set");
+				s.setID(id);
+				s.addAttribute("comment", sd->comment());
+				mktAPI.sendSentence(s);
+			}
+		}
+		break;
+	case QSecretDataModel::ColTelefonos:
+		{
+			QSecretData *sd = ui->twUsuarios->findDataBySecretID(id);
+			if( sd )
+			{
+				sd->setTelefonos(dato);
+				ROS::QSentence s("/ppp/secret/set");
+				s.setID(id);
+				s.addAttribute("comment", sd->comment());
+				mktAPI.sendSentence(s);
+			}
+		}
+		break;
+	case QSecretDataModel::ColInstalador:
+		{
+			QSecretData *sd = ui->twUsuarios->findDataBySecretID(id);
+			if( sd )
+			{
+				sd->setInstalador(dato);
+				ROS::QSentence s("/ppp/secret/set");
+				s.setID(id);
+				s.addAttribute("comment", sd->comment());
+				mktAPI.sendSentence(s);
+			}
+		}
+		break;
+	case QSecretDataModel::ColConseguidor:
+		{
+			QSecretData *sd = ui->twUsuarios->findDataBySecretID(id);
+			if( sd )
+			{
+				sd->setConseguidor(dato);
+				ROS::QSentence s("/ppp/secret/set");
+				s.setID(id);
+				s.addAttribute("comment", sd->comment());
+				mktAPI.sendSentence(s);
+			}
+		}
+		break;
+	case QSecretDataModel::ColEMail:
+		{
+			QSecretData *sd = ui->twUsuarios->findDataBySecretID(id);
+			if( sd )
+			{
+				sd->setEmail(dato);
+				ROS::QSentence s("/ppp/secret/set");
+				s.setID(id);
+				s.addAttribute("comment", sd->comment());
+				mktAPI.sendSentence(s);
+			}
+		}
+		break;
+	case QSecretDataModel::ColVozIP:
+		{
+			QSecretData *sd = ui->twUsuarios->findDataBySecretID(id);
+			if( sd )
+			{
+				sd->setVozIP(dato == "No");
+				ROS::QSentence s("/ppp/secret/set");
+				s.setID(id);
+				s.addAttribute("comment", sd->comment());
+				mktAPI.sendSentence(s);
+			}
+		}
+		break;
+	case QSecretDataModel::ColNotas:
+		{
+			QSecretData *sd = ui->twUsuarios->findDataBySecretID(id);
+			if( sd )
+			{
+				sd->setNotas(dato);
+				ROS::QSentence s("/ppp/secret/set");
+				s.setID(id);
+				s.addAttribute("comment", sd->comment());
+				mktAPI.sendSentence(s);
+			}
+		}
+		break;
+	case QSecretDataModel::NumColumnas:
+		break;
 	}
 }
 

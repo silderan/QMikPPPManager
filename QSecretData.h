@@ -157,7 +157,13 @@ public:
 		ColNotas,
 		NumColumnas
 	};
+protected:
+	bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole) Q_DECL_OVERRIDE;
+	QString usuario(int row);
+	QSecretData *secretData(int row);
+	QString secretID(int row);
 
+public:
 	QSecretDataModel(int rows, const QStringList &cols, QObject *p = 0);
 
 	void setupTable();
@@ -166,17 +172,18 @@ public:
 	void addSecret(const ROS::QSentence &s, bool addToTable = false);
 	void actualizaUsuario(const ROS::QSentence &s);
 	void setOnline(QSecretData *secret, const QString &IP);
-	QSecretData *findDataByUsername(const QString &usuario);
-	QSecretData *findDataBySesionID(const QString &sesionID);
-	QSecretItem *findItemByUsername(const QString &usuario, Columnas col = ColUsuario);
+	QSecretData *findDataByUsername(const QString &us);
+	QSecretData *findDataBySesionID(const QString &id);
+	QSecretData *findDataBySecretID(const QString &id);
 
-	void onDatoModificado(int row, int col);
 signals:
 	void datoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &secretID);
 };
 
 class QSecretDataTable : public QTableView
 {
+	Q_OBJECT
+
 	QSecretDataModel *im;
 	QSecretDataDelegate delegado;
 
@@ -188,6 +195,9 @@ public:
 	void fillupTable() { im->fillupTable(); }
 	void addSecret(const ROS::QSentence &s, bool addToTable = false) { im->addSecret(s, addToTable); }
 	void actualizaUsuario(const ROS::QSentence &s) { im->actualizaUsuario(s); }
+	QSecretData *findDataByUsername(const QString &us)	{ return im->findDataByUsername(us); }
+	QSecretData *findDataBySesionID(const QString &id)	{ return im->findDataBySesionID(id); }
+	QSecretData *findDataBySecretID(const QString &id)	{ return im->findDataBySecretID(id); }
 
 signals:
 	void datoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &secretID);

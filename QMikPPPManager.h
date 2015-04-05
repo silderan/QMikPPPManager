@@ -31,21 +31,7 @@ class QMikPPPManager : public QMainWindow
 		ReciviendoUsuarios,
 		UsuariosRecividos
 	}estado;
-	enum columnas
-	{
-		ColUsuario,
-		ColPerfil,
-		ColEstado,
-		ColNombre,
-		ColDireccion,
-		ColPoblacion,
-		ColTelefonos,
-		ColInstalador,
-		ColNotas,
-		NumColumnas
-	};
 	QSecretsList secretList;
-	QStringList nombresColumnas;
 
 	QTableWidgetItem *newTextItem(const QSecretData &s, const QString &txt);
 	QComboBox *newListaPerfiles(const QSecretData &s);
@@ -75,6 +61,7 @@ private slots:
 	void on_anyadeUsuario_clicked();
 	void on_btConfig_clicked();
 
+	void onDatoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &id);
 public slots:
 	void updateConfig();
 
