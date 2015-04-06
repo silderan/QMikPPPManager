@@ -20,7 +20,8 @@ SOURCES += main.cpp\
     QSentences.cpp \
     QSecretData.cpp \
     QConfigData.cpp \
-    DlgConfiguracion.cpp
+    DlgConfiguracion.cpp \
+    DlgNuevoUsuario.cpp
 
 HEADERS  += QMikPPPManager.h \
     Comm.h \
@@ -29,7 +30,9 @@ HEADERS  += QMikPPPManager.h \
     QSentences.h \
     QSecretData.h \
     QConfigData.h \
-    DlgConfiguracion.h
+    DlgConfiguracion.h \
+    DlgNuevoUsuario.h
 
 FORMS    += QMikPPPManager.ui \
-    DlgConfiguracion.ui
+    DlgConfiguracion.ui \
+    DlgNuevoUsuario.ui
