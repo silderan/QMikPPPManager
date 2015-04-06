@@ -141,21 +141,6 @@ void QMikPPPManager::onLoginChanged(ROS::Comm::LoginState s)
 	}
 }
 
-void QMikPPPManager::onNewProfileSelected(const QString &profileName)
-{
-	// Uso esta variable para saber cuando ya se han recibido los datos
-	// de los usuarios, que será cuando el cambio se ha producido
-	// a través del GUI y no por la llegada de datos.
-	if( tagUsuarios.isEmpty() )
-	{
-		QComboBox *cb = static_cast<QComboBox*>(sender());
-		ROS::QSentence s("/ppp/secret/set");
-		s.setID(cb->property("ID").toString());
-		s.addAttribute("profile", profileName);
-		mktAPI.sendSentence(s);
-	}
-}
-
 void QMikPPPManager::onLoginRequest(QString *user, QString *pass)
 {
 	*user = ui->leUser->text();
@@ -183,33 +168,6 @@ void QMikPPPManager::onReceive(ROS::QSentence &s)
 	else
 	if( s.getResultType() != ROS::QSentence::Done )
 		addLogText(s.toString());
-}
-
-QTableWidgetItem *QMikPPPManager::newTextItem(const QSecretData &s, const QString &txt)
-{
-	QTableWidgetItem *it = new QTableWidgetItem( txt );
-	it->setData(Qt::UserRole, s.secretID());
-	return it;
-}
-
-QComboBox *QMikPPPManager::newListaPerfiles(const QSecretData &s)
-{
-	QString perfil = s.perfilOriginal();
-	QString id = s.secretID();
-	QComboBox *cb = new QComboBox();
-	cb->addItems(perfiles);
-	cb->setCurrentText(perfil);
-	cb->setProperty("ID", id);
-	connect(cb, SIGNAL(currentIndexChanged(QString)), this, SLOT(onNewProfileSelected(QString)));
-	return cb;
-}
-
-QCheckBox *QMikPPPManager::newEstado(const QSecretData &s)
-{
-	QCheckBox *cb = new QCheckBox("Activo");
-	cb->setChecked(s.activo());
-	cb->setProperty("ID", s.secretID());
-	return cb;
 }
 
 void QMikPPPManager::pidePerfiles()
@@ -315,8 +273,22 @@ void QMikPPPManager::onActivoRecibido(const ROS::QSentence &s)
 
 void QMikPPPManager::actualizaUsuario(const ROS::QSentence &s)
 {
+	if( s.attribute(".dead").isEmpty() )
+		addLogText(tr("Conexión %1 (%2) recuperada con IP %3").arg(s.attribute("name"), s.getID(), s.attribute("address")));
+	else
+	{
+		QSecretData *sc = ui->twUsuarios->findDataBySesionID(s.getID());
+		if( sc != Q_NULLPTR )
+		{
+			if( sc->IPActiva() == sc->IPEstatica() )
+				addLogText(tr("Conexión %1 (%2) cerrada. IP %3 reservada").arg(sc->usuario(), s.getID(), sc->IPActiva()));
+			else
+				addLogText(tr("Conexión %1 (%2) cerrada. IP %3 liberada").arg(sc->usuario(), s.getID(), sc->IPActiva()));
+		}
+		else
+			addLogText(tr("Conexión %1 cerrada").arg(s.attribute("name"), s.getID()));
+	}
 	ui->twUsuarios->actualizaUsuario(s);
-	s.getID();
 }
 
 void QMikPPPManager::on_anyadeUsuario_clicked()
@@ -334,140 +306,93 @@ void QMikPPPManager::on_btConfig_clicked()
 	}
 }
 
+void QMikPPPManager::actualizaComentariosRemoto(QSecretData *sd)
+{
+	ROS::QSentence s("/ppp/secret/set");
+	s.setID(sd->secretID());
+	s.addAttribute("comment", sd->comment());
+	mktAPI.sendSentence(s);
+}
+
+void QMikPPPManager::actualizaPerfilRemoto(QSecretData *sd)
+{
+	ROS::QSentence s;
+	s.setCommand("/ppp/secret/set");
+	s.setID(sd->secretID());
+	s.addAttribute("profile", sd->perfilReal());
+	mktAPI.sendSentence(s);
+	s.clear();
+	s.setCommand("/ppp/active/remove");
+	s.setID(sd->sesionID());
+	mktAPI.sendSentence(s);
+}
+
 void QMikPPPManager::onDatoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &id)
 {
+	QSecretData *sd = ui->twUsuarios->findDataBySecretID(id);
+	if( !sd )
+		return;
 	switch( col )
 	{
 	case QSecretDataModel::ColUsuario:
 		break;
 	case QSecretDataModel::ColPerfil:
-		{
-			ROS::QSentence s("/ppp/secret/set");
-			s.setID(id);
-			s.addAttribute("profile", dato);
-			mktAPI.sendSentence(s);
-		}
+		sd->setPerfilOriginal(dato);
+		if( sd->activo() )
+			sd->setPerfilReal(dato);
+		actualizaPerfilRemoto(sd);
 		break;
 	case QSecretDataModel::ColEstado:
+		if( (dato == "activo") != sd->activo() )
+		{
+			// Las notas están vacías cuando aun no tiene los comentarios "formateados"
+			if( sd->notas().isEmpty() )
+				actualizaComentariosRemoto(sd);
+
+			if( sd->activo() )
+				sd->setPerfilReal(gGlobalConfig.perfilInactivo());
+			else
+				sd->setPerfilReal(sd->perfilOriginal());
+			actualizaPerfilRemoto(sd);
+		}
 		break;
 	case QSecretDataModel::ColIP:
 		break;
 	case QSecretDataModel::ColNombre:
-		{
-			QSecretData *sd = ui->twUsuarios->findDataBySecretID(id);
-			if( sd )
-			{
-				sd->setNombre(dato);
-				ROS::QSentence s("/ppp/secret/set");
-				s.setID(id);
-				s.addAttribute("comment", sd->comment());
-				mktAPI.sendSentence(s);
-			}
-		}
+		sd->setNombre(dato);
+		actualizaComentariosRemoto(sd);
 		break;
 	case QSecretDataModel::ColDireccion:
-		{
-			QSecretData *sd = ui->twUsuarios->findDataBySecretID(id);
-			if( sd )
-			{
-				sd->setDireccion(dato);
-				ROS::QSentence s("/ppp/secret/set");
-				s.setID(id);
-				s.addAttribute("comment", sd->comment());
-				mktAPI.sendSentence(s);
-			}
-		}
+		sd->setDireccion(dato);
+		actualizaComentariosRemoto(sd);
 		break;
 	case QSecretDataModel::ColPoblacion:
-		{
-			QSecretData *sd = ui->twUsuarios->findDataBySecretID(id);
-			if( sd )
-			{
-				sd->setPoblacion(dato);
-				ROS::QSentence s("/ppp/secret/set");
-				s.setID(id);
-				s.addAttribute("comment", sd->comment());
-				mktAPI.sendSentence(s);
-			}
-		}
+		sd->setPoblacion(dato);
+		actualizaComentariosRemoto(sd);
 		break;
 	case QSecretDataModel::ColTelefonos:
-		{
-			QSecretData *sd = ui->twUsuarios->findDataBySecretID(id);
-			if( sd )
-			{
-				sd->setTelefonos(dato);
-				ROS::QSentence s("/ppp/secret/set");
-				s.setID(id);
-				s.addAttribute("comment", sd->comment());
-				mktAPI.sendSentence(s);
-			}
-		}
+		sd->setTelefonos(dato);
+		actualizaComentariosRemoto(sd);
 		break;
 	case QSecretDataModel::ColInstalador:
-		{
-			QSecretData *sd = ui->twUsuarios->findDataBySecretID(id);
-			if( sd )
-			{
-				sd->setInstalador(dato);
-				ROS::QSentence s("/ppp/secret/set");
-				s.setID(id);
-				s.addAttribute("comment", sd->comment());
-				mktAPI.sendSentence(s);
-			}
-		}
+		sd->setInstalador(dato);
+		actualizaComentariosRemoto(sd);
 		break;
 	case QSecretDataModel::ColConseguidor:
-		{
-			QSecretData *sd = ui->twUsuarios->findDataBySecretID(id);
-			if( sd )
-			{
-				sd->setConseguidor(dato);
-				ROS::QSentence s("/ppp/secret/set");
-				s.setID(id);
-				s.addAttribute("comment", sd->comment());
-				mktAPI.sendSentence(s);
-			}
-		}
+		sd->setConseguidor(dato);
+		actualizaComentariosRemoto(sd);
 		break;
 	case QSecretDataModel::ColEMail:
-		{
-			QSecretData *sd = ui->twUsuarios->findDataBySecretID(id);
-			if( sd )
-			{
-				sd->setEmail(dato);
-				ROS::QSentence s("/ppp/secret/set");
-				s.setID(id);
-				s.addAttribute("comment", sd->comment());
-				mktAPI.sendSentence(s);
-			}
-		}
+		sd->setEmail(dato);
+		actualizaComentariosRemoto(sd);
 		break;
 	case QSecretDataModel::ColVozIP:
-		{
-			QSecretData *sd = ui->twUsuarios->findDataBySecretID(id);
-			if( sd )
-			{
-				sd->setVozIP(dato == "No");
-				ROS::QSentence s("/ppp/secret/set");
-				s.setID(id);
-				s.addAttribute("comment", sd->comment());
-				mktAPI.sendSentence(s);
-			}
-		}
+		sd->setVozIP(dato != "No");
+		actualizaComentariosRemoto(sd);
 		break;
 	case QSecretDataModel::ColNotas:
-		{
-			QSecretData *sd = ui->twUsuarios->findDataBySecretID(id);
-			if( sd )
-			{
-				sd->setNotas(dato);
-				ROS::QSentence s("/ppp/secret/set");
-				s.setID(id);
-				s.addAttribute("comment", sd->comment());
-				mktAPI.sendSentence(s);
-			}
-		}
+		sd->setNotas(dato);
+		actualizaComentariosRemoto(sd);
 		break;
 	case QSecretDataModel::NumColumnas:
 		break;

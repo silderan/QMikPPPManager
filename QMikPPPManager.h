@@ -33,10 +33,6 @@ class QMikPPPManager : public QMainWindow
 	}estado;
 	QSecretsList secretList;
 
-	QTableWidgetItem *newTextItem(const QSecretData &s, const QString &txt);
-	QComboBox *newListaPerfiles(const QSecretData &s);
-	QCheckBox *newEstado(const QSecretData &s);
-	void setCellData(int row, int col, const QSecretData &s, const QString &txt, QWidget*w);
 	void pidePerfiles();
 	void pideUsuarios();
 	void pideCambios();
@@ -48,6 +44,8 @@ class QMikPPPManager : public QMainWindow
 	void onPerfilRecibido(const ROS::QSentence &s);
 	void onActivoRecibido(const ROS::QSentence &s);
 	void actualizaUsuario(const ROS::QSentence &s);
+	void actualizaComentariosRemoto(QSecretData *sd);
+	void actualizaPerfilRemoto(QSecretData *sd);
 
 private slots:
 	void on_pbConnect_clicked();
@@ -56,7 +54,6 @@ private slots:
 	void onReceive(ROS::QSentence &s);
 	void onStateChanged(ROS::Comm::CommState s);
 	void onLoginChanged(ROS::Comm::LoginState s);
-	void onNewProfileSelected(const QString &profileName);
 
 	void on_anyadeUsuario_clicked();
 	void on_btConfig_clicked();

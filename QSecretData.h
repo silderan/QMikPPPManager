@@ -93,7 +93,7 @@ public:
 	QString IPActiva() const			{ return m_IPActiva; }
 	void setIPActiva(const QString &ip)	{ m_IPActiva = ip; }
 
-	QSecretItem *getFirstItem() const { return firstItem; }
+	QSecretItem *getFirstItem() const	{ return firstItem; }
 	QSecretItem *setFirstItem(QSecretItem *value) { return firstItem = value; }
 
 	QString sesionID() const { return m_sesionID;}
@@ -171,7 +171,6 @@ public:
 	void setColumnas(const QStringList &nombresColumnas) { m_nombresColumnas = nombresColumnas; }
 	void addSecret(const ROS::QSentence &s, bool addToTable = false);
 	void actualizaUsuario(const ROS::QSentence &s);
-	void setOnline(QSecretData *secret, const QString &IP);
 	QSecretData *findDataByUsername(const QString &us);
 	QSecretData *findDataBySesionID(const QString &id);
 	QSecretData *findDataBySecretID(const QString &id);

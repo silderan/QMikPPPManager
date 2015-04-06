@@ -428,36 +428,27 @@ void QSecretDataModel::actualizaUsuario(const ROS::QSentence &s)
 	QSecretData *secret;
 	if( !s.attribute("name").isEmpty() )
 	{
-		secret = findDataByUsername(s.attribute("name"));
-		secret->setSesionID(s.getID());
-		if( secret != Q_NULLPTR )
-			setOnline(secret, s.attribute("address"));
+		if( (secret = findDataByUsername(s.attribute("name"))) != Q_NULLPTR )
+		{
+			QSecretItem *it = static_cast<QSecretItem*>(item(secret->getFirstItem()->row(), ColIP));
+			secret->setSesionID(s.getID());
+			secret->setIPActiva(s.attribute("address"));
+			it->setText( QString("%1").arg(secret->IPActiva()) );
+		}
 	}
 	else
 	if( !s.attribute(".dead").isEmpty() )
 	{
 		if( (secret = findDataBySesionID(s.getID())) != Q_NULLPTR )
-			setOnline(secret, "");
-	}
-}
-
-void QSecretDataModel::setOnline(QSecretData *secret, const QString &IP)
-{
-	// Si no está la IP, significa que está offline.
-	QSecretItem *it = static_cast<QSecretItem*>(item(secret->getFirstItem()->row(), ColIP));
-	if( IP.isEmpty() )
-	{
-		if( secret->IPEstatica().isEmpty() )
-			it->setText("offline");
-		else
-			it->setText( QString("(S)").arg(secret->IPEstatica()) );
-	}
-	else
-	{
-		if( IP == secret->IPEstatica() )
-			it->setText( QString("(S,A) %1").arg(IP) );
-		else
-			it->setText( QString("(A) %1").arg(IP) );
+		{
+			QSecretItem *it = static_cast<QSecretItem*>(item(secret->getFirstItem()->row(), ColIP));
+			secret->setIPActiva("");
+			secret->setSesionID("");
+			if( secret->IPEstatica().isEmpty() )
+				it->setText("");
+			else
+				it->setText( QString("s(%1)").arg(secret->IPEstatica()) );
+		}
 	}
 }
 
