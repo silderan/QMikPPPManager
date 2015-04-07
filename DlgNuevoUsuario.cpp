@@ -124,7 +124,7 @@ void DlgNuevoUsuario::on_btCerrar_clicked()
 	s.setCommand("/ppp/secret/add");
 }
 
-void DlgNuevoUsuario::on_btCrear_clicked()
+bool DlgNuevoUsuario::on_btCrear_clicked()
 {
 	if( !checkField(tr("Nombre de usuario"), ui->leUser->text(), true, true, "'?¿¡!\"·$%&/()=^*{},;.:-ªº\\ñÑ", "", 10, 0, 15) )
 		return false;
@@ -138,5 +138,5 @@ void DlgNuevoUsuario::on_btCrear_clicked()
 	if( !checkField(tr("Nombre del cliente"), ui->leNombre->text(), true, false, "", "", 0, 0, 0) )
 		return false;
 
-	s.addAttribute("name", ui->leUser);
+	s.addAttribute("name", ui->leUser->text());
 }

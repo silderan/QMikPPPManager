@@ -154,19 +154,25 @@ void QMikPPPManager::onComError(ROS::Comm::CommError, QAbstractSocket::SocketErr
 
 void QMikPPPManager::onReceive(ROS::QSentence &s)
 {
-	if( s.tag() == tagUsuarios )
-		onUsuarioRecibido(s);
-	else
-	if( s.tag() == tagPerfiles )
-		onPerfilRecibido(s);
-	else
-	if( s.tag() == tagActivos )
-		onActivoRecibido(s);
-	else
-	if( s.tag() == tagListening )
-		actualizaUsuario(s);
-	else
-	if( s.getResultType() != ROS::QSentence::Done )
+	if( !s.tag().isEmpty() )
+	{
+		if( s.tag() == tagUsuarios )
+			onUsuarioRecibido(s);
+		else
+		if( s.tag() == tagPerfiles )
+			onPerfilRecibido(s);
+		else
+		if( s.tag() == tagActivos )
+			onActivoRecibido(s);
+		else
+		if( s.tag() == tagListening )
+			actualizaUsuario(s);
+		else
+		if( s.getResultType() != ROS::QSentence::Done )
+			addLogText(s.toString());
+		return;
+	}
+	if( s.getResultType() )
 		addLogText(s.toString());
 }
 
@@ -311,6 +317,7 @@ void QMikPPPManager::actualizaComentariosRemoto(QSecretData *sd)
 	ROS::QSentence s("/ppp/secret/set");
 	s.setID(sd->secretID());
 	s.addAttribute("comment", sd->comment());
+	s.setTag("UpdateComment");
 	mktAPI.sendSentence(s);
 }
 
@@ -320,10 +327,12 @@ void QMikPPPManager::actualizaPerfilRemoto(QSecretData *sd)
 	s.setCommand("/ppp/secret/set");
 	s.setID(sd->secretID());
 	s.addAttribute("profile", sd->perfilReal());
+	s.setTag("UpdateProfile");
 	mktAPI.sendSentence(s);
 	s.clear();
 	s.setCommand("/ppp/active/remove");
 	s.setID(sd->sesionID());
+	s.setTag("ReconnectClient");
 	mktAPI.sendSentence(s);
 }
 

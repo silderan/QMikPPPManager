@@ -34,7 +34,7 @@ public:
 
 private slots:
 	void on_btCerrar_clicked();
-	void on_btCrear_clicked();
+	bool on_btCrear_clicked();
 };
 
 #endif // DLGNUEVOUSUARIO_H
