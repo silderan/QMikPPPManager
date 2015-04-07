@@ -12,9 +12,9 @@ void QSecretData::parseComment(const QString &comment)
 		default:
 			setNotas(fields[9]);
 		case 9:
-			setVozIP(fields[7]=="vozip");
+			setVozIP(fields[8]=="vozip");
 		case 8:
-			setEmail(fields[8]);
+			setEmail(fields[7]);
 		case 7:
 			setConseguidor(fields[6]);
 		case 6:
@@ -22,7 +22,7 @@ void QSecretData::parseComment(const QString &comment)
 		case 5:
 			setTelefonos(fields[4]);
 		case 4:
-			setPerfilReal(fields[3]);
+			setPoblacion(fields[3]);
 		case 3:
 			setDireccion(fields[2]);
 		case 2:
@@ -157,9 +157,6 @@ void QSecretData::parsePlainComment(QString cm)
 
 QString QSecretData::comment()
 {
-	if( nombre().isEmpty() )
-		return notas();
-
 	return QString("%1$%2$%3$%4$%5$%6$%7$%8$%9$%10")
 			.arg(perfilReal())
 			.arg(nombre())
@@ -207,6 +204,8 @@ QWidget *QSecretDataDelegate::createEditor(QWidget *parent,
 									   const QModelIndex &index ) const
 {
 //	const QSecretDataModel *model = static_cast<const QSecretDataModel*>(index.model());
+	if( index.column() == QSecretDataModel::ColUsuario )
+		return Q_NULLPTR;
 	if( index.column() == QSecretDataModel::ColPerfil )
 	{
 		QComboBox *cb = new QComboBox(parent);
@@ -216,6 +215,21 @@ QWidget *QSecretDataDelegate::createEditor(QWidget *parent,
 		{
 			if( p != gGlobalConfig.perfilInactivo() )
 				cb->addItem(p);
+		}
+		return cb;
+	}
+	else
+	if( index.column() == QSecretDataModel::ColIP )
+	{
+		QComboBox *cb = new QComboBox(parent);
+		QStringList ips = static_cast<const QSecretDataModel*>(index.model())->ipsEstaticas();
+		Q_ASSERT(cb);
+		cb->addItem("IP dinámica");// El primer elemento será para borrar la IP estática
+		for( quint32 ip = gGlobalConfig.deIPV4(); ip <= gGlobalConfig.aIPV4(); ip++ )
+		{
+			QString sip = UINT_TO_IPV4(ip);
+			if( !ips.contains(sip) )
+				cb->addItem(sip);
 		}
 		return cb;
 	}
@@ -236,6 +250,24 @@ QWidget *QSecretDataDelegate::createEditor(QWidget *parent,
 		return cb;
 	}
 	else
+	if( index.column() == QSecretDataModel::ColPoblacion )
+	{
+		QComboBox *cb = new QComboBox(parent);
+		Q_ASSERT(cb);
+		cb->addItems( static_cast<const QSecretDataModel*>(index.model())->poblaciones());
+		cb->setEditable(true);
+		return cb;
+	}
+	else
+	if( index.column() == QSecretDataModel::ColInstalador )
+	{
+		QComboBox *cb = new QComboBox(parent);
+		Q_ASSERT(cb);
+		cb->addItems(gGlobalConfig.instaladores());
+		cb->setEditable(true);
+		return cb;
+	}
+	else
 	{
 		QLineEdit *le = new QLineEdit(parent);
 		Q_ASSERT(le);
@@ -250,7 +282,18 @@ void QSecretDataDelegate::setEditorData(QWidget *editor,
 	{
 		QString perfil = index.model()->data(index, Qt::EditRole).toString();
 		QComboBox *cb = static_cast<QComboBox*>(editor);
-		cb->setCurrentText(perfil);
+		cb->setCurrentIndex(cb->findText(perfil));
+		if( cb->currentText() != perfil )
+			cb->setCurrentText(perfil);
+	}
+	else
+	if( index.column() == QSecretDataModel::ColIP )
+	{
+		QString ip = index.model()->data(index, Qt::EditRole).toString();
+		QComboBox *cb = static_cast<QComboBox*>(editor);
+		cb->setCurrentIndex(cb->findText(ip));
+		if( cb->currentText() != ip )
+			cb->setCurrentText(ip);
 	}
 	else
 	if( index.column() == QSecretDataModel::ColEstado )
@@ -265,6 +308,24 @@ void QSecretDataDelegate::setEditorData(QWidget *editor,
 		QString estado = index.model()->data(index, Qt::EditRole).toString();
 		QComboBox *cb = static_cast<QComboBox*>(editor);
 		cb->setCurrentIndex(estado == "Sí" ? 0 : 1);
+	}
+	else
+	if( index.column() == QSecretDataModel::ColPoblacion )
+	{
+		QString estado = index.model()->data(index, Qt::EditRole).toString();
+		QComboBox *cb = static_cast<QComboBox*>(editor);
+		cb->setCurrentIndex(cb->findText(estado));
+		if( cb->currentText() != estado )
+			cb->setCurrentText(estado);
+	}
+	else
+	if( index.column() == QSecretDataModel::ColInstalador )
+	{
+		QString instalador = index.model()->data(index, Qt::EditRole).toString();
+		QComboBox *cb = static_cast<QComboBox*>(editor);
+		cb->setCurrentIndex(cb->findText(instalador));
+		if( cb->currentText() != instalador )
+			cb->setCurrentText(instalador);
 	}
 	else
 	{
@@ -283,6 +344,16 @@ void QSecretDataDelegate::setModelData(QWidget *editor, QAbstractItemModel *mode
 		model->setData(index, cb->currentText(), Qt::EditRole);
 	}
 	else
+	if( index.column() == QSecretDataModel::ColIP )
+	{
+		QComboBox *cb = static_cast<QComboBox*>(editor);
+		if( cb->currentIndex() == 0 )
+			model->setData(index, "", Qt::EditRole);
+		else
+		if( !cb->currentText().isEmpty() )
+			model->setData(index, cb->currentText(), Qt::EditRole);
+	}
+	else
 	if( index.column() == QSecretDataModel::ColEstado )
 	{
 		QComboBox *cb = static_cast<QComboBox*>(editor);
@@ -293,6 +364,18 @@ void QSecretDataDelegate::setModelData(QWidget *editor, QAbstractItemModel *mode
 	{
 		QComboBox *cb = static_cast<QComboBox*>(editor);
 		model->setData(index, cb->currentIndex() == 0 ? "Sí" : "No", Qt::EditRole);
+	}
+	else
+	if( index.column() == QSecretDataModel::ColPoblacion )
+	{
+		QComboBox *cb = static_cast<QComboBox*>(editor);
+		model->setData(index, cb->currentText(), Qt::EditRole);
+	}
+	else
+	if( index.column() == QSecretDataModel::ColInstalador )
+	{
+		QComboBox *cb = static_cast<QComboBox*>(editor);
+		model->setData(index, cb->currentText(), Qt::EditRole);
 	}
 	else
 	{
@@ -480,4 +563,23 @@ QSecretData *QSecretDataModel::findDataBySecretID(const QString &id)
 			return &(m_secrets[i]);
 	}
 	return Q_NULLPTR;
+}
+
+QStringList QSecretDataModel::poblaciones() const
+{
+	QStringList pobs;
+	for( int i = 0; i < m_secrets.count(); i++ )
+	{
+		if( !pobs.contains(m_secrets[i].poblacion()))
+			pobs.append(m_secrets[i].poblacion());
+	}
+	return pobs;
+}
+
+QStringList QSecretDataModel::ipsEstaticas() const
+{
+	QStringList ips;
+	for( int i = 0; i < m_secrets.count(); i++ )
+		ips.append(m_secrets[i].IPEstatica());
+	return ips;
 }

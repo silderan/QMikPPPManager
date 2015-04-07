@@ -43,9 +43,13 @@ class QMikPPPManager : public QMainWindow
 	void onUsuarioRecibido(const ROS::QSentence &s);
 	void onPerfilRecibido(const ROS::QSentence &s);
 	void onActivoRecibido(const ROS::QSentence &s);
+
 	void actualizaUsuario(const ROS::QSentence &s);
+
+	void reiniciaConexionRemota(QSecretData *sd);
 	void actualizaComentariosRemoto(QSecretData *sd);
 	void actualizaPerfilRemoto(QSecretData *sd);
+	void actualizaIPRemota(QSecretData *sd);
 
 private slots:
 	void on_pbConnect_clicked();

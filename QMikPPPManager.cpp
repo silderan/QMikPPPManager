@@ -297,6 +297,7 @@ void QMikPPPManager::actualizaUsuario(const ROS::QSentence &s)
 	ui->twUsuarios->actualizaUsuario(s);
 }
 
+
 void QMikPPPManager::on_anyadeUsuario_clicked()
 {
 
@@ -309,6 +310,17 @@ void QMikPPPManager::on_btConfig_clicked()
 	if( dlgConfig->exec() )
 	{
 		updateConfig();
+	}
+}
+
+void QMikPPPManager::reiniciaConexionRemota(QSecretData *sd)
+{
+	if( !sd->sesionID().isEmpty() )
+	{
+		ROS::QSentence s("/ppp/active/remove");
+		s.setID(sd->sesionID());
+		s.setTag("ReconnectClient");
+		mktAPI.sendSentence(s);
 	}
 }
 
@@ -329,10 +341,15 @@ void QMikPPPManager::actualizaPerfilRemoto(QSecretData *sd)
 	s.addAttribute("profile", sd->perfilReal());
 	s.setTag("UpdateProfile");
 	mktAPI.sendSentence(s);
-	s.clear();
-	s.setCommand("/ppp/active/remove");
-	s.setID(sd->sesionID());
-	s.setTag("ReconnectClient");
+}
+
+void QMikPPPManager::actualizaIPRemota(QSecretData *sd)
+{
+	ROS::QSentence s;
+	s.setCommand("/ppp/secret/set");
+	s.setID(sd->secretID());
+	s.addAttribute("remote-address", sd->IPEstatica());
+	s.setTag("UpdateProfile");
 	mktAPI.sendSentence(s);
 }
 
@@ -350,6 +367,7 @@ void QMikPPPManager::onDatoModificado(QSecretDataModel::Columnas col, const QStr
 		if( sd->activo() )
 			sd->setPerfilReal(dato);
 		actualizaPerfilRemoto(sd);
+		reiniciaConexionRemota(sd);
 		break;
 	case QSecretDataModel::ColEstado:
 		if( (dato == "activo") != sd->activo() )
@@ -366,6 +384,9 @@ void QMikPPPManager::onDatoModificado(QSecretDataModel::Columnas col, const QStr
 		}
 		break;
 	case QSecretDataModel::ColIP:
+		sd->setIPEstatica(dato);
+		actualizaIPRemota(sd);
+		reiniciaConexionRemota(sd);
 		break;
 	case QSecretDataModel::ColNombre:
 		sd->setNombre(dato);

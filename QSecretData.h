@@ -175,6 +175,8 @@ public:
 	QSecretData *findDataBySesionID(const QString &id);
 	QSecretData *findDataBySecretID(const QString &id);
 
+	QStringList poblaciones() const;
+	QStringList ipsEstaticas() const;
 signals:
 	void datoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &secretID);
 };

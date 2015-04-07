@@ -10,6 +10,7 @@
 #define UINT_TO_IPV4B(_IPV4_)			((((quint32)_IPV4_)>>16)&255)
 #define UINT_TO_IPV4C(_IPV4_)			((((quint32)_IPV4_)>>8)&255)
 #define UINT_TO_IPV4D(_IPV4_)			(((quint32)_IPV4_)&255)
+#define UINT_TO_IPV4(_IPV4_)			(QString("%1.%2.%3.%4").arg(UINT_TO_IPV4A(_IPV4_)).arg(UINT_TO_IPV4B(_IPV4_)).arg(UINT_TO_IPV4C(_IPV4_)).arg(UINT_TO_IPV4D(_IPV4_)))
 
 class QPerfilData
 {
@@ -108,10 +109,24 @@ public:
 	QStringList instaladores() const { return m_iniData["Instaladores"].split(","); }
 	void addInstalador(const QString &i)
 	{
-		QStringList ins = instaladores();
-		ins.append(i);
-		setInstaladores(ins);
+		if( m_iniData["Instaladores"].contains(i) )
+		{
+			QStringList ins = instaladores();
+			ins.append(i);
+			setInstaladores(ins);
+		}
 	}
+//	void setPoblaciones(const QStringList &l) { m_iniData["Poblaciones"] = l.join(","); }
+//	QStringList poblaciones() const { return m_iniData["Poblaciones"].split(","); }
+//	void addPoblacion(const QString &p)
+//	{
+//		if( !m_iniData["Poblaciones"].contains(p) )
+//		{
+//			QStringList pob = poblaciones();
+//			pob.append(p);
+//			setPoblaciones(pob);
+//		}
+//	}
 };
 
 extern QConfigData gGlobalConfig;
