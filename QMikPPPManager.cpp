@@ -348,7 +348,10 @@ void QMikPPPManager::actualizaIPRemota(QSecretData *sd)
 	ROS::QSentence s;
 	s.setCommand("/ppp/secret/set");
 	s.setID(sd->secretID());
-	s.addAttribute("remote-address", sd->IPEstatica());
+	if( sd->IPEstatica().isEmpty() )
+		s.addAttribute("!remote-address", "");
+	else
+		s.addAttribute("remote-address", sd->IPEstatica());
 	s.setTag("UpdateProfile");
 	mktAPI.sendSentence(s);
 }
