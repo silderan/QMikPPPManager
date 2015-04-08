@@ -160,7 +160,7 @@ void QSecretData::parsePlainComment(QString cm)
 QString QSecretData::comment()
 {
 	return QString("%1$%2$%3$%4$%5$%6$%7$%8$%9$%10")
-			.arg(perfilReal())
+			.arg(perfilOriginal())
 			.arg(nombre())
 			.arg(direccion())
 			.arg(poblacion())
