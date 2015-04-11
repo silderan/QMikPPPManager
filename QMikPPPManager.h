@@ -9,6 +9,7 @@
 #include <QTableWidgetItem>
 #include <QComboBox>
 #include <QCheckBox>
+#include "DlgNuevoUsuario.h"
 
 namespace Ui
 {
@@ -19,12 +20,10 @@ class QMikPPPManager : public QMainWindow
 {
 	Q_OBJECT
 	Ui::QMikPPPManager *ui;
+	DlgNuevoUsuario *dlgNuevoUsuario;
 	ROS::Comm mktAPI;
 	QStringList perfiles;
-	QString tagPerfiles;
-	QString tagUsuarios;
-	QString tagListening;
-	QString tagActivos;
+
 	enum Estado
 	{
 		Desconectado,
@@ -33,6 +32,7 @@ class QMikPPPManager : public QMainWindow
 	}estado;
 	QSecretsList secretList;
 
+	void pideInfoUsuarioAPI();
 	void pidePerfiles();
 	void pideUsuarios();
 	void pideCambios();
@@ -40,6 +40,7 @@ class QMikPPPManager : public QMainWindow
 	void addLogText(const QString &txt);
 	void addSecret(const ROS::QSentence &s);
 	void addSecretToTable(const QSecretData &s, int row);
+	void onAPIUserInfoRecibida(const ROS::QSentence &s);
 	void onUsuarioRecibido(const ROS::QSentence &s);
 	void onPerfilRecibido(const ROS::QSentence &s);
 	void onActivoRecibido(const ROS::QSentence &s);
@@ -51,9 +52,9 @@ class QMikPPPManager : public QMainWindow
 	void actualizaPerfilRemoto(QSecretData *sd);
 	void actualizaIPRemota(QSecretData *sd);
 
+	void setNivelUsuario(QConfigData::NivelUsuario lvl);
 private slots:
 	void on_pbConnect_clicked();
-	void onLoginRequest(QString *user, QString *pass);
 	void onComError(ROS::Comm::CommError, QAbstractSocket::SocketError);
 	void onReceive(ROS::QSentence &s);
 	void onStateChanged(ROS::Comm::CommState s);

@@ -2,10 +2,11 @@
 #define QSECRETDATA_H
 
 #include "QSentences.h"
+#include "QConfigData.h"
+
 #include <QTableView>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
-
 
 class QSecretItem : public QStandardItem
 {
@@ -30,8 +31,10 @@ class QSecretData
 	QString m_direccion;
 	QString m_poblacion;
 	QString m_telefonos;
-	QString m_conseguidor;
+	QString m_vendedor;
 	QString m_email;
+	QString m_SSID;
+	QString m_WPass;
 	bool m_VozIP;
 	QString m_notas;
 	QString m_perfilOriginal;
@@ -48,59 +51,70 @@ public:
 	QSecretData():m_VozIP(false) {}
 	QSecretData(const ROS::QSentence &s);
 
-	QString usuario() const				{ return m_usuario;	}
-	void setUsuario(const QString &u)	{ m_usuario = u; }
+	const QString &usuario() const				{ return m_usuario;	}
+	void setUsuario(const QString &u)			{ m_usuario = u; }
 
-	QString nombre() const				{ return m_nombre; }
-	void setNombre(const QString &n)	{ m_nombre = n; }
+	const QString &contra() const				{ return m_contra; }
+	void setContra(const QString &c)			{ m_contra = c; }
 
-	QString direccion() const			{ return m_direccion; }
-	void setDireccion(const QString &d)	{ m_direccion = d; }
+	const QString &nombre() const				{ return m_nombre; }
+	void setNombre(const QString &n)			{ m_nombre = n; }
 
-	QString telefonos() const			{ return m_telefonos; }
-	void setTelefonos(const QString &t) { m_telefonos = t; }
+	const QString &direccion() const			{ return m_direccion; }
+	void setDireccion(const QString &d)			{ m_direccion = d; }
 
-	QString notas() const				{ return m_notas; }
-	void setNotas(const QString &n)		{ m_notas = n; }
+	const QString &telefonos() const			{ return m_telefonos; }
+	void setTelefonos(const QString &t)			{ m_telefonos = t; }
 
-	QString perfilOriginal() const		{ return m_perfilOriginal; }
-	void setPerfilOriginal(const QString &p) { m_perfilOriginal = p; }
+	const QString &notas() const				{ return m_notas; }
+	void setNotas(const QString &n)				{ m_notas = n; }
 
-	QString perfilReal() const			{ return m_perfilReal; }
-	void setPerfilReal(const QString &p){ m_perfilReal = p; }
+	const QString &perfilOriginal() const		{ return m_perfilOriginal; }
+	void setPerfilOriginal(const QString &p)	{ m_perfilOriginal = p; }
 
-	QString secretID() const			{ return m_secretID; }
-	void setSecretID(const QString &id)	{ m_secretID = id; }
+	const QString &perfilReal() const			{ return m_perfilReal; }
+	void setPerfilReal(const QString &p)		{ m_perfilReal = p; }
 
-	QString instalador() const			{ return m_instalador; }
-	void setInstalador(const QString &i){ m_instalador = i; }
+	const QString &secretID() const				{ return m_secretID; }
+	void setSecretID(const QString &id)			{ m_secretID = id; }
 
-	QString poblacion() const			{ return m_poblacion; }
-	void setPoblacion(const QString &p)	{ m_poblacion = p; }
+	const QString &instalador() const			{ return m_instalador; }
+	void setInstalador(const QString &i)		{ m_instalador = i; }
 
-	QString conseguidor() const			{ return m_conseguidor; }
-	void setConseguidor(const QString &c){m_conseguidor = c; }
+	const QString &poblacion() const			{ return m_poblacion; }
+	void setPoblacion(const QString &p)			{ m_poblacion = p; }
 
-	QString email() const				{ return m_email; }
-	void setEmail(const QString &e)		{ m_email = e; }
+	const QString &vendedor() const			{ return m_vendedor; }
+	void setVendedor(const QString &c)		{ m_vendedor = c; }
 
-	bool VozIP() const					{ return m_VozIP; }
-	void setVozIP(bool v)				{ m_VozIP = v; }
+	const QString &email() const				{ return m_email; }
+	void setEmail(const QString &e)				{ m_email = e; }
 
-	QString IPEstatica() const			{ return m_IPEstatica; }
-	void setIPEstatica(const QString &i){ m_IPEstatica = i; }
+	const QString &wPass() const				{ return m_WPass; }
+	void setWPass(const QString &w)				{ m_WPass = w; }
 
-	QString IPActiva() const			{ return m_IPActiva; }
-	void setIPActiva(const QString &ip)	{ m_IPActiva = ip; }
+	const QString &SSID() const					{ return m_SSID; }
+	void setSSID(const QString &s)				{ m_SSID = s; }
 
-	QSecretItem *getFirstItem() const	{ return firstItem; }
+	bool VozIP() const							{ return m_VozIP; }
+	void setVozIP(bool v)						{ m_VozIP = v; }
+
+	const QString &IPEstatica() const			{ return m_IPEstatica; }
+	void setIPEstatica(const QString &i)		{ m_IPEstatica = i; }
+
+	QString IPActiva() const					{ return m_IPActiva; }
+	void setIPActiva(const QString &ip)			{ m_IPActiva = ip; }
+
+	QSecretItem *getFirstItem() const			{ return firstItem; }
 	QSecretItem *setFirstItem(QSecretItem *value) { return firstItem = value; }
 
-	QString sesionID() const { return m_sesionID;}
-	void setSesionID(const QString &s) { m_sesionID = s; }
+	const QString &sesionID() const				{ return m_sesionID;}
+	void setSesionID(const QString &s)			{ m_sesionID = s; }
 
 	QString comment();
 	bool activo() const;
+
+	void toSentence(ROS::QSentence *s);
 };
 
 class QSecretsList : public QList<QSecretData>
@@ -151,7 +165,7 @@ public:
 		ColPoblacion,
 		ColTelefonos,
 		ColInstalador,
-		ColConseguidor,
+		ColVendedor,
 		ColEMail,
 		ColVozIP,
 		ColNotas,
@@ -165,6 +179,7 @@ protected:
 
 public:
 	QSecretDataModel(int rows, const QStringList &cols, QObject *p = 0);
+	void clear();
 
 	void setupTable();
 	void fillupTable();
@@ -177,6 +192,8 @@ public:
 
 	QStringList poblaciones() const;
 	QStringList ipsEstaticas() const;
+
+	static QConfigData::NivelUsuario nivelMinimoEdicion(Columnas col);
 signals:
 	void datoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &secretID);
 };
@@ -194,11 +211,13 @@ public:
 	QSecretDataTable(QWidget *papi = 0);
 	void setupTable();
 	void fillupTable() { im->fillupTable(); }
+	void clear();
 	void addSecret(const ROS::QSentence &s, bool addToTable = false) { im->addSecret(s, addToTable); }
 	void actualizaUsuario(const ROS::QSentence &s) { im->actualizaUsuario(s); }
 	QSecretData *findDataByUsername(const QString &us)	{ return im->findDataByUsername(us); }
 	QSecretData *findDataBySesionID(const QString &id)	{ return im->findDataBySesionID(id); }
 	QSecretData *findDataBySecretID(const QString &id)	{ return im->findDataBySecretID(id); }
+	QSecretDataModel &secrets() { return *im; }
 
 signals:
 	void datoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &secretID);

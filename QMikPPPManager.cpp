@@ -20,12 +20,11 @@
 
 #include "QMikPPPManager.h"
 #include "ui_QMikPPPManager.h"
-
-QConfigData gGlobalConfig;
+#include <QMessageBox>
 
 QMikPPPManager::QMikPPPManager(QWidget *parent) :
 	QMainWindow(parent),
-	ui(new Ui::QMikPPPManager), estado(Desconectado)
+	ui(new Ui::QMikPPPManager), dlgNuevoUsuario(Q_NULLPTR), estado(Desconectado)
 {
 	ui->setupUi(this);
 
@@ -36,7 +35,6 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 
 	connect( &mktAPI, SIGNAL(comError(ROS::Comm::CommError,QAbstractSocket::SocketError)),
 			 this, SLOT(onComError(ROS::Comm::CommError,QAbstractSocket::SocketError)) );
-	connect( &mktAPI, SIGNAL(loginRequest(QString*,QString*)), this, SLOT(onLoginRequest(QString*,QString*)) );
 
 	connect( &mktAPI, SIGNAL(comStateChanged(ROS::Comm::CommState)),
 			 this, SLOT(onStateChanged(ROS::Comm::CommState)) );
@@ -46,6 +44,7 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 	connect( &mktAPI, SIGNAL(comReceive(ROS::QSentence&)), this, SLOT(onReceive(ROS::QSentence&)) );
 	connect( ui->twUsuarios, SIGNAL(datoModificado(QSecretDataModel::Columnas,QString,QString)),
 			 this, SLOT(onDatoModificado(QSecretDataModel::Columnas,QString,QString)) );
+	setNivelUsuario(QConfigData::SinPermisos);
 }
 
 QMikPPPManager::~QMikPPPManager()
@@ -85,9 +84,16 @@ void QMikPPPManager::on_pbConnect_clicked()
 	if( mktAPI.isConnected() || mktAPI.isConnecting() )
 		mktAPI.closeCom();
 	else
-		mktAPI.connectTo(ui->leIP->text(), (unsigned short)ui->sbPort->value());
+	{
+		gGlobalConfig.setUserName(ui->leUser->text());
+		gGlobalConfig.setUserPass(ui->lePass->text());
+		gGlobalConfig.setRemoteHost(ui->leIP->text());
+		gGlobalConfig.setRemotePort(ui->sbPort->value());
+		mktAPI.setRemoteHost(gGlobalConfig.remoteHost(), gGlobalConfig.remotePort());
+		mktAPI.setUserNamePass(gGlobalConfig.userName(), gGlobalConfig.userPass());
+		mktAPI.connectToROS();
+	}
 }
-
 
 void QMikPPPManager::onStateChanged(ROS::Comm::CommState s)
 {
@@ -96,6 +102,7 @@ void QMikPPPManager::onStateChanged(ROS::Comm::CommState s)
 	case ROS::Comm::Unconnected:
 		ui->pbConnect->setText( tr("Conectar") );
 		addLogText( tr("Desconectado") );
+		setNivelUsuario(QConfigData::SinPermisos);
 		break;
 	case ROS::Comm::HostLookup:
 		ui->pbConnect->setText( tr("Cancelar") ) ;
@@ -112,6 +119,7 @@ void QMikPPPManager::onStateChanged(ROS::Comm::CommState s)
 	case ROS::Comm::Closing:
 		ui->pbConnect->setText( tr("Forzar desconexión") );
 		addLogText( tr("Cerrando conexión") );
+		setNivelUsuario(QConfigData::SinPermisos);
 		break;
 	}
 }
@@ -135,16 +143,13 @@ void QMikPPPManager::onLoginChanged(ROS::Comm::LoginState s)
 	case ROS::Comm::LogedIn:
 		addLogText( tr("Logado al servidor") );
 		ui->pbConnect->setText("Desconectar");
-		pidePerfiles();
+		ui->twUsuarios->clear();
 		ui->twUsuarios->setEnabled(true);
+		pideInfoUsuarioAPI();
+		pidePerfiles();
+		pideUsuarios();
 		break;
 	}
-}
-
-void QMikPPPManager::onLoginRequest(QString *user, QString *pass)
-{
-	*user = ui->leUser->text();
-	*pass = ui->lePass->text();
 }
 
 void QMikPPPManager::onComError(ROS::Comm::CommError, QAbstractSocket::SocketError)
@@ -152,21 +157,85 @@ void QMikPPPManager::onComError(ROS::Comm::CommError, QAbstractSocket::SocketErr
 	addLogText(mktAPI.errorString());
 }
 
+void QMikPPPManager::pideInfoUsuarioAPI()
+{
+	ROS::QSentence s("/user/getall");
+	s.setTag(gGlobalConfig.tagAPIUser);
+	s.addQuery("name", gGlobalConfig.userName(), ROS::QQuery::EqualProp);
+	s.addQuery("#|");
+	mktAPI.sendSentence( s );
+}
+
+void QMikPPPManager::pidePerfiles()
+{
+	mktAPI.sendSentence( "/ppp/profile/getall", gGlobalConfig.tagPerfil );
+}
+
+void QMikPPPManager::pideUsuarios()
+{
+	ROS::QSentence s("/ppp/secret/getall");
+	s.setTag( gGlobalConfig.tagSecret );
+	s.addQuery("#|");
+	mktAPI.sendSentence( s );
+}
+
+void QMikPPPManager::pideActivos()
+{
+	mktAPI.sendSentence( "/ppp/active/getall", gGlobalConfig.tagActivo );
+}
+
+void QMikPPPManager::pideCambios()
+{
+	mktAPI.sendSentence( "/ppp/active/listen", gGlobalConfig.tagCambio );
+}
+
 void QMikPPPManager::onReceive(ROS::QSentence &s)
 {
 	if( !s.tag().isEmpty() )
 	{
-		if( s.tag() == tagUsuarios )
+		if( s.tag() == gGlobalConfig.tagAPIUser )
+			onAPIUserInfoRecibida(s);
+		else
+		if( s.tag() == gGlobalConfig.tagSecret )
 			onUsuarioRecibido(s);
 		else
-		if( s.tag() == tagPerfiles )
+		if( s.tag() == gGlobalConfig.tagPerfil )
 			onPerfilRecibido(s);
 		else
-		if( s.tag() == tagActivos )
+		if( s.tag() == gGlobalConfig.tagActivo )
 			onActivoRecibido(s);
 		else
-		if( s.tag() == tagListening )
+		if( s.tag() == gGlobalConfig.tagCambio )
 			actualizaUsuario(s);
+		else
+		if( s.tag() == gGlobalConfig.tagNuevo )
+		{
+			// Al llegar un nuevo usuario, informamos al diálogo, si está abierto,
+			// En el diálogo, ya se añade a la tabla la información del nuevo usuario.
+			if( dlgNuevoUsuario != Q_NULLPTR )
+				dlgNuevoUsuario->onReceive(s);
+			else
+			// Si no está el diálogo en marcha, hago una consulta al ROS para obtener
+			// la información del nuevo usuario añadido.
+			if( s.getResultType() == ROS::QSentence::Done )
+			{
+				QString secretID(s.attribute("ret"));
+				// Si está vacío, es que no es la respuesta de cuando se ha añadido el nuevo usuario.
+				// Puede ser tanto el final de la obtención de los datos, el final de un "trap", etc.
+				if( !secretID.isEmpty() )
+				{
+					ROS::QSentence querySent("/ppp/secret/getall");
+					querySent.setTag(gGlobalConfig.tagNuevo);
+					querySent.addQuery(".id", secretID, ROS::QQuery::EqualProp);
+					querySent.addQuery("#|");
+					mktAPI.sendSentence(querySent);
+				}
+			}
+			else
+			// Esto es cuando se recibe la información del nuevo usuario añadido.
+			if( s.getResultType() == ROS::QSentence::Reply )
+				ui->twUsuarios->addSecret(s, true);
+		}
 		else
 		if( s.getResultType() != ROS::QSentence::Done )
 			addLogText(s.toString());
@@ -176,35 +245,45 @@ void QMikPPPManager::onReceive(ROS::QSentence &s)
 		addLogText(s.toString());
 }
 
-void QMikPPPManager::pidePerfiles()
+void QMikPPPManager::onAPIUserInfoRecibida(const ROS::QSentence &s)
 {
-	if( !tagPerfiles.isEmpty() )
-		mktAPI.sendCancel(tagPerfiles);
-	mktAPI.sendSentence( "/ppp/profile/getall", tagPerfiles = "Perfiles" );
-}
-
-void QMikPPPManager::pideUsuarios()
-{
-	if( !tagUsuarios.isEmpty() )
-		mktAPI.sendCancel(tagUsuarios);
-	ROS::QSentence s("/ppp/secret/getall");
-	s.setTag(tagUsuarios = "Usuarios");
-	s.queries().addQuery("#|");
-	mktAPI.sendSentence( s );
-}
-
-void QMikPPPManager::pideActivos()
-{
-	if( !tagActivos.isEmpty() )
-		mktAPI.sendCancel(tagActivos);
-	mktAPI.sendSentence( "/ppp/active/print", tagActivos = "Activos" );
-}
-
-void QMikPPPManager::pideCambios()
-{
-	if( !tagListening.isEmpty() )
-		mktAPI.sendCancel(tagListening);
-	mktAPI.sendSentence( "/ppp/active/listen", tagListening = "Listening" );
+	switch( s.getResultType() )
+	{
+	case ROS::QSentence::None:
+		break;
+	case ROS::QSentence::Done:
+		ui->statusBar->showMessage(tr("Información del usuario API recibida."));
+		break;
+	case ROS::QSentence::Reply:
+	{
+		QString grupo = s.attribute("group");
+		QString nombre = s.attribute("name");
+		ui->statusBar->showMessage(tr("Recibida info de %1. Grupo %2").arg(nombre, grupo));
+		if( grupo.compare("full") == 0 )
+			setNivelUsuario(QConfigData::Completo);
+		else
+		if( grupo.compare("Instaladores", Qt::CaseInsensitive) == 0 )
+			setNivelUsuario(QConfigData::Instalador);
+		else
+		if( grupo.compare("Administradores", Qt::CaseInsensitive) == 0 )
+			setNivelUsuario(QConfigData::Administrador);
+		else
+		{
+			QString info = tr("Usuario %1 pertenece al grupo %2 y no tiene permisos para hacer nada.").arg(nombre, grupo);
+			setNivelUsuario(QConfigData::SinPermisos);
+			addLogText(info);
+			QMessageBox::warning(Q_NULLPTR, tr("Información de usuario"), info);
+		}
+		this->setWindowTitle(QString("%1 - %2 [%4]").arg("Mikrotik PPP Manager", nombre, grupo));
+		break;
+	}
+	case ROS::QSentence::Trap:
+		addLogText(s.toString());
+		break;
+	case ROS::QSentence::Fatal:
+		addLogText(s.toString());
+		break;
+	}
 }
 
 void QMikPPPManager::onUsuarioRecibido(const ROS::QSentence &s)
@@ -214,10 +293,10 @@ void QMikPPPManager::onUsuarioRecibido(const ROS::QSentence &s)
 	case ROS::QSentence::None:
 		break;
 	case ROS::QSentence::Done:
-		ui->statusBar->showMessage(tr("Usuarios recibidos. Pidiendo activos"));
-		tagUsuarios.clear();
+		ui->statusBar->showMessage(tr("Usuarios recibidos. Pidiendo activos y cambios en vivo"));
 		ui->twUsuarios->fillupTable();
 		pideActivos();
+		pideCambios();
 		break;
 	case ROS::QSentence::Reply:
 		ui->statusBar->showMessage(QString("Recibido: %1").arg(s.getID()));
@@ -239,9 +318,7 @@ void QMikPPPManager::onPerfilRecibido(const ROS::QSentence &s)
 	case ROS::QSentence::None:
 		break;
 	case ROS::QSentence::Done:
-		tagPerfiles.clear();
-		ui->statusBar->showMessage( tr("Perfiles recibidos. Pidiendo usuarios") );
-		pideUsuarios();
+		ui->statusBar->showMessage( tr("Perfiles recibidos.") );
 		break;
 	case ROS::QSentence::Reply:
 		gGlobalConfig.addPerfil(s);
@@ -255,19 +332,14 @@ void QMikPPPManager::onPerfilRecibido(const ROS::QSentence &s)
 
 void QMikPPPManager::onActivoRecibido(const ROS::QSentence &s)
 {
-	static int counter;
-
 	switch( s.getResultType() )
 	{
 	case ROS::QSentence::None:
 		break;
 	case ROS::QSentence::Done:
-		ui->statusBar->showMessage( tr("Activos recibidos. Comprobando cambios en vivo.") );
-		counter = 0;
-		pideCambios();
+		ui->statusBar->showMessage( tr("Activos recibidos.") );
 		break;
 	case ROS::QSentence::Reply:
-		ui->statusBar->showMessage(QString("Activo recibido: %1 (id=%2)").arg(++counter).arg(s.getID()));
 		actualizaUsuario(s);
 		break;
 	case ROS::QSentence::Trap:
@@ -297,10 +369,25 @@ void QMikPPPManager::actualizaUsuario(const ROS::QSentence &s)
 	ui->twUsuarios->actualizaUsuario(s);
 }
 
-
 void QMikPPPManager::on_anyadeUsuario_clicked()
 {
-
+	QSecretData s;
+#ifdef QT_DEBUG
+	s.setUsuario("AAAAAAAAAAAA");
+	s.setContra("123456789012");
+	s.setNombre("Nombre Cliente");
+	s.setDireccion("Dirección del cliente");
+	s.setPoblacion("Población");
+	s.setEmail("Correo@electr.nico");
+	s.setWPass("WPA123456");
+	s.setSSID("SSID_WIFI");
+	s.setInstalador("Aaron");
+	s.setTelefonos("123456789,123456789");
+#endif
+	dlgNuevoUsuario = new DlgNuevoUsuario(&mktAPI, s, ui->twUsuarios->secrets(), this);
+	dlgNuevoUsuario->exec();
+	dlgNuevoUsuario->deleteLater();
+	dlgNuevoUsuario = Q_NULLPTR;
 }
 
 #include "DlgConfiguracion.h"
@@ -354,6 +441,27 @@ void QMikPPPManager::actualizaIPRemota(QSecretData *sd)
 		s.addAttribute("remote-address", sd->IPEstatica());
 	s.setTag("UpdateProfile");
 	mktAPI.sendSentence(s);
+}
+
+void QMikPPPManager::setNivelUsuario(QConfigData::NivelUsuario lvl)
+{
+	gGlobalConfig.setNivelUsuario(lvl);
+	switch( gGlobalConfig.nivelUsuario() )
+	{
+	case QConfigData::Completo:
+		ui->anyadeUsuario->setEnabled(true);
+		ui->twUsuarios->setEnabled(true);
+		break;
+	case QConfigData::Administrador:
+	case QConfigData::Instalador:
+		ui->anyadeUsuario->setEnabled(true);
+		ui->twUsuarios->setEnabled(true);
+		break;
+	case QConfigData::SinPermisos:
+		ui->anyadeUsuario->setEnabled(false);
+		ui->twUsuarios->setEnabled(false);
+		break;
+	}
 }
 
 void QMikPPPManager::onDatoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &id)
@@ -411,8 +519,8 @@ void QMikPPPManager::onDatoModificado(QSecretDataModel::Columnas col, const QStr
 		sd->setInstalador(dato);
 		actualizaComentariosRemoto(sd);
 		break;
-	case QSecretDataModel::ColConseguidor:
-		sd->setConseguidor(dato);
+	case QSecretDataModel::ColVendedor:
+		sd->setVendedor(dato);
 		actualizaComentariosRemoto(sd);
 		break;
 	case QSecretDataModel::ColEMail:

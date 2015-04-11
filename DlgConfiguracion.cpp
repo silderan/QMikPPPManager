@@ -22,9 +22,9 @@ DlgConfiguracion::DlgConfiguracion(QWidget *parent) :
 	ui->sbAIPD->setValue(UINT_TO_IPV4D(ip));
 
 	const QStringList &ins = gGlobalConfig.instaladores();
-	ui->tableWidget->setRowCount( qMax(10, ins.count()+4) );
+	ui->listaInstaladores->setRowCount( qMax(10, ins.count()+4) );
 	for( int row = 0; row < ins.count(); row++ )
-		ui->tableWidget->setItem(row, 0, new QTableWidgetItem(ins.at(row)));
+		ui->listaInstaladores->setItem(row, 0, new QTableWidgetItem(ins.at(row)));
 
 	if( gGlobalConfig.perfiles().nombres().isEmpty() )
 	{
@@ -40,6 +40,21 @@ DlgConfiguracion::DlgConfiguracion(QWidget *parent) :
 	}
 	ui->cbBasico->setCurrentText(gGlobalConfig.perfilBasico());
 	ui->cbInactivo->setCurrentText(gGlobalConfig.perfilInactivo());
+	switch( gGlobalConfig.nivelUsuario() )
+	{
+	case QConfigData::SinPermisos:
+		this->setDisabled(true);
+		ui->btCancelar->setDisabled(false);
+	case QConfigData::Completo:
+		break;
+	case QConfigData::Instalador:
+		ui->listaInstaladores->setDisabled(true);
+	case QConfigData::Administrador:
+		ui->cbBasico->setDisabled(true);
+		ui->cbInactivo->setDisabled(true);
+		ui->grRangosIP->setDisabled(true);
+		break;
+	}
 }
 
 DlgConfiguracion::~DlgConfiguracion()
@@ -57,8 +72,8 @@ void DlgConfiguracion::on_btAceptar_clicked()
 
 	QString s;
 	QStringList ins;
-	for( int row = 0; row < ui->tableWidget->rowCount(); row++ )
-		if( (ui->tableWidget->item(row, 0) != Q_NULLPTR) && !(s = ui->tableWidget->item(row, 0)->text()).isEmpty() )
+	for( int row = 0; row < ui->listaInstaladores->rowCount(); row++ )
+		if( (ui->listaInstaladores->item(row, 0) != Q_NULLPTR) && !(s = ui->listaInstaladores->item(row, 0)->text()).isEmpty() )
 			ins.append(s);
 	gGlobalConfig.setInstaladores(ins);
 	gGlobalConfig.setPerfilBasico(ui->cbBasico->currentText());
@@ -73,12 +88,12 @@ void DlgConfiguracion::on_btCancelar_clicked()
 
 void DlgConfiguracion::on_sbTamTxt_valueChanged(int tamFuente)
 {
-	QFont tableFont = ui->tableWidget->font();
+	QFont tableFont = ui->listaInstaladores->font();
 	tableFont.setPixelSize(tamFuente);
-	ui->tableWidget->setFont(tableFont);
+	ui->listaInstaladores->setFont(tableFont);
 }
 
 void DlgConfiguracion::on_sbAltFilas_valueChanged(int alturaFila)
 {
-	ui->tableWidget->verticalHeader()->setDefaultSectionSize(alturaFila);
+	ui->listaInstaladores->verticalHeader()->setDefaultSectionSize(alturaFila);
 }

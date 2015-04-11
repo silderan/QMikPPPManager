@@ -1,22 +1,24 @@
 #include "QSecretData.h"
 
-#include "QConfigData.h"
-
 void QSecretData::parseComment(const QString &comment)
 {
-	QStringList fields = comment.split("$");
-	if( fields.count() > 1 )
-	{
-		switch( fields.count() )
+    QStringList fields = comment.split("$");
+    if( fields.count() > 1 )
+    {
+        switch( fields.count() )
 		{
 		default:
+			setWPass(fields[11]);
+		case 11:
+			setSSID(fields[10]);
+		case 10:
 			setNotas(fields[9]);
 		case 9:
 			setVozIP(fields[8]=="vozip");
 		case 8:
 			setEmail(fields[7]);
 		case 7:
-			setConseguidor(fields[6]);
+			setVendedor(fields[6]);
 		case 6:
 			setInstalador(fields[5]);
 		case 5:
@@ -108,7 +110,7 @@ void QSecretData::parsePlainComment(QString cm)
 	i = cm.indexOf("metrocom", 0, Qt::CaseInsensitive);
 	if( i != - 1)
 	{
-		setConseguidor(cm.mid(i, 8));
+		setVendedor(cm.mid(i, 8));
 		cm = cm.remove(i, 8);
 	}
 
@@ -164,7 +166,7 @@ QString QSecretData::comment()
 			.arg(poblacion())
 			.arg(telefonos())
 			.arg(instalador())
-			.arg(conseguidor())
+			.arg(vendedor())
 			.arg(email())
 			.arg(VozIP()?"vozip":"no")
 			.arg(notas());
@@ -173,6 +175,16 @@ QString QSecretData::comment()
 bool QSecretData::activo() const
 {
 	return perfilReal() != gGlobalConfig.perfilInactivo();
+}
+
+void QSecretData::toSentence(ROS::QSentence *s)
+{
+	s->addAttribute("name", m_usuario);
+	s->addAttribute("password", m_contra);
+	s->addAttribute("profile", m_perfilOriginal);
+	if( !m_IPEstatica.isEmpty() )
+		s->addAttribute("remote-address", m_IPEstatica);
+	s->addAttribute("comment", comment());
 }
 
 QSecretData::QSecretData(const ROS::QSentence &s)
@@ -203,14 +215,14 @@ QWidget *QSecretDataDelegate::createEditor(QWidget *parent,
 									   const QStyleOptionViewItem &/*option*/,
 									   const QModelIndex &index ) const
 {
-//	const QSecretDataModel *model = static_cast<const QSecretDataModel*>(index.model());
+	if( gGlobalConfig.nivelUsuario() < QSecretDataModel::nivelMinimoEdicion((QSecretDataModel::Columnas)index.column()) )
+		return Q_NULLPTR;
 	if( index.column() == QSecretDataModel::ColUsuario )
 		return Q_NULLPTR;
 	if( index.column() == QSecretDataModel::ColPerfil )
 	{
 		QComboBox *cb = new QComboBox(parent);
 		Q_ASSERT(cb);
-		cb->setEditable(true);
 		foreach( QString p, gGlobalConfig.perfiles().nombres() )
 		{
 			if( p != gGlobalConfig.perfilInactivo() )
@@ -408,6 +420,11 @@ QSecretDataModel::QSecretDataModel(int rows, const QStringList &cols, QObject *p
 {
 }
 
+void QSecretDataModel::clear()
+{
+	m_secrets.clear();
+}
+
 #include <QHeaderView>
 void QSecretDataModel::addSecretToTable(QSecretData &s, int row)
 {
@@ -420,7 +437,7 @@ void QSecretDataModel::addSecretToTable(QSecretData &s, int row)
 	setItem( row, ColPoblacion, new QSecretItem(s.poblacion(), s.secretID()) );
 	setItem( row, ColTelefonos, new QSecretItem(s.telefonos(), s.secretID()) );
 	setItem( row, ColInstalador,new QSecretItem(s.instalador(), s.secretID()) );
-	setItem( row, ColConseguidor,new QSecretItem(s.conseguidor(), s.secretID()) );
+	setItem( row, ColVendedor,new QSecretItem(s.vendedor(), s.secretID()) );
 	setItem( row, ColEMail,		new QSecretItem(s.email(), s.secretID()) );
 	setItem( row, ColVozIP,		new QSecretItem(s.VozIP()?"Sí":"No", s.secretID()) );
 	setItem( row, ColNotas,		new QSecretItem(s.notas(), s.secretID()) );
@@ -475,16 +492,20 @@ void QSecretDataTable::setupTable()
 								<< "Población"
 								<< "Teléfonos"
 								<< "Instalador"
-								<< "Conseguidor"
+								<< "Vendedor"
 								<< "EMail"
 								<< "VozIP"
 								<< "Notas");
 	setModel(im);
 }
 
+void QSecretDataTable::clear()
+{
+	im->clear();
+}
+
 void QSecretDataModel::fillupTable()
 {
-	clear();
 	setColumnCount(m_nombresColumnas.count());
 	setHorizontalHeaderLabels(m_nombresColumnas);
 
@@ -582,4 +603,40 @@ QStringList QSecretDataModel::ipsEstaticas() const
 	for( int i = 0; i < m_secrets.count(); i++ )
 		ips.append(m_secrets[i].IPEstatica());
 	return ips;
+}
+
+QConfigData::NivelUsuario QSecretDataModel::nivelMinimoEdicion(QSecretDataModel::Columnas col)
+{
+	switch( col )
+	{
+	case ColUsuario:
+		return QConfigData::Completo;
+	case ColPerfil:
+		return QConfigData::Administrador;
+	case ColEstado:
+		return QConfigData::Administrador;
+	case ColIP:
+		return QConfigData::Administrador;
+	case ColNombre:
+		return QConfigData::Instalador;
+	case ColDireccion:
+		return QConfigData::Instalador;
+	case ColPoblacion:
+		return QConfigData::Instalador;
+	case ColTelefonos:
+		return QConfigData::Instalador;
+	case ColInstalador:
+		return QConfigData::Administrador;
+	case ColVendedor:
+		return QConfigData::Administrador;
+	case ColEMail:
+		return QConfigData::Instalador;
+	case ColVozIP:
+		return QConfigData::Instalador;
+	case ColNotas:
+		return QConfigData::Instalador;
+	case NumColumnas:
+		return QConfigData::Completo;
+	}
+	return QConfigData::Completo;
 }
