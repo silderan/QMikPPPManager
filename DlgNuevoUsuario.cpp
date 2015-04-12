@@ -10,11 +10,7 @@ DlgNuevoUsuario::DlgNuevoUsuario(ROS::Comm *api, const QSecretData &sd, QSecretD
 	ui->setupUi(this);
 	ui->cbInstalador->addItems(gGlobalConfig.instaladores());
 	ui->cbInstalador->setCurrentIndex(0);
-	foreach( QString p, gGlobalConfig.perfiles().nombres() )
-	{
-		if( p != gGlobalConfig.perfilInactivo() )
-			ui->cbPerfil->addItem(p);
-	}
+	gGlobalConfig.setupCBPerfilesUsables(ui->cbPerfil, gGlobalConfig.perfilBasico());
 	ui->cbPoblacion->addItems(secrets.poblaciones());
 
 	ui->leUser->setText(sd.usuario());

@@ -591,7 +591,7 @@ QStringList QSecretDataModel::poblaciones() const
 	QStringList pobs;
 	for( int i = 0; i < m_secrets.count(); i++ )
 	{
-		if( !pobs.contains(m_secrets[i].poblacion()))
+		if( !m_secrets[i].poblacion().isEmpty() && !pobs.contains(m_secrets[i].poblacion()) )
 			pobs.append(m_secrets[i].poblacion());
 	}
 	return pobs;
