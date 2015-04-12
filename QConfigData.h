@@ -3,6 +3,7 @@
 #include "QIniFile.h"
 #include "QSentences.h"
 
+#include <QComboBox>
 #include <QStringList>
 #include <QDir>
 
@@ -114,6 +115,9 @@ public:
 	QPerfilesList &perfiles() { return m_perfiles; }
 	void addPerfil(const ROS::QSentence &s) { m_perfiles.append(s); }
 
+	QStringList perfilesUsables() const			{ return m_rosData["PerfilesUsables"].split(',');	}
+	void setPerfilesUsables(const QStringList &pp)	{ m_rosData["PerfilesUsables"] = pp.join(',');		}
+
 	void setTamFuente(int s) { m_userData["TamFuente"] = QString("%1").arg(s); }
 	int tamFuente() const { return m_userData["TamFuente"].toInt(); }
 
@@ -129,16 +133,13 @@ public:
 
 	void setInstaladores(const QStringList &l) { m_rosData["Instaladores"] = l.join(","); }
 	QStringList instaladores() const { return m_rosData["Instaladores"].split(","); }
-	void addInstalador(const QString &i)
-	{
-		if( m_rosData["Instaladores"].contains(i) )
-		{
-			QStringList ins = instaladores();
-			ins.append(i);
-			setInstaladores(ins);
-		}
-	}
-//	void setPoblaciones(const QStringList &l) { m_iniData["Poblaciones"] = l.join(","); }
+
+	static void select(QComboBox *cb, const QString &str);
+	static QComboBox *setupComboBox(QComboBox *cb, bool editable, const QString &select, const QStringList &s);
+	QComboBox *setupCBPerfiles(QComboBox *cb, const QString &select);
+	QComboBox *setupCBPerfilesUsables(QComboBox *cb, const QString &select);
+	QComboBox *setupCBInstaladores(QComboBox *cb, const QString &select);
+	//	void setPoblaciones(const QStringList &l) { m_iniData["Poblaciones"] = l.join(","); }
 //	QStringList poblaciones() const { return m_iniData["Poblaciones"].split(","); }
 //	void addPoblacion(const QString &p)
 //	{

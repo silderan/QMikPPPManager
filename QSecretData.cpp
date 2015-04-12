@@ -219,17 +219,9 @@ QWidget *QSecretDataDelegate::createEditor(QWidget *parent,
 		return Q_NULLPTR;
 	if( index.column() == QSecretDataModel::ColUsuario )
 		return Q_NULLPTR;
+
 	if( index.column() == QSecretDataModel::ColPerfil )
-	{
-		QComboBox *cb = new QComboBox(parent);
-		Q_ASSERT(cb);
-		foreach( QString p, gGlobalConfig.perfiles().nombres() )
-		{
-			if( p != gGlobalConfig.perfilInactivo() )
-				cb->addItem(p);
-		}
-		return cb;
-	}
+		return gGlobalConfig.setupCBPerfilesUsables(new QComboBox(parent), QString());
 	else
 	if( index.column() == QSecretDataModel::ColIP )
 	{
@@ -291,13 +283,7 @@ void QSecretDataDelegate::setEditorData(QWidget *editor,
 										const QModelIndex &index) const
 {
 	if( index.column() == QSecretDataModel::ColPerfil )
-	{
-		QString perfil = index.model()->data(index, Qt::EditRole).toString();
-		QComboBox *cb = static_cast<QComboBox*>(editor);
-		cb->setCurrentIndex(cb->findText(perfil));
-		if( cb->currentText() != perfil )
-			cb->setCurrentText(perfil);
-	}
+		gGlobalConfig.select(static_cast<QComboBox*>(editor), index.model()->data(index, Qt::EditRole).toString());
 	else
 	if( index.column() == QSecretDataModel::ColIP )
 	{
@@ -515,11 +501,22 @@ void QSecretDataModel::fillupTable()
 		addSecretToTable(m_secrets[row], row);
 }
 
+/**
+ * @brief QSecretDataModel::addSecret
+ * Añade una nueva estructura de datos "secret" a la lista.
+ * El nuevo "secret" sólo se añadirá si su perfil es uno de los válidos.
+ * Se tiene en cuenta que, normalmente, el perfil "sin acceso" no es uno de los
+ * válidos, pero el "secret" igual debe estar dentro de la lista.
+ * @param s
+ * @param addToTable
+ */
 void QSecretDataModel::addSecret(const ROS::QSentence &s, bool addToTable)
 {
-	QString nombre = s.attribute("name");
-	if( (nombre != gGlobalConfig.perfilInactivo()) && !gGlobalConfig.perfiles().contains(nombre) )
+	QString nombre = s.attribute("profile");
+
+	if( (nombre == gGlobalConfig.perfilInactivo()) || gGlobalConfig.perfilesUsables().contains(nombre) )
 		m_secrets.append(s);
+
 	if( addToTable )
 	{
 		appendRow(0);
