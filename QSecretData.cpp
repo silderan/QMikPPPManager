@@ -433,8 +433,11 @@ bool QSecretDataModel::setData(const QModelIndex &index, const QVariant &value, 
 {
 	if( role == Qt::EditRole )
 	{
-		QString ID = secretID(index.row());
-		emit datoModificado(static_cast<Columnas>(index.column()), value.toString(), ID);
+		if( index.data(role).toString() != value.toString() )
+		{
+			QString ID = secretID(index.row());
+			emit datoModificado(static_cast<Columnas>(index.column()), value.toString(), ID);
+		}
 	}
 	return QStandardItemModel::setData(index, value, role);
 }
