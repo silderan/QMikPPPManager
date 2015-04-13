@@ -55,12 +55,12 @@ DlgConfiguracion::DlgConfiguracion(QWidget *parent) :
 		this->setDisabled(true);
 		ui->btCancelar->setDisabled(false);
 		break;
-	case QConfigData::Completo:
+	case QConfigData::Administrador:
 		ui->listaInstaladores->setDisabled(false);
 		break;
 	case QConfigData::Instalador:
 		ui->listaInstaladores->setDisabled(true);
-	case QConfigData::Administrador:
+	case QConfigData::Manager:
 		ui->cbBasico->setDisabled(true);
 		ui->cbInactivo->setDisabled(true);
 		ui->grRangosIP->setDisabled(true);

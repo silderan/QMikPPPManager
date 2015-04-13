@@ -18,7 +18,7 @@ void QSecretData::parseComment(const QString &comment)
 		case 8:
 			setEmail(fields[7]);
 		case 7:
-			setVendedor(fields[6]);
+			setComercial(fields[6]);
 		case 6:
 			setInstalador(fields[5]);
 		case 5:
@@ -110,7 +110,7 @@ void QSecretData::parsePlainComment(QString cm)
 	i = cm.indexOf("metrocom", 0, Qt::CaseInsensitive);
 	if( i != - 1)
 	{
-		setVendedor(cm.mid(i, 8));
+		setComercial(cm.mid(i, 8));
 		cm = cm.remove(i, 8);
 	}
 
@@ -166,7 +166,7 @@ QString QSecretData::comment()
 			.arg(poblacion())
 			.arg(telefonos())
 			.arg(instalador())
-			.arg(vendedor())
+			.arg(comercial())
 			.arg(email())
 			.arg(VozIP()?"vozip":"no")
 			.arg(notas());
@@ -225,17 +225,9 @@ QWidget *QSecretDataDelegate::createEditor(QWidget *parent,
 	else
 	if( index.column() == QSecretDataModel::ColIP )
 	{
-		QComboBox *cb = new QComboBox(parent);
-		QStringList ips = static_cast<const QSecretDataModel*>(index.model())->ipsEstaticas();
-		Q_ASSERT(cb);
-		cb->addItem("IP dinámica");// El primer elemento será para borrar la IP estática
-		for( quint32 ip = gGlobalConfig.deIPV4(); ip <= gGlobalConfig.aIPV4(); ip++ )
-		{
-			QString sip = UINT_TO_IPV4(ip);
-			if( !ips.contains(sip) )
-				cb->addItem(sip);
-		}
-		return cb;
+		return gGlobalConfig.setupCBIPsPublicas(new QComboBox(parent),
+												static_cast<const QSecretDataModel*>(index.model())->ipsEstaticas(),
+												index.data(Qt::EditRole).toString());
 	}
 	else
 	if( index.column() == QSecretDataModel::ColEstado )
@@ -256,21 +248,15 @@ QWidget *QSecretDataDelegate::createEditor(QWidget *parent,
 	else
 	if( index.column() == QSecretDataModel::ColPoblacion )
 	{
-		QComboBox *cb = new QComboBox(parent);
-		Q_ASSERT(cb);
-		cb->addItems( static_cast<const QSecretDataModel*>(index.model())->poblaciones());
-		cb->setEditable(true);
-		return cb;
+		return gGlobalConfig.setupCBPoblaciones( new QComboBox(parent),
+												 static_cast<const QSecretDataModel*>(index.model())->poblaciones());
 	}
 	else
 	if( index.column() == QSecretDataModel::ColInstalador )
-	{
-		QComboBox *cb = new QComboBox(parent);
-		Q_ASSERT(cb);
-		cb->addItems(gGlobalConfig.instaladores());
-		cb->setEditable(true);
-		return cb;
-	}
+		return gGlobalConfig.setupCBInstaladores(new QComboBox(parent), QString());
+	else
+	if( index.column() == QSecretDataModel::ColVendedor )
+		return gGlobalConfig.setupCBVendedores(new QComboBox(parent), QString());
 	else
 	{
 		QLineEdit *le = new QLineEdit(parent);
@@ -286,13 +272,7 @@ void QSecretDataDelegate::setEditorData(QWidget *editor,
 		gGlobalConfig.select(static_cast<QComboBox*>(editor), index.model()->data(index, Qt::EditRole).toString());
 	else
 	if( index.column() == QSecretDataModel::ColIP )
-	{
-		QString ip = index.model()->data(index, Qt::EditRole).toString();
-		QComboBox *cb = static_cast<QComboBox*>(editor);
-		cb->setCurrentIndex(cb->findText(ip));
-		if( cb->currentText() != ip )
-			cb->setCurrentText(ip);
-	}
+		gGlobalConfig.select(static_cast<QComboBox*>(editor), index.model()->data(index, Qt::EditRole).toString());
 	else
 	if( index.column() == QSecretDataModel::ColEstado )
 	{
@@ -309,22 +289,13 @@ void QSecretDataDelegate::setEditorData(QWidget *editor,
 	}
 	else
 	if( index.column() == QSecretDataModel::ColPoblacion )
-	{
-		QString estado = index.model()->data(index, Qt::EditRole).toString();
-		QComboBox *cb = static_cast<QComboBox*>(editor);
-		cb->setCurrentIndex(cb->findText(estado));
-		if( cb->currentText() != estado )
-			cb->setCurrentText(estado);
-	}
+		gGlobalConfig.select(static_cast<QComboBox*>(editor), index.model()->data(index, Qt::EditRole).toString());
 	else
 	if( index.column() == QSecretDataModel::ColInstalador )
-	{
-		QString instalador = index.model()->data(index, Qt::EditRole).toString();
-		QComboBox *cb = static_cast<QComboBox*>(editor);
-		cb->setCurrentIndex(cb->findText(instalador));
-		if( cb->currentText() != instalador )
-			cb->setCurrentText(instalador);
-	}
+		gGlobalConfig.select(static_cast<QComboBox*>(editor), index.model()->data(index, Qt::EditRole).toString());
+	else
+	if( index.column() == QSecretDataModel::ColVendedor )
+		gGlobalConfig.select(static_cast<QComboBox*>(editor), index.model()->data(index, Qt::EditRole).toString());
 	else
 	{
 		QString txt = index.model()->data(index, Qt::EditRole).toString();
@@ -376,6 +347,12 @@ void QSecretDataDelegate::setModelData(QWidget *editor, QAbstractItemModel *mode
 		model->setData(index, cb->currentText(), Qt::EditRole);
 	}
 	else
+	if( index.column() == QSecretDataModel::ColVendedor )
+	{
+		QComboBox *cb = static_cast<QComboBox*>(editor);
+		model->setData(index, cb->currentText(), Qt::EditRole);
+	}
+	else
 	{
 		QLineEdit *le = static_cast<QLineEdit*>(editor);
 		model->setData(index, le->text(), Qt::EditRole);
@@ -389,8 +366,11 @@ void QSecretDataDelegate::updateEditorGeometry(QWidget *editor, const QStyleOpti
 
 void QPerfilesList::append(const QPerfilData &s)
 {
-	m_nombres.append(s.nombre());
-	QList::append(s);
+	if( !m_nombres.contains(s.nombre()) )
+	{
+		m_nombres.append(s.nombre());
+		QList::append(s);
+	}
 }
 
 bool QPerfilesList::contains(const QString &s) const
@@ -423,7 +403,7 @@ void QSecretDataModel::addSecretToTable(QSecretData &s, int row)
 	setItem( row, ColPoblacion, new QSecretItem(s.poblacion(), s.secretID()) );
 	setItem( row, ColTelefonos, new QSecretItem(s.telefonos(), s.secretID()) );
 	setItem( row, ColInstalador,new QSecretItem(s.instalador(), s.secretID()) );
-	setItem( row, ColVendedor,new QSecretItem(s.vendedor(), s.secretID()) );
+	setItem( row, ColVendedor,new QSecretItem(s.comercial(), s.secretID()) );
 	setItem( row, ColEMail,		new QSecretItem(s.email(), s.secretID()) );
 	setItem( row, ColVozIP,		new QSecretItem(s.VozIP()?"Sí":"No", s.secretID()) );
 	setItem( row, ColNotas,		new QSecretItem(s.notas(), s.secretID()) );
@@ -610,13 +590,13 @@ QConfigData::NivelUsuario QSecretDataModel::nivelMinimoEdicion(QSecretDataModel:
 	switch( col )
 	{
 	case ColUsuario:
-		return QConfigData::Completo;
+		return QConfigData::Administrador;
 	case ColPerfil:
-		return QConfigData::Administrador;
+		return QConfigData::Manager;
 	case ColEstado:
-		return QConfigData::Administrador;
+		return QConfigData::Manager;
 	case ColIP:
-		return QConfigData::Administrador;
+		return QConfigData::Manager;
 	case ColNombre:
 		return QConfigData::Instalador;
 	case ColDireccion:
@@ -626,9 +606,9 @@ QConfigData::NivelUsuario QSecretDataModel::nivelMinimoEdicion(QSecretDataModel:
 	case ColTelefonos:
 		return QConfigData::Instalador;
 	case ColInstalador:
-		return QConfigData::Administrador;
+		return QConfigData::Manager;
 	case ColVendedor:
-		return QConfigData::Administrador;
+		return QConfigData::Manager;
 	case ColEMail:
 		return QConfigData::Instalador;
 	case ColVozIP:
@@ -636,7 +616,7 @@ QConfigData::NivelUsuario QSecretDataModel::nivelMinimoEdicion(QSecretDataModel:
 	case ColNotas:
 		return QConfigData::Instalador;
 	case NumColumnas:
-		return QConfigData::Completo;
+		return QConfigData::Administrador;
 	}
-	return QConfigData::Completo;
+	return QConfigData::Administrador;
 }

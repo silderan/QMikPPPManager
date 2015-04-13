@@ -12,7 +12,7 @@
 #define UINT_TO_IPV4B(_IPV4_)			((((quint32)_IPV4_)>>16)&255)
 #define UINT_TO_IPV4C(_IPV4_)			((((quint32)_IPV4_)>>8)&255)
 #define UINT_TO_IPV4D(_IPV4_)			(((quint32)_IPV4_)&255)
-#define UINT_TO_IPV4(_IPV4_)			(QString("%1.%2.%3.%4").arg(UINT_TO_IPV4A(_IPV4_)).arg(UINT_TO_IPV4B(_IPV4_)).arg(UINT_TO_IPV4C(_IPV4_)).arg(UINT_TO_IPV4D(_IPV4_)))
+#define UINT_TO_SIPV4(_IPV4_)			(QString("%1.%2.%3.%4").arg(UINT_TO_IPV4A(_IPV4_)).arg(UINT_TO_IPV4B(_IPV4_)).arg(UINT_TO_IPV4C(_IPV4_)).arg(UINT_TO_IPV4D(_IPV4_)))
 
 class QPerfilData
 {
@@ -48,8 +48,8 @@ public:
 	{
 		SinPermisos,			// No puede hacer nada.
 		Instalador,				// No puede modificar perfiles ni desactivar cuentas.
-		Administrador,			// No puede modificar nombres de usuario.
-		Completo				// Puede hacerlo todo.
+		Manager,				// No puede modificar nombres de usuario.
+		Administrador			// Puede hacerlo todo.
 	};
 
 private:
@@ -89,16 +89,15 @@ public:
 	}
 	~QConfigData()
 	{
-		save();
 	}
 	void load() { QIniFile::load(m_userFName, &m_userData); QIniFile::load(m_rosFName, &m_rosData); }
-	void save() const { QIniFile::save(m_userFName, m_userData); QIniFile::save(m_rosFName, m_rosData); }
+	void save() const;
 
-	void setRemoteHost(const QString &host) { m_rosData["RemoteHost"] = host; }
-	QString remoteHost() const { return m_rosData["RemoteHost"]; }
+	void setRemoteHost(const QString &host) { m_userData["RemoteHost"] = host; }
+	QString remoteHost() const { return m_userData["RemoteHost"]; }
 
-	void setRemotePort(const quint16 &port) { m_rosData["RemotePort"] = QString("%1").arg(port); }
-	quint16 remotePort() const { return m_rosData["RemotePort"].toUShort(); }
+	void setRemotePort(const quint16 &port) { m_userData["RemotePort"] = QString("%1").arg(port); }
+	quint16 remotePort() const { return m_userData["RemotePort"].toUShort(); }
 
 	void setUserName(const QString &uname) { m_userData["UserName"] = uname;	}
 	QString userName() const { return m_userData["UserName"]; }
@@ -130,15 +129,24 @@ public:
 	void setAIPV4(quint32 ip) { m_rosData["AIPV4"] = QString("%1").arg(ip); }
 	void setAIPV4(quint8 A, quint8 B, quint8 C, quint8 D) { setAIPV4(IPV4_TO_UINT(A, B, C, D)); }
 	quint32 aIPV4() const { return m_rosData["AIPV4"].toUInt(); }
+	static quint32 toVIPV4(const QString &sip);
+	bool esIPEstatica(const QString &sip) const;
+	bool esIPEstatica(quint32 vip) const;
 
 	void setInstaladores(const QStringList &l) { m_rosData["Instaladores"] = l.join(","); }
 	QStringList instaladores() const { return m_rosData["Instaladores"].split(","); }
+
+	void setComerciales(const QStringList &l) { m_rosData["Comerciales"] = l.join(","); }
+	QStringList comerciales() const { return instaladores()+m_rosData["Comerciales"].split(","); }
 
 	static void select(QComboBox *cb, const QString &str);
 	static QComboBox *setupComboBox(QComboBox *cb, bool editable, const QString &select, const QStringList &s);
 	QComboBox *setupCBPerfiles(QComboBox *cb, const QString &select);
 	QComboBox *setupCBPerfilesUsables(QComboBox *cb, const QString &select);
 	QComboBox *setupCBInstaladores(QComboBox *cb, const QString &select);
+	QComboBox *setupCBVendedores(QComboBox *cb, const QString &select);
+	QComboBox *setupCBIPsPublicas(QComboBox *cb, const QStringList &ipsUsadas, const QString &ipActual = QString());
+	QComboBox *setupCBPoblaciones(QComboBox *cb, const QStringList &poblaciones, const QString &poblacion = QString());
 	//	void setPoblaciones(const QStringList &l) { m_iniData["Poblaciones"] = l.join(","); }
 //	QStringList poblaciones() const { return m_iniData["Poblaciones"].split(","); }
 //	void addPoblacion(const QString &p)

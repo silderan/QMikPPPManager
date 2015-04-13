@@ -8,10 +8,10 @@ DlgNuevoUsuario::DlgNuevoUsuario(ROS::Comm *api, const QSecretData &sd, QSecretD
 	ui(new Ui::DlgNuevoUsuario), mktAPI(api), m_secrets(secrets), m_secret(sd)
 {
 	ui->setupUi(this);
-	ui->cbInstalador->addItems(gGlobalConfig.instaladores());
-	ui->cbInstalador->setCurrentIndex(0);
-	gGlobalConfig.setupCBPerfilesUsables(ui->cbPerfil, gGlobalConfig.perfilBasico());
-	ui->cbPoblacion->addItems(secrets.poblaciones());
+	gGlobalConfig.setupCBPerfilesUsables(ui->cbPerfil, sd.perfilOriginal().isEmpty() ? gGlobalConfig.perfilBasico():sd.perfilOriginal());
+	gGlobalConfig.setupCBInstaladores(ui->cbInstalador, sd.instalador().isEmpty() ? gGlobalConfig.userName() : sd.instalador());
+	gGlobalConfig.setupCBPoblaciones(ui->cbPoblacion, secrets.poblaciones(), sd.poblacion());
+	gGlobalConfig.setupCBIPsPublicas(ui->cbIPPublica, secrets.ipsEstaticas(), sd.IPEstatica());
 
 	ui->leUser->setText(sd.usuario());
 	ui->lePass->setText(sd.contra());
@@ -23,15 +23,7 @@ DlgNuevoUsuario::DlgNuevoUsuario(ROS::Comm *api, const QSecretData &sd, QSecretD
 	ui->leTelefonos->setText(sd.telefonos());
 	ui->leWPass->setText(sd.wPass());
 
-	ui->cbInstalador->setCurrentText(sd.instalador());
-	if( !sd.perfilOriginal().isEmpty() )
-		ui->cbPerfil->setCurrentText(sd.perfilOriginal());
-	else
-		ui->cbPerfil->setCurrentText(gGlobalConfig.perfilBasico());
-	ui->cbPoblacion->setCurrentText(sd.poblacion());
-
 	ui->chVozIP->setChecked(sd.VozIP());
-	ui->cbInstalador->setCurrentText(gGlobalConfig.userName());
 }
 
 DlgNuevoUsuario::~DlgNuevoUsuario()
@@ -274,6 +266,8 @@ void DlgNuevoUsuario::on_btCrear_clicked()
 	m_secret.setUsuario(ui->leUser->text());
 	m_secret.setContra(ui->lePass->text());
 	m_secret.setPerfilOriginal(ui->cbPerfil->currentText());
+	if( ui->cbIPPublica->currentIndex() > 0 )
+		m_secret.setIPEstatica(ui->cbIPPublica->currentText());
 	m_secret.setNombre(ui->leNombre->text());
 	m_secret.setDireccion(ui->leDireccion->text());
 	m_secret.setPoblacion(ui->cbPoblacion->currentText());

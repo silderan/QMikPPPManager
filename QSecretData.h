@@ -31,7 +31,7 @@ class QSecretData
 	QString m_direccion;
 	QString m_poblacion;
 	QString m_telefonos;
-	QString m_vendedor;
+	QString m_comercial;
 	QString m_email;
 	QString m_SSID;
 	QString m_WPass;
@@ -84,8 +84,8 @@ public:
 	const QString &poblacion() const			{ return m_poblacion; }
 	void setPoblacion(const QString &p)			{ m_poblacion = p; }
 
-	const QString &vendedor() const			{ return m_vendedor; }
-	void setVendedor(const QString &c)		{ m_vendedor = c; }
+	const QString &comercial() const			{ return m_comercial; }
+	void setComercial(const QString &c)			{ m_comercial = c; }
 
 	const QString &email() const				{ return m_email; }
 	void setEmail(const QString &e)				{ m_email = e; }

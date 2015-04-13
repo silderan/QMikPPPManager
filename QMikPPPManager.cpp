@@ -102,7 +102,6 @@ void QMikPPPManager::onStateChanged(ROS::Comm::CommState s)
 	case ROS::Comm::Unconnected:
 		ui->pbConnect->setText( tr("Conectar") );
 		addLogText( tr("Desconectado") );
-		setNivelUsuario(QConfigData::SinPermisos);
 		break;
 	case ROS::Comm::HostLookup:
 		ui->pbConnect->setText( tr("Cancelar") ) ;
@@ -119,7 +118,6 @@ void QMikPPPManager::onStateChanged(ROS::Comm::CommState s)
 	case ROS::Comm::Closing:
 		ui->pbConnect->setText( tr("Forzar desconexión") );
 		addLogText( tr("Cerrando conexión") );
-		setNivelUsuario(QConfigData::SinPermisos);
 		break;
 	}
 }
@@ -260,13 +258,13 @@ void QMikPPPManager::onAPIUserInfoRecibida(const ROS::QSentence &s)
 		QString nombre = s.attribute("name");
 		ui->statusBar->showMessage(tr("Recibida info de %1. Grupo %2").arg(nombre, grupo));
 		if( grupo.compare("full") == 0 )
-			setNivelUsuario(QConfigData::Completo);
+			setNivelUsuario(QConfigData::Administrador);
 		else
 		if( grupo.compare("Instaladores", Qt::CaseInsensitive) == 0 )
 			setNivelUsuario(QConfigData::Instalador);
 		else
 		if( grupo.compare("Administradores", Qt::CaseInsensitive) == 0 )
-			setNivelUsuario(QConfigData::Administrador);
+			setNivelUsuario(QConfigData::Manager);
 		else
 		{
 			QString info = tr("Usuario %1 pertenece al grupo %2 y no tiene permisos para hacer nada.").arg(nombre, grupo);
@@ -448,11 +446,11 @@ void QMikPPPManager::setNivelUsuario(QConfigData::NivelUsuario lvl)
 	gGlobalConfig.setNivelUsuario(lvl);
 	switch( gGlobalConfig.nivelUsuario() )
 	{
-	case QConfigData::Completo:
+	case QConfigData::Administrador:
 		ui->anyadeUsuario->setEnabled(true);
 		ui->twUsuarios->setEnabled(true);
 		break;
-	case QConfigData::Administrador:
+	case QConfigData::Manager:
 	case QConfigData::Instalador:
 		ui->anyadeUsuario->setEnabled(true);
 		ui->twUsuarios->setEnabled(true);
@@ -492,6 +490,7 @@ void QMikPPPManager::onDatoModificado(QSecretDataModel::Columnas col, const QStr
 			else
 				sd->setPerfilReal(sd->perfilOriginal());
 			actualizaPerfilRemoto(sd);
+			reiniciaConexionRemota(sd);
 		}
 		break;
 	case QSecretDataModel::ColIP:
@@ -520,7 +519,7 @@ void QMikPPPManager::onDatoModificado(QSecretDataModel::Columnas col, const QStr
 		actualizaComentariosRemoto(sd);
 		break;
 	case QSecretDataModel::ColVendedor:
-		sd->setVendedor(dato);
+		sd->setComercial(dato);
 		actualizaComentariosRemoto(sd);
 		break;
 	case QSecretDataModel::ColEMail:
