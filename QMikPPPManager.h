@@ -53,6 +53,7 @@ class QMikPPPManager : public QMainWindow
 	void actualizaIPRemota(QSecretData *sd);
 
 	void setNivelUsuario(QConfigData::NivelUsuario lvl);
+
 private slots:
 	void on_pbConnect_clicked();
 	void onComError(ROS::Comm::CommError, QAbstractSocket::SocketError);
@@ -64,6 +65,7 @@ private slots:
 	void on_btConfig_clicked();
 
 	void onDatoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &id);
+	void onDobleClicUsuario(const QSecretData &sd);
 public slots:
 	void updateConfig();
 

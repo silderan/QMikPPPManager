@@ -115,6 +115,7 @@ public:
 	bool activo() const;
 
 	void toSentence(ROS::QSentence *s);
+	bool operator==(const QSecretData &sd)const { return secretID() == sd.secretID(); }
 };
 
 class QSecretsList : public QList<QSecretData>
@@ -173,9 +174,6 @@ public:
 	};
 protected:
 	bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole) Q_DECL_OVERRIDE;
-	QString usuario(int row);
-	QSecretData *secretData(int row);
-	QString secretID(int row);
 
 public:
 	QSecretDataModel(int rows, const QStringList &cols, QObject *p = 0);
@@ -184,11 +182,15 @@ public:
 	void setupTable();
 	void fillupTable();
 	void setColumnas(const QStringList &nombresColumnas) { m_nombresColumnas = nombresColumnas; }
-	void addSecret(const ROS::QSentence &s, bool addToTable = false);
+	void addSecret(const QSecretData &sd, bool addToTable = false);
 	void actualizaUsuario(const ROS::QSentence &s);
+	QString usuario(int row);
+	QString secretID(int row);
+	QSecretData *secretData(int row);
 	QSecretData *findDataByUsername(const QString &us);
 	QSecretData *findDataBySesionID(const QString &id);
 	QSecretData *findDataBySecretID(const QString &id);
+	int row(const QString &id);
 
 	QStringList poblaciones() const;
 	QStringList ipsEstaticas() const;
@@ -207,6 +209,9 @@ class QSecretDataTable : public QTableView
 
 	friend class QSecretDataDelegate;
 
+private slots:
+	void onCellDobleClic(const QModelIndex & index);
+
 public:
 	QSecretDataTable(QWidget *papi = 0);
 	void setupTable();
@@ -220,6 +225,7 @@ public:
 	QSecretDataModel &secrets() { return *im; }
 
 signals:
+	void dobleClicUsuario(const QSecretData &sd);
 	void datoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &secretID);
 };
 

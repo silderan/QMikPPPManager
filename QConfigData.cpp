@@ -27,7 +27,7 @@ QComboBox *QConfigData::setupCBInstaladores(QComboBox *cb, const QString &select
 
 QComboBox *QConfigData::setupCBVendedores(QComboBox *cb, const QString &select)
 {
-	return QConfigData::setupComboBox(cb, true, select, comerciales() );
+	return QConfigData::setupComboBox(cb, true, select, comerciales(false) );
 }
 
 QComboBox *QConfigData::setupCBIPsPublicas(QComboBox *cb, const QStringList &ipsUsadas, const QString &ipActual)

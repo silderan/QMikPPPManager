@@ -44,6 +44,7 @@ public:
 	static bool checkValidSSID(QWidget *papi, const QString &ssid);
 	static bool checkValidWPA(QWidget *papi, const QString &wpa);
 	static bool checkValidInstalador(QWidget *papi, const QString &ins);
+	static bool checkValidComercial(QWidget *papi, const QString &ins);
 
 public slots:
 	void onReceive(const ROS::QSentence &s);

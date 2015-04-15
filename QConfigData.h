@@ -134,10 +134,10 @@ public:
 	bool esIPEstatica(quint32 vip) const;
 
 	void setInstaladores(const QStringList &l) { m_rosData["Instaladores"] = l.join(","); }
-	QStringList instaladores() const { return m_rosData["Instaladores"].split(","); }
+	QStringList instaladores() const { return m_rosData["Instaladores"].split(",", QString::SkipEmptyParts); }
 
 	void setComerciales(const QStringList &l) { m_rosData["Comerciales"] = l.join(","); }
-	QStringList comerciales() const { return instaladores()+m_rosData["Comerciales"].split(","); }
+	QStringList comerciales(bool soloComerciales) const { return m_rosData["Comerciales"].split(",", QString::SkipEmptyParts) + (soloComerciales ? QStringList() : instaladores()); }
 
 	static void select(QComboBox *cb, const QString &str);
 	static QComboBox *setupComboBox(QComboBox *cb, bool editable, const QString &select, const QStringList &s);

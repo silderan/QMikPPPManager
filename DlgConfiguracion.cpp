@@ -22,12 +22,16 @@ DlgConfiguracion::DlgConfiguracion(QWidget *parent) :
 	ui->sbAIPD->setValue(UINT_TO_IPV4D(ip));
 
 	const QStringList &ins = gGlobalConfig.instaladores();
+	QStringList com = gGlobalConfig.comerciales(true);
 	const QStringList &ppU = gGlobalConfig.perfilesUsables();
 	const QStringList &pp = gGlobalConfig.perfiles().nombres();
-	ui->listaInstaladores->setRowCount( qMax(gGlobalConfig.perfiles().count(), qMax(10, ins.count()+4)) );
+	ui->listaInstaladores->setRowCount( qMax(com.count(), qMax(pp.count(), qMax(10, ins.count()+4))) );
 
 	for( int row = 0; row < ins.count(); row++ )
 		ui->listaInstaladores->setItem(row, 1, new QTableWidgetItem(ins.at(row)));
+
+	for( int row = 0; row < ins.count(); row++ )
+		ui->listaInstaladores->setItem(row, 2, new QTableWidgetItem(com.at(row)));
 
 	for( int row = 0; row < pp.count(); row++ )
 	{
@@ -84,7 +88,7 @@ void DlgConfiguracion::on_btAceptar_clicked()
 	gGlobalConfig.setAIPV4(ui->sbAIPA->value(), ui->sbAIPB->value(), ui->sbAIPC->value(), ui->sbAIPD->value());
 
 	QString s;
-	QStringList ins;
+	QStringList ins, com;
 	QStringList ppU;
 	for( int row = 0; row < ui->listaInstaladores->rowCount(); row++ )
 	{
@@ -92,8 +96,11 @@ void DlgConfiguracion::on_btAceptar_clicked()
 			ppU.append(ui->listaInstaladores->item(row, 0)->text());
 		if( (ui->listaInstaladores->item(row, 1) != Q_NULLPTR) && !(s = ui->listaInstaladores->item(row, 1)->text()).isEmpty() )
 			ins.append(s);
+		if( (ui->listaInstaladores->item(row, 2) != Q_NULLPTR) && !(s = ui->listaInstaladores->item(row, 2)->text()).isEmpty() )
+			com.append(s);
 	}
 	gGlobalConfig.setInstaladores(ins);
+	gGlobalConfig.setComerciales(com);
 	gGlobalConfig.setPerfilBasico(ui->cbBasico->currentText());
 	gGlobalConfig.setPerfilInactivo(ui->cbInactivo->currentText());
 	gGlobalConfig.setPerfilesUsables(ppU);

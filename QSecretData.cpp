@@ -394,6 +394,8 @@ void QSecretDataModel::clear()
 #include <QHeaderView>
 void QSecretDataModel::addSecretToTable(QSecretData &s, int row)
 {
+	if( rowCount() <= row )
+		setRowCount(row+1);
 	setItem( row, ColUsuario,	s.setFirstItem(new QSecretItem(s.usuario(), s.secretID())) );
 	setItem( row, ColPerfil,	new QSecretItem(s.perfilOriginal(), s.secretID()) );
 	setItem( row, ColEstado,	new QSecretItem(s.activo() ? "activo" : "inactivo", s.secretID()) );
@@ -447,6 +449,13 @@ QSecretDataTable::QSecretDataTable(QWidget *papi)
 	setupTable();
 	setItemDelegate(&delegado);
 	connect(im, SIGNAL(datoModificado(QSecretDataModel::Columnas,QString,QString)), SIGNAL(datoModificado(QSecretDataModel::Columnas,QString,QString)));
+	connect(this, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(onCellDobleClic(QModelIndex)));
+}
+
+void QSecretDataTable::onCellDobleClic(const QModelIndex &index)
+{
+	if( index.column() == QSecretDataModel::ColUsuario )
+		emit dobleClicUsuario(*im->secretData(index.row()));
 }
 
 void QSecretDataTable::setupTable()
@@ -493,17 +502,26 @@ void QSecretDataModel::fillupTable()
  * @param s
  * @param addToTable
  */
-void QSecretDataModel::addSecret(const ROS::QSentence &s, bool addToTable)
+void QSecretDataModel::addSecret(const QSecretData &sd, bool addToTable)
 {
-	QString nombre = s.attribute("profile");
-
-	if( (nombre == gGlobalConfig.perfilInactivo()) || gGlobalConfig.perfilesUsables().contains(nombre) )
-		m_secrets.append(s);
-
-	if( addToTable )
+	if( gGlobalConfig.perfilesUsables().contains(sd.perfilOriginal()) )
 	{
-		appendRow(0);
-		addSecretToTable(m_secrets.last(), m_secrets.count()-1);
+		int pos;
+		int row;
+
+		if( (pos = m_secrets.indexOf(sd)) == -1 )
+		{
+			row = pos = m_secrets.count();
+			m_secrets.append(sd);
+		}
+		else
+		{
+			row = m_secrets[pos].getFirstItem()->row();
+			m_secrets[pos] = sd;
+		}
+
+		if( addToTable )
+			addSecretToTable(m_secrets[pos], row);
 	}
 }
 
@@ -564,6 +582,14 @@ QSecretData *QSecretDataModel::findDataBySecretID(const QString &id)
 			return &(m_secrets[i]);
 	}
 	return Q_NULLPTR;
+}
+
+int QSecretDataModel::row(const QString &id)
+{
+	QSecretData *sd = findDataBySecretID(id);
+	if( sd )
+		return sd->getFirstItem()->row();
+	return -1;
 }
 
 QStringList QSecretDataModel::poblaciones() const

@@ -44,6 +44,7 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 	connect( &mktAPI, SIGNAL(comReceive(ROS::QSentence&)), this, SLOT(onReceive(ROS::QSentence&)) );
 	connect( ui->twUsuarios, SIGNAL(datoModificado(QSecretDataModel::Columnas,QString,QString)),
 			 this, SLOT(onDatoModificado(QSecretDataModel::Columnas,QString,QString)) );
+	connect( ui->twUsuarios, SIGNAL(dobleClicUsuario(QSecretData)), this, SLOT(onDobleClicUsuario(QSecretData)) );
 	setNivelUsuario(QConfigData::SinPermisos);
 }
 
@@ -537,6 +538,17 @@ void QMikPPPManager::onDatoModificado(QSecretDataModel::Columnas col, const QStr
 	case QSecretDataModel::NumColumnas:
 		break;
 	}
+}
+
+void QMikPPPManager::onDobleClicUsuario(const QSecretData &sd)
+{
+	if( dlgNuevoUsuario )
+		return;
+
+	dlgNuevoUsuario = new DlgNuevoUsuario(&mktAPI, sd, ui->twUsuarios->secrets(), this);
+	dlgNuevoUsuario->exec();
+	dlgNuevoUsuario->deleteLater();
+	dlgNuevoUsuario = Q_NULLPTR;
 }
 
 void QMikPPPManager::updateConfig()

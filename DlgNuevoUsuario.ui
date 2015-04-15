@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1014</width>
-    <height>289</height>
+    <height>332</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -100,22 +100,6 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_8">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Email</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
       <item row="4" column="1" colspan="4">
        <widget class="QLineEdit" name="leNotas"/>
       </item>
@@ -151,8 +135,38 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="1" colspan="4">
+      <item row="3" column="3" colspan="2">
        <widget class="QLineEdit" name="leEmail"/>
+      </item>
+      <item row="3" column="2">
+       <widget class="QLabel" name="label_8">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Email</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QComboBox" name="cbComercial">
+        <property name="editable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_14">
+        <property name="text">
+         <string>Vendedor</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -371,6 +385,7 @@
   <tabstop>leDireccion</tabstop>
   <tabstop>cbPoblacion</tabstop>
   <tabstop>leTelefonos</tabstop>
+  <tabstop>cbComercial</tabstop>
   <tabstop>leEmail</tabstop>
   <tabstop>leNotas</tabstop>
   <tabstop>cbInstalador</tabstop>

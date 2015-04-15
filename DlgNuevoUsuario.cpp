@@ -12,6 +12,7 @@ DlgNuevoUsuario::DlgNuevoUsuario(ROS::Comm *api, const QSecretData &sd, QSecretD
 	gGlobalConfig.setupCBInstaladores(ui->cbInstalador, sd.instalador().isEmpty() ? gGlobalConfig.userName() : sd.instalador());
 	gGlobalConfig.setupCBPoblaciones(ui->cbPoblacion, secrets.poblaciones(), sd.poblacion());
 	gGlobalConfig.setupCBIPsPublicas(ui->cbIPPublica, secrets.ipsEstaticas(), sd.IPEstatica());
+	gGlobalConfig.setupCBVendedores(ui->cbComercial, sd.comercial());
 
 	ui->leUser->setText(sd.usuario());
 	ui->lePass->setText(sd.contra());
@@ -98,18 +99,22 @@ bool DlgNuevoUsuario::checkValidWPA(QWidget *papi, const QString &wpa)
 
 bool DlgNuevoUsuario::checkValidInstalador(QWidget *papi, const QString &ins)
 {
-	return checkField(papi, tr("Instalador"), ins, false, "", "", 4, 0, 0);
+	return gGlobalConfig.instaladores().isEmpty() || checkField(papi, tr("Instalador"), ins, false, "", "", 4, 0, 0);
+}
+
+bool DlgNuevoUsuario::checkValidComercial(QWidget *papi, const QString &com)
+{
+	return com.isEmpty() || checkField(papi, tr("Comercial"), com, false, "", "", 0, 0, 25);
 }
 
 void DlgNuevoUsuario::onReceive(const ROS::QSentence &s)
 {
 	if( s.getResultType() == ROS::QSentence::Done )
 	{
-		m_secret.setSecretID(s.attribute("ret"));
-		ROS::QSentence newSecret;
-		m_secret.toSentence(&newSecret);
-		newSecret.setID(m_secret.secretID());
-		m_secrets.addSecret(newSecret, true);
+		if( !s.attribute("ret").isEmpty() )
+			m_secret.setSecretID(s.attribute("ret"));
+
+		m_secrets.addSecret(m_secret, true);
 	}
 	else
 		QMessageBox::warning(this, windowTitle(), tr("Error añadiendo usuario: %1").arg(s.attribute("message")));
@@ -242,25 +247,27 @@ void DlgNuevoUsuario::on_btCerrar_clicked()
 
 void DlgNuevoUsuario::on_btCrear_clicked()
 {
-	if( !checkValidUsername(this, ui->leUser->text()) )
+	if( (m_secret.secretID().isEmpty() || (m_secret.usuario() != ui->leUser->text())) && !checkValidUsername(this, ui->leUser->text()) )
 		return;
-	if( !checkValidPassword(this, ui->lePass->text()) )
+	if( (m_secret.secretID().isEmpty() || (m_secret.contra() != ui->lePass->text())) && !checkValidPassword(this, ui->lePass->text()) )
 		return;
-	if( !checkValidClientName(this, ui->leNombre->text()) )
+	if( (m_secret.secretID().isEmpty() || (m_secret.nombre() != ui->leNombre->text())) && !checkValidClientName(this, ui->leNombre->text()) )
 		return;
-	if( !checkValidDirection(this, ui->leDireccion->text()) )
+	if( (m_secret.secretID().isEmpty() || (m_secret.direccion() != ui->leDireccion->text())) && !checkValidDirection(this, ui->leDireccion->text()) )
 		return;
-	if( !checkValidCity(this, ui->cbPoblacion->currentText()) )
+	if( (m_secret.secretID().isEmpty() || (m_secret.poblacion() != ui->cbPoblacion->currentText())) && !checkValidCity(this, ui->cbPoblacion->currentText()) )
 		return;
-	if( !checkValidEMail(this, ui->leEmail->text()) )
+	if( (m_secret.secretID().isEmpty() || (m_secret.email() != ui->leEmail->text())) && !checkValidEMail(this, ui->leEmail->text()) )
 		return;
-	if( !checkValidPhoneNumber(this, ui->leTelefonos->text()) )
+	if( (m_secret.secretID().isEmpty() || (m_secret.telefonos() != ui->leTelefonos->text())) && !checkValidPhoneNumber(this, ui->leTelefonos->text()) )
 		return;
-	if( !checkValidSSID(this, ui->leSSID->text()) )
+	if( (m_secret.secretID().isEmpty() || (m_secret.SSID() != ui->leSSID->text())) && !checkValidSSID(this, ui->leSSID->text()) )
 		return;
-	if( !checkValidInstalador(this, ui->cbInstalador->currentText()) )
+	if( (m_secret.secretID().isEmpty() || (m_secret.instalador() != ui->cbInstalador->currentText())) && !checkValidInstalador(this, ui->cbInstalador->currentText()) )
 		return;
-	if( !checkValidWPA(this, ui->leWPass->text()) )
+	if( (m_secret.secretID().isEmpty() || (m_secret.wPass() != ui->leWPass->text())) && !checkValidWPA(this, ui->leWPass->text()) )
+		return;
+	if( (m_secret.secretID().isEmpty() || (m_secret.comercial() != ui->cbComercial->currentText())) && !checkValidComercial(this, ui->cbComercial->currentText()) )
 		return;
 
 	m_secret.setUsuario(ui->leUser->text());
@@ -277,6 +284,7 @@ void DlgNuevoUsuario::on_btCrear_clicked()
 	m_secret.setSSID(ui->leSSID->text());
 	m_secret.setWPass(ui->leWPass->text());
 	m_secret.setVozIP(ui->chVozIP->isChecked());
+	m_secret.setComercial(ui->cbComercial->currentText());
 	if( !ui->leNotas->text().isEmpty() )
 		m_secret.setNotas(ui->leNotas->text());
 
