@@ -563,3 +563,8 @@ void QMikPPPManager::updateConfig()
 	ui->twUsuarios->setFont(tableFont);
 	ui->twUsuarios->verticalHeader()->setDefaultSectionSize(gGlobalConfig.alturaLinea());
 }
+
+void QMikPPPManager::on_leFiltro_textChanged(const QString &txt)
+{
+	ui->twUsuarios->filterRows(txt);
+}

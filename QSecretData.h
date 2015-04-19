@@ -116,6 +116,7 @@ public:
 
 	void toSentence(ROS::QSentence *s);
 	bool operator==(const QSecretData &sd)const { return secretID() == sd.secretID(); }
+	bool contains(const QString &txt) const;
 };
 
 class QSecretsList : public QList<QSecretData>
@@ -196,8 +197,11 @@ public:
 	QStringList ipsEstaticas() const;
 
 	static QConfigData::NivelUsuario nivelMinimoEdicion(Columnas col);
+	const QSecretsList &secrets() const { return m_secrets; }
+
 signals:
 	void datoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &secretID);
+
 };
 
 class QSecretDataTable : public QTableView
@@ -223,6 +227,7 @@ public:
 	QSecretData *findDataBySesionID(const QString &id)	{ return im->findDataBySesionID(id); }
 	QSecretData *findDataBySecretID(const QString &id)	{ return im->findDataBySecretID(id); }
 	QSecretDataModel &secrets() { return *im; }
+	void filterRows(const QString &txt);
 
 signals:
 	void dobleClicUsuario(const QSecretData &sd);

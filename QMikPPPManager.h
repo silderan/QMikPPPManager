@@ -66,6 +66,8 @@ private slots:
 
 	void onDatoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &id);
 	void onDobleClicUsuario(const QSecretData &sd);
+	void on_leFiltro_textChanged(const QString &txt);
+
 public slots:
 	void updateConfig();
 

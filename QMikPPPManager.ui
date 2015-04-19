@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>705</width>
-    <height>453</height>
+    <width>765</width>
+    <height>534</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -130,6 +130,25 @@
        </spacer>
       </item>
       <item>
+       <widget class="QGroupBox" name="groupBox">
+        <property name="title">
+         <string>Filtro</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_2">
+         <item row="0" column="0">
+          <widget class="QLineEdit" name="leFiltro">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="anyadeUsuario">
         <property name="text">
          <string>Añadir usuario</string>
@@ -167,9 +186,6 @@
       <attribute name="verticalHeaderShowSortIndicator" stdset="0">
        <bool>false</bool>
       </attribute>
-      <attribute name="verticalHeaderStretchLastSection">
-       <bool>true</bool>
-      </attribute>
      </widget>
     </item>
    </layout>
@@ -179,8 +195,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>705</width>
-     <height>21</height>
+     <width>765</width>
+     <height>26</height>
     </rect>
    </property>
   </widget>

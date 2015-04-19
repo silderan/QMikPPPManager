@@ -187,6 +187,26 @@ void QSecretData::toSentence(ROS::QSentence *s)
 	s->addAttribute("comment", comment());
 }
 
+bool QSecretData::contains(const QString &txt) const
+{
+	return  m_instalador.contains(txt, Qt::CaseInsensitive) ||
+			m_usuario.contains(txt, Qt::CaseInsensitive) ||
+			m_contra.contains(txt, Qt::CaseInsensitive) ||
+			m_perfilReal.contains(txt, Qt::CaseInsensitive) ||
+			m_nombre.contains(txt, Qt::CaseInsensitive) ||
+			m_direccion.contains(txt, Qt::CaseInsensitive) ||
+			m_poblacion.contains(txt, Qt::CaseInsensitive) ||
+			m_telefonos.contains(txt, Qt::CaseInsensitive) ||
+			m_comercial.contains(txt, Qt::CaseInsensitive) ||
+			m_email.contains(txt, Qt::CaseInsensitive) ||
+			m_SSID.contains(txt, Qt::CaseInsensitive) ||
+			m_WPass.contains(txt, Qt::CaseInsensitive) ||
+			m_notas.contains(txt, Qt::CaseInsensitive) ||
+			m_perfilOriginal.contains(txt, Qt::CaseInsensitive) ||
+			m_IPEstatica.contains(txt, Qt::CaseInsensitive) ||
+			m_IPActiva.contains(txt, Qt::CaseInsensitive);
+}
+
 QSecretData::QSecretData(const ROS::QSentence &s)
 	: m_secretID(s.getID()),
 	  m_instalador("no_definido"),
@@ -480,6 +500,12 @@ void QSecretDataTable::setupTable()
 void QSecretDataTable::clear()
 {
 	im->clear();
+}
+
+void QSecretDataTable::filterRows(const QString &txt)
+{
+	for( int i = 0; i < im->secrets().count(); i++ )
+		setRowHidden(im->secrets().at(i).getFirstItem()->row(), !im->secrets().at(i).contains(txt));
 }
 
 void QSecretDataModel::fillupTable()
