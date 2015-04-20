@@ -25,6 +25,8 @@ DlgNuevoUsuario::DlgNuevoUsuario(ROS::Comm *api, const QSecretData &sd, QSecretD
 	ui->leWPass->setText(sd.wPass());
 
 	ui->chVozIP->setChecked(sd.VozIP());
+
+	checkEditables();
 }
 
 DlgNuevoUsuario::~DlgNuevoUsuario()
@@ -77,7 +79,7 @@ bool DlgNuevoUsuario::checkValidEMail(const QString &email)
 #include <QMessageBox>
 bool DlgNuevoUsuario::checkValidEMail(QWidget *papi, const QString &email)
 {
-	if( !checkField(papi, tr("Correo electrónico"), email, true, "", "ASCII@.", 5, 0, 0) )
+	if( !checkField(papi, tr("Correo electrónico"), email, true, "", "ASCII@._", 5, 0, 0) )
 		return false;
 	if( checkValidEMail(email) )
 		return true;
@@ -109,6 +111,7 @@ bool DlgNuevoUsuario::checkValidComercial(QWidget *papi, const QString &com)
 
 void DlgNuevoUsuario::onReceive(const ROS::QSentence &s)
 {
+	checkEditables();
 	if( s.getResultType() == ROS::QSentence::Done )
 	{
 		if( !s.attribute("ret").isEmpty() )
@@ -238,6 +241,24 @@ bool DlgNuevoUsuario::checkField(QWidget *papi, const QString &fieldName, const 
 	if( maxSize && !checkFieldMaxSize(papi, fieldName, fieldTxt, maxSize) )
 		return false;
 	return true;
+}
+
+void DlgNuevoUsuario::checkEditables()
+{
+	if( m_secret.sesionID().isEmpty() )
+	{
+		ui->leUser->setEnabled(true);
+		ui->lePass->setEnabled(true);
+		ui->lbText->setText("");
+		ui->btCrear->setText("Crear nuevo");
+	}
+	else
+	{
+		ui->leUser->setEnabled(false);
+		ui->lePass->setEnabled(false);
+		ui->lbText->setText( tr("(OjO)\n¡No puedes modificar los datos de login porque el usuario está activo!") );
+		ui->btCrear->setText("Modificar");
+	}
 }
 
 void DlgNuevoUsuario::on_btCerrar_clicked()

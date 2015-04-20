@@ -36,3 +36,6 @@ HEADERS  += QMikPPPManager.h \
 FORMS    += QMikPPPManager.ui \
     DlgConfiguracion.ui \
     DlgNuevoUsuario.ui
+
+DISTFILES += \
+    ToDo.txt

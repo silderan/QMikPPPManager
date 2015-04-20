@@ -30,6 +30,8 @@ class DlgNuevoUsuario : public QDialog
 	static bool checkField(QWidget *papi, const QString &fieldName, const QString &fieldTxt, bool spaces,
 						const QString &invalidChars, const QString &validChars,
 						int minSize, int fixedSize, int maxSize);
+
+	void checkEditables();
 public:
 	explicit DlgNuevoUsuario(ROS::Comm *api, const QSecretData &sd, QSecretDataModel &secrets, QWidget *parent = 0);
 	~DlgNuevoUsuario();

@@ -1,0 +1,5 @@
+- Cuando lleguen datos del ROS, debo informar al posible diálogo "nuevo usuario" para que se entere cuando
+  se "loguea" el usuario que está editándose.
+- Hacer pruebas de qué pasa cuando más de una sesión del programa está en marcha. Concretamente, cuando
+  se añade un nuevo usuario, llega un "reply" con el tag "Nuevo". Pero, ¿qué passa en las otras instancias?
+-
