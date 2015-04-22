@@ -419,7 +419,7 @@ void QSecretDataModel::addSecretToTable(QSecretData &s, int row)
 	setItem( row, ColUsuario,	s.setFirstItem(new QSecretItem(s.usuario(), s.secretID())) );
 	setItem( row, ColPerfil,	new QSecretItem(s.perfilOriginal(), s.secretID()) );
 	setItem( row, ColEstado,	new QSecretItem(s.activo() ? "activo" : "inactivo", s.secretID()) );
-	setItem( row, ColIP,        new QSecretItem(s.IPEstatica().isEmpty() ? "?" : s.IPEstatica(), s.secretID()) );
+	setItem( row, ColIP,        new QSecretItem(s.IPEstatica().isEmpty() ? "desconectado" : s.IPEstatica(), s.secretID()) );
 	setItem( row, ColNombre,	new QSecretItem(s.nombre(), s.secretID()) );
 	setItem( row, ColDireccion, new QSecretItem(s.direccion(), s.secretID()) );
 	setItem( row, ColPoblacion, new QSecretItem(s.poblacion(), s.secretID()) );
@@ -573,7 +573,7 @@ void QSecretDataModel::actualizaUsuario(const ROS::QSentence &s)
 			secret->setIPActiva("");
 			secret->setSesionID("");
 			if( secret->IPEstatica().isEmpty() )
-				it->setText("");
+				it->setText( "desconectado" );
 			else
 				it->setText( QString("s(%1)").arg(secret->IPEstatica()) );
 		}
