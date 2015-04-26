@@ -182,7 +182,9 @@ void QSecretData::toSentence(ROS::QSentence *s)
 	s->addAttribute("name", m_usuario);
 	s->addAttribute("password", m_contra);
 	s->addAttribute("profile", m_perfilOriginal);
-	if( !m_IPEstatica.isEmpty() )
+	if( m_IPEstatica.isEmpty() )
+		s->addAttribute("!remote-address", "");
+	else
 		s->addAttribute("remote-address", m_IPEstatica);
 	s->addAttribute("comment", comment());
 }
@@ -549,6 +551,13 @@ void QSecretDataModel::addSecret(const QSecretData &sd, bool addToTable)
 		if( addToTable )
 			addSecretToTable(m_secrets[pos], row);
 	}
+}
+
+void QSecretDataModel::delSecret(const ROS::QSentence &s)
+{
+	int r = row(s.getID());
+	if( r != -1 )
+		removeRow(r);
 }
 
 void QSecretDataModel::actualizaUsuario(const ROS::QSentence &s)

@@ -62,6 +62,7 @@ private:
 
 public:
 	static const QString tagSecret;
+	static const QString tagNewSecret;
 	static const QString tagPerfil;
 	static const QString tagActivo;
 	static const QString tagCambio;

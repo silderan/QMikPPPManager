@@ -31,7 +31,7 @@ class DlgNuevoUsuario : public QDialog
 						const QString &invalidChars, const QString &validChars,
 						int minSize, int fixedSize, int maxSize);
 
-	void checkEditables();
+	void updateDialog();
 public:
 	explicit DlgNuevoUsuario(ROS::Comm *api, const QSecretData &sd, QSecretDataModel &secrets, QWidget *parent = 0);
 	~DlgNuevoUsuario();
@@ -49,7 +49,10 @@ public:
 	static bool checkValidComercial(QWidget *papi, const QString &ins);
 
 public slots:
-	void onReceive(const ROS::QSentence &s);
+	void onSecretAdded(const ROS::QSentence &s);
+	void onSecretDeleted(const ROS::QSentence &s);
+	void onActivoConectado(const ROS::QSentence &s);
+	void onActivoDesconectado(const ROS::QSentence &s);
 
 private slots:
 	void on_btCerrar_clicked();

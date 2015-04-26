@@ -184,6 +184,7 @@ public:
 	void fillupTable();
 	void setColumnas(const QStringList &nombresColumnas) { m_nombresColumnas = nombresColumnas; }
 	void addSecret(const QSecretData &sd, bool addToTable = false);
+	void delSecret(const ROS::QSentence &s);
 	void actualizaUsuario(const ROS::QSentence &s);
 	QString usuario(int row);
 	QString secretID(int row);
@@ -222,6 +223,7 @@ public:
 	void fillupTable() { im->fillupTable(); }
 	void clear();
 	void addSecret(const ROS::QSentence &s, bool addToTable = false) { im->addSecret(s, addToTable); }
+	void delSecret(const ROS::QSentence &s) {im->delSecret(s); }
 	void actualizaUsuario(const ROS::QSentence &s) { im->actualizaUsuario(s); }
 	QSecretData *findDataByUsername(const QString &us)	{ return im->findDataByUsername(us); }
 	QSecretData *findDataBySesionID(const QString &id)	{ return im->findDataBySesionID(id); }

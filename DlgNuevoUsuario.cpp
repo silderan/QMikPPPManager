@@ -26,7 +26,7 @@ DlgNuevoUsuario::DlgNuevoUsuario(ROS::Comm *api, const QSecretData &sd, QSecretD
 
 	ui->chVozIP->setChecked(sd.VozIP());
 
-	checkEditables();
+	updateDialog();
 }
 
 DlgNuevoUsuario::~DlgNuevoUsuario()
@@ -109,18 +109,42 @@ bool DlgNuevoUsuario::checkValidComercial(QWidget *papi, const QString &com)
 	return com.isEmpty() || checkField(papi, tr("Comercial"), com, false, "", "", 0, 0, 25);
 }
 
-void DlgNuevoUsuario::onReceive(const ROS::QSentence &s)
+void DlgNuevoUsuario::onSecretAdded(const ROS::QSentence &s)
 {
-	checkEditables();
-	if( s.getResultType() == ROS::QSentence::Done )
+	if( s.attribute("name") == m_secret.usuario() )
 	{
-		if( !s.attribute("ret").isEmpty() )
-			m_secret.setSecretID(s.attribute("ret"));
-
-		m_secrets.addSecret(m_secret, true);
+		m_secret.setSecretID(s.getID());
+		updateDialog();
 	}
-	else
-		QMessageBox::warning(this, windowTitle(), tr("Error añadiendo usuario: %1").arg(s.attribute("message")));
+}
+
+void DlgNuevoUsuario::onSecretDeleted(const ROS::QSentence &s)
+{
+	if( s.getID() == m_secret.secretID() )
+	{
+		m_secret.setSecretID( "" );
+		updateDialog();
+	}
+}
+
+void DlgNuevoUsuario::onActivoConectado(const ROS::QSentence &s)
+{
+	// Si se ha conectado el usuario que estamos editando ahora.
+	if( s.attribute("name") == m_secret.usuario() )
+	{
+		m_secret.setSesionID( s.getID() );
+		updateDialog();
+	}
+}
+
+void DlgNuevoUsuario::onActivoDesconectado(const ROS::QSentence &s)
+{
+	// Si se ha desconectado el usuario que estamos editando ahora.
+	if( !m_secret.sesionID().isEmpty() && (m_secret.sesionID() == s.getID()) )
+	{
+		m_secret.setSesionID( "" );
+		updateDialog();
+	}
 }
 
 bool DlgNuevoUsuario::checkRequiredField(QWidget *papi, const QString &fieldName, const QString &fieldTxt)
@@ -243,21 +267,35 @@ bool DlgNuevoUsuario::checkField(QWidget *papi, const QString &fieldName, const 
 	return true;
 }
 
-void DlgNuevoUsuario::checkEditables()
+void DlgNuevoUsuario::updateDialog()
 {
+	if( m_secret.sesionID().isEmpty() && m_secret.secretID().isEmpty() )
+	{
+		ui->leUser->setReadOnly(false);
+		ui->lePass->setReadOnly(false);
+		ui->cbPerfil->setEnabled(true);
+		ui->lbText->setText("");
+		ui->btCrear->setText(tr("Crear nuevo"));
+		setWindowTitle(tr("Nuevo usuario"));
+	}
+	else
 	if( m_secret.sesionID().isEmpty() )
 	{
-		ui->leUser->setEnabled(true);
-		ui->lePass->setEnabled(true);
+		ui->leUser->setReadOnly(false);
+		ui->lePass->setReadOnly(false);
+		ui->cbPerfil->setEnabled(true);
 		ui->lbText->setText("");
-		ui->btCrear->setText("Crear nuevo");
+		ui->btCrear->setText( tr("Modificar").arg(m_secret.secretID()) );
+		setWindowTitle( tr("Modificando usuario desconectado [%1]").arg(m_secret.secretID()) );
 	}
 	else
 	{
-		ui->leUser->setEnabled(false);
-		ui->lePass->setEnabled(false);
+		ui->leUser->setReadOnly(true);
+		ui->lePass->setReadOnly(true);
+		ui->cbPerfil->setDisabled(true);
 		ui->lbText->setText( tr("(OjO)\n¡No puedes modificar los datos de login porque el usuario está activo!") );
-		ui->btCrear->setText("Modificar");
+		ui->btCrear->setText( tr("Modificar") );
+		setWindowTitle( tr("Modificando usuario conectado [%1] (%2)").arg(m_secret.secretID(), m_secret.sesionID()) );
 	}
 }
 
@@ -296,6 +334,8 @@ void DlgNuevoUsuario::on_btCrear_clicked()
 	m_secret.setPerfilOriginal(ui->cbPerfil->currentText());
 	if( ui->cbIPPublica->currentIndex() > 0 )
 		m_secret.setIPEstatica(ui->cbIPPublica->currentText());
+	else
+		m_secret.setIPEstatica("");
 	m_secret.setNombre(ui->leNombre->text());
 	m_secret.setDireccion(ui->leDireccion->text());
 	m_secret.setPoblacion(ui->cbPoblacion->currentText());

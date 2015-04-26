@@ -176,6 +176,10 @@ void QMikPPPManager::pideUsuarios()
 	s.setTag( gGlobalConfig.tagSecret );
 	s.addQuery("#|");
 	mktAPI.sendSentence( s );
+
+	s.setCommand("/ppp/secret/listen");
+	s.setTag( gGlobalConfig.tagNewSecret );
+	mktAPI.sendSentence( s );
 }
 
 void QMikPPPManager::pideActivos()
@@ -198,6 +202,22 @@ void QMikPPPManager::onReceive(ROS::QSentence &s)
 		if( s.tag() == gGlobalConfig.tagSecret )
 			onUsuarioRecibido(s);
 		else
+		if( s.tag() == gGlobalConfig.tagNewSecret )
+		{
+			if( s.attribute(".dead").isEmpty() )
+			{
+				ui->twUsuarios->addSecret(s, true);
+				if( dlgNuevoUsuario != Q_NULLPTR )
+					dlgNuevoUsuario->onSecretAdded(s);
+			}
+			else
+			{
+				ui->twUsuarios->delSecret(s);
+				if( dlgNuevoUsuario != Q_NULLPTR )
+					dlgNuevoUsuario->onSecretDeleted(s);
+			}
+		}
+		else
 		if( s.tag() == gGlobalConfig.tagPerfil )
 			onPerfilRecibido(s);
 		else
@@ -206,35 +226,6 @@ void QMikPPPManager::onReceive(ROS::QSentence &s)
 		else
 		if( s.tag() == gGlobalConfig.tagCambio )
 			actualizaUsuario(s);
-		else
-		if( s.tag() == gGlobalConfig.tagNuevo )
-		{
-			// Al llegar un nuevo usuario, informamos al diálogo, si está abierto,
-			// En el diálogo, ya se añade a la tabla la información del nuevo usuario.
-			if( dlgNuevoUsuario != Q_NULLPTR )
-				dlgNuevoUsuario->onReceive(s);
-			else
-			// Si no está el diálogo en marcha, hago una consulta al ROS para obtener
-			// la información del nuevo usuario añadido.
-			if( s.getResultType() == ROS::QSentence::Done )
-			{
-				QString secretID(s.attribute("ret"));
-				// Si está vacío, es que no es la respuesta de cuando se ha añadido el nuevo usuario.
-				// Puede ser tanto el final de la obtención de los datos, el final de un "trap", etc.
-				if( !secretID.isEmpty() )
-				{
-					ROS::QSentence querySent("/ppp/secret/getall");
-					querySent.setTag(gGlobalConfig.tagNuevo);
-					querySent.addQuery(".id", secretID, ROS::QQuery::EqualProp);
-					querySent.addQuery("#|");
-					mktAPI.sendSentence(querySent);
-				}
-			}
-			else
-			// Esto es cuando se recibe la información del nuevo usuario añadido.
-			if( s.getResultType() == ROS::QSentence::Reply )
-				ui->twUsuarios->addSecret(s, true);
-		}
 		else
 		if( s.getResultType() != ROS::QSentence::Done )
 			addLogText(s.toString());
@@ -351,7 +342,11 @@ void QMikPPPManager::onActivoRecibido(const ROS::QSentence &s)
 void QMikPPPManager::actualizaUsuario(const ROS::QSentence &s)
 {
 	if( s.attribute(".dead").isEmpty() )
+	{
 		addLogText(tr("Conexión %1 (%2) recuperada con IP %3").arg(s.attribute("name"), s.getID(), s.attribute("address")));
+		if( dlgNuevoUsuario != Q_NULLPTR )
+			dlgNuevoUsuario->onActivoConectado(s);
+	}
 	else
 	{
 		QSecretData *sc = ui->twUsuarios->findDataBySesionID(s.getID());
@@ -364,6 +359,8 @@ void QMikPPPManager::actualizaUsuario(const ROS::QSentence &s)
 		}
 		else
 			addLogText(tr("Conexión %1 cerrada").arg(s.attribute("name"), s.getID()));
+		if( dlgNuevoUsuario != Q_NULLPTR )
+			dlgNuevoUsuario->onActivoDesconectado(s);
 	}
 	ui->twUsuarios->actualizaUsuario(s);
 }
