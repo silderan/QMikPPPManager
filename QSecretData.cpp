@@ -80,7 +80,11 @@ void QSecretData::parsePlainComment(QString cm)
 		cm = cm.remove(i, len);
 	}
 
-	i = firstOf(cm, QStringList() << ". " << "." << "C/ " << "C/" << "Urb" << "urb", 0, &len);
+	i = firstOf(cm, QStringList() << "C/ " << "C/"
+				<< "urb. " << "urb."
+				<< "pda. " << "pda."
+				<< "ctra. " << "ctra."
+				<< ". " << ".", 0, &len);
 	if( i != -1 )
 	{
 		setNombre(cm.left(i));
@@ -159,7 +163,7 @@ void QSecretData::parsePlainComment(QString cm)
 
 QString QSecretData::comment()
 {
-	return QString("%1$%2$%3$%4$%5$%6$%7$%8$%9$%10")
+	return QString("%1$%2$%3$%4$%5$%6$%7$%8$%9$%10$%11$%12")
 			.arg(perfilOriginal())
 			.arg(nombre())
 			.arg(direccion())
@@ -169,7 +173,9 @@ QString QSecretData::comment()
 			.arg(comercial())
 			.arg(email())
 			.arg(VozIP()?"vozip":"no")
-			.arg(notas());
+			.arg(notas())
+			.arg(SSID())
+			.arg(wPass());
 }
 
 bool QSecretData::activo() const
@@ -182,6 +188,7 @@ void QSecretData::toSentence(ROS::QSentence *s)
 	s->addAttribute("name", m_usuario);
 	s->addAttribute("password", m_contra);
 	s->addAttribute("profile", m_perfilOriginal);
+	s->addAttribute("service", "pppoe");
 	if( m_IPEstatica.isEmpty() )
 		s->addAttribute("!remote-address", "");
 	else
