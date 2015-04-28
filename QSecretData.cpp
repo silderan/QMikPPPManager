@@ -552,7 +552,9 @@ void QSecretDataModel::addSecret(const QSecretData &sd, bool addToTable)
 		else
 		{
 			row = m_secrets[pos].getFirstItem()->row();
+			QString sesionID = m_secrets[pos].sesionID();
 			m_secrets[pos] = sd;
+			m_secrets[pos].setSesionID(sesionID);
 		}
 
 		if( addToTable )

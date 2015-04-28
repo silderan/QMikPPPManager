@@ -1,12 +1,12 @@
 #include "QConfigData.h"
 
-const QString QConfigData::tagSecret = "Secret";
-const QString QConfigData::tagNewSecret = "NewSecret";
-const QString QConfigData::tagPerfil = "Perfil";
-const QString QConfigData::tagActivo = "Activo";
-const QString QConfigData::tagCambio = "Cambio";
-const QString QConfigData::tagNuevo = "Nuevo";
-const QString QConfigData::tagAPIUser = "APIUser";
+const QString QConfigData::tagSecret	= "Secret";
+const QString QConfigData::tagLSecret	= "LSecret";
+const QString QConfigData::tagPerfil	= "Perfil";
+const QString QConfigData::tagActivo	= "Activo";
+const QString QConfigData::tagLActivo	= "LACtivo";
+const QString QConfigData::tagNuevo		= "Nuevo";
+const QString QConfigData::tagAPIUser	= "APIUser";
 
 QConfigData gGlobalConfig;
 

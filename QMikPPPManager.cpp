@@ -178,7 +178,7 @@ void QMikPPPManager::pideUsuarios()
 	mktAPI.sendSentence( s );
 
 	s.setCommand("/ppp/secret/listen");
-	s.setTag( gGlobalConfig.tagNewSecret );
+	s.setTag( gGlobalConfig.tagLSecret );
 	mktAPI.sendSentence( s );
 }
 
@@ -189,7 +189,7 @@ void QMikPPPManager::pideActivos()
 
 void QMikPPPManager::pideCambios()
 {
-	mktAPI.sendSentence( "/ppp/active/listen", gGlobalConfig.tagCambio );
+	mktAPI.sendSentence( "/ppp/active/listen", gGlobalConfig.tagLActivo );
 }
 
 void QMikPPPManager::onReceive(ROS::QSentence &s)
@@ -202,7 +202,7 @@ void QMikPPPManager::onReceive(ROS::QSentence &s)
 		if( s.tag() == gGlobalConfig.tagSecret )
 			onUsuarioRecibido(s);
 		else
-		if( s.tag() == gGlobalConfig.tagNewSecret )
+		if( s.tag() == gGlobalConfig.tagLSecret )
 		{
 			if( s.attribute(".dead").isEmpty() )
 			{
@@ -224,7 +224,7 @@ void QMikPPPManager::onReceive(ROS::QSentence &s)
 		if( s.tag() == gGlobalConfig.tagActivo )
 			onActivoRecibido(s);
 		else
-		if( s.tag() == gGlobalConfig.tagCambio )
+		if( s.tag() == gGlobalConfig.tagLActivo )
 			actualizaUsuario(s);
 		else
 		if( s.getResultType() != ROS::QSentence::Done )
