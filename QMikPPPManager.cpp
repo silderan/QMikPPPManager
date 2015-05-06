@@ -390,10 +390,11 @@ void QMikPPPManager::on_anyadeUsuario_clicked()
 void QMikPPPManager::on_btConfig_clicked()
 {
 	DlgConfiguracion *dlgConfig = new DlgConfiguracion(this);
+
 	if( dlgConfig->exec() )
-	{
 		updateConfig();
-	}
+
+	dlgConfig->deleteLater();
 }
 
 void QMikPPPManager::reiniciaConexionRemota(QSecretData *sd)

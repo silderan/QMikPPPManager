@@ -13,6 +13,7 @@ class QSecretItem : public QStandardItem
 	QString m_secretID;
 public:
 	const QString &secretID() const { return m_secretID; }
+	void setSecretID(const QString &id) { m_secretID = id; }
 
 	QSecretItem(const QString &txt, const QString &secret_ID)
 		: QStandardItem(txt), m_secretID(secret_ID)
@@ -155,6 +156,7 @@ class QSecretDataModel : public QStandardItemModel
 	void addSecretToTable(QSecretData &s, int row);
 	friend class QSecretDataDelegate;
 
+	QSecretItem *setupCellItem(int row, int col, const QString &txt, const QString &secret_id);
 public:
 	enum Columnas
 	{

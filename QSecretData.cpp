@@ -425,19 +425,32 @@ void QSecretDataModel::addSecretToTable(QSecretData &s, int row)
 {
 	if( rowCount() <= row )
 		setRowCount(row+1);
-	setItem( row, ColUsuario,	s.setFirstItem(new QSecretItem(s.usuario(), s.secretID())) );
-	setItem( row, ColPerfil,	new QSecretItem(s.perfilOriginal(), s.secretID()) );
-	setItem( row, ColEstado,	new QSecretItem(s.activo() ? "activo" : "inactivo", s.secretID()) );
-	setItem( row, ColIP,        new QSecretItem(s.IPEstatica().isEmpty() ? "desconectado" : s.IPEstatica(), s.secretID()) );
-	setItem( row, ColNombre,	new QSecretItem(s.nombre(), s.secretID()) );
-	setItem( row, ColDireccion, new QSecretItem(s.direccion(), s.secretID()) );
-	setItem( row, ColPoblacion, new QSecretItem(s.poblacion(), s.secretID()) );
-	setItem( row, ColTelefonos, new QSecretItem(s.telefonos(), s.secretID()) );
-	setItem( row, ColInstalador,new QSecretItem(s.instalador(), s.secretID()) );
-	setItem( row, ColVendedor,new QSecretItem(s.comercial(), s.secretID()) );
-	setItem( row, ColEMail,		new QSecretItem(s.email(), s.secretID()) );
-	setItem( row, ColVozIP,		new QSecretItem(s.VozIP()?"Sí":"No", s.secretID()) );
-	setItem( row, ColNotas,		new QSecretItem(s.notas(), s.secretID()) );
+	s.setFirstItem( setupCellItem(row, ColUsuario,	s.usuario(), s.secretID() ) );
+	setupCellItem( row, ColPerfil,		s.perfilOriginal(), s.secretID() );
+	setupCellItem( row, ColEstado,		s.activo() ? "activo" : "inactivo", s.secretID() );
+	setupCellItem( row, ColIP,			s.IPEstatica().isEmpty() ? "desconectado" : s.IPEstatica(), s.secretID() );
+	setupCellItem( row, ColNombre,		s.nombre(), s.secretID() );
+	setupCellItem( row, ColDireccion,	s.direccion(), s.secretID() );
+	setupCellItem( row, ColPoblacion,	s.poblacion(), s.secretID() );
+	setupCellItem( row, ColTelefonos,	s.telefonos(), s.secretID() );
+	setupCellItem( row, ColInstalador,	s.instalador(), s.secretID() );
+	setupCellItem( row, ColVendedor,	s.comercial(), s.secretID() );
+	setupCellItem( row, ColEMail,		s.email(), s.secretID() );
+	setupCellItem( row, ColVozIP,		s.VozIP()?"Sí":"No", s.secretID() );
+	setupCellItem( row, ColNotas,		s.notas(), s.secretID() );
+}
+
+QSecretItem *QSecretDataModel::setupCellItem(int row, int col, const QString &txt, const QString &secret_id)
+{
+	QSecretItem *it;
+	if( (it = static_cast<QSecretItem*>(item(row, col))) == Q_NULLPTR )
+		setItem(row, col, it = new QSecretItem(txt, secret_id));
+	else
+	{
+		it->setText(txt);
+		it->setSecretID(secret_id);
+	}
+	return it;
 }
 
 bool QSecretDataModel::setData(const QModelIndex &index, const QVariant &value, int role)
@@ -553,8 +566,10 @@ void QSecretDataModel::addSecret(const QSecretData &sd, bool addToTable)
 		{
 			row = m_secrets[pos].getFirstItem()->row();
 			QString sesionID = m_secrets[pos].sesionID();
+			QString IP = m_secrets[pos].IPActiva();
 			m_secrets[pos] = sd;
 			m_secrets[pos].setSesionID(sesionID);
+			m_secrets[pos].setIPActiva(IP);
 		}
 
 		if( addToTable )
