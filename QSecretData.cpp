@@ -581,7 +581,12 @@ void QSecretDataModel::delSecret(const ROS::QSentence &s)
 {
 	int r = row(s.getID());
 	if( r != -1 )
+	{
+		int c = rowCount();
 		removeRow(r);
+		setRowCount(c-1);
+		m_secrets.removeOne(s);
+	}
 }
 
 void QSecretDataModel::actualizaUsuario(const ROS::QSentence &s)

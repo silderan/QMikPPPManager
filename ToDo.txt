@@ -1,3 +1,1 @@
-- BUG: Cuando se modifica un dato "trivial" (comentarios) de un cliente, desaparece la IP pública de la tabla y se
-	   muestra como "desconectado".
 - BUG: En modo "release", cuando se abre el diálogo de configuración el programa se cierra.
