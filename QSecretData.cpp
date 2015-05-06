@@ -428,7 +428,7 @@ void QSecretDataModel::addSecretToTable(QSecretData &s, int row)
 	s.setFirstItem( setupCellItem(row, ColUsuario,	s.usuario(), s.secretID() ) );
 	setupCellItem( row, ColPerfil,		s.perfilOriginal(), s.secretID() );
 	setupCellItem( row, ColEstado,		s.activo() ? "activo" : "inactivo", s.secretID() );
-	setupCellItem( row, ColIP,			s.IPEstatica().isEmpty() ? "desconectado" : s.IPEstatica(), s.secretID() );
+	setupCellItem( row, ColIP,			s.IPActiva().isEmpty() ? (s.IPEstatica().isEmpty() ? "desconectado" : s.IPEstatica()) : s.IPActiva(), s.secretID() );
 	setupCellItem( row, ColNombre,		s.nombre(), s.secretID() );
 	setupCellItem( row, ColDireccion,	s.direccion(), s.secretID() );
 	setupCellItem( row, ColPoblacion,	s.poblacion(), s.secretID() );
