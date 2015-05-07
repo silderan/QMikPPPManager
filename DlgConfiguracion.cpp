@@ -30,7 +30,7 @@ DlgConfiguracion::DlgConfiguracion(QWidget *parent) :
 	for( int row = 0; row < ins.count(); row++ )
 		ui->listaInstaladores->setItem(row, 1, new QTableWidgetItem(ins.at(row)));
 
-	for( int row = 0; row < ins.count(); row++ )
+	for( int row = 0; row < com.count(); row++ )
 		ui->listaInstaladores->setItem(row, 2, new QTableWidgetItem(com.at(row)));
 
 	for( int row = 0; row < pp.count(); row++ )
