@@ -1,0 +1,5 @@
+<RCC>
+    <qresource lang="es-ES" prefix="/iconos">
+        <file>Copy-icon.png</file>
+    </qresource>
+</RCC>

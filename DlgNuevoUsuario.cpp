@@ -15,7 +15,10 @@ DlgNuevoUsuario::DlgNuevoUsuario(ROS::Comm *api, const QSecretData &sd, QSecretD
 	gGlobalConfig.setupCBVendedores(ui->cbComercial, sd.comercial());
 
 	ui->leUser->setText(sd.usuario());
-	ui->lePass->setText(sd.contra());
+	if( sd.contra().isEmpty() )
+		on_btPass_clicked();
+	else
+		ui->lePass->setText(sd.contra());
 	ui->leNombre->setText(sd.nombre());
 	ui->leDireccion->setText(sd.direccion());
 	ui->leEmail->setText(sd.email());
@@ -25,6 +28,8 @@ DlgNuevoUsuario::DlgNuevoUsuario(ROS::Comm *api, const QSecretData &sd, QSecretD
 	ui->leWPass->setText(sd.wPass());
 
 	ui->chVozIP->setChecked(sd.VozIP());
+	ui->leUser->setFocus();
+	ui->leUser->selectAll();
 
 	updateDialog();
 }
@@ -274,6 +279,7 @@ void DlgNuevoUsuario::updateDialog()
 		ui->leUser->setReadOnly(false);
 		ui->lePass->setReadOnly(false);
 		ui->cbPerfil->setEnabled(true);
+		ui->btPass->setEnabled(true);
 		ui->lbText->setText("");
 		ui->btCrear->setText(tr("Crear nuevo"));
 		setWindowTitle(tr("Nuevo usuario"));
@@ -284,6 +290,7 @@ void DlgNuevoUsuario::updateDialog()
 		ui->leUser->setReadOnly(false);
 		ui->lePass->setReadOnly(false);
 		ui->cbPerfil->setEnabled(true);
+		ui->btPass->setEnabled(true);
 		ui->lbText->setText("");
 		ui->btCrear->setText( tr("Modificar").arg(m_secret.secretID()) );
 		setWindowTitle( tr("Modificando usuario desconectado [%1]").arg(m_secret.secretID()) );
@@ -292,7 +299,8 @@ void DlgNuevoUsuario::updateDialog()
 	{
 		ui->leUser->setReadOnly(true);
 		ui->lePass->setReadOnly(true);
-		ui->cbPerfil->setDisabled(true);
+		ui->cbPerfil->setEnabled(false);
+		ui->btPass->setEnabled(false);
 		ui->lbText->setText( tr("(OjO)\n¡No puedes modificar los datos de login porque el usuario está activo!") );
 		ui->btCrear->setText( tr("Modificar") );
 		setWindowTitle( tr("Modificando usuario conectado [%1] (%2)").arg(m_secret.secretID(), m_secret.sesionID()) );
@@ -360,4 +368,32 @@ void DlgNuevoUsuario::on_btCrear_clicked()
 	s.setTag( gGlobalConfig.tagNuevo );
 	s.setID( m_secret.secretID() );
 	mktAPI->sendSentence(s);
+}
+
+#include <QDateTime>
+void DlgNuevoUsuario::on_btPass_clicked()
+{
+	QDateTime d = QDateTime::currentDateTime();
+
+	QString str = d.toString("ddMMyyyyhhmm");
+	ui->lePass->setText(str);
+}
+
+
+#include <QGuiApplication>
+#include <QClipboard>
+void DlgNuevoUsuario::on_btUserCopy_clicked()
+{
+	QClipboard *cb = QGuiApplication::clipboard();
+	cb->setText(ui->leUser->text());
+	ui->leUser->setFocus();
+	ui->leUser->selectAll();
+}
+
+void DlgNuevoUsuario::on_btPassCopy_clicked()
+{
+	QClipboard *cb = QGuiApplication::clipboard();
+	cb->setText(ui->lePass->text());
+	ui->lePass->setFocus();
+	ui->lePass->selectAll();
 }

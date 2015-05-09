@@ -39,3 +39,6 @@ FORMS    += QMikPPPManager.ui \
 
 DISTFILES += \
     ToDo.txt
+
+RESOURCES += \
+    iconos.qrc
