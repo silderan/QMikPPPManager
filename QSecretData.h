@@ -4,6 +4,7 @@
 #include "QSentences.h"
 #include "QConfigData.h"
 
+#include <QDateTime>
 #include <QTableView>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
@@ -21,6 +22,11 @@ public:
 	}
 };
 
+#define IPPUBLICA_OTROS		(0x01)
+#define IPPUBLICA_VOZIP		(0x02)
+#define IPPUBLICA_PUERTOS	(0x04)
+#define IPPUBLICA_DVR		(0x08)
+
 class QSecretData
 {
 	QString m_secretID;
@@ -36,12 +42,15 @@ class QSecretData
 	QString m_email;
 	QString m_SSID;
 	QString m_WPass;
-	bool m_VozIP;
+	int m_UsaIPPUblica;	// Motivo por el cual usa IP pública (Usa los defines de arriba).
 	QString m_notas;
 	QString m_perfilOriginal;
 	QString m_IPEstatica;
 	QString m_IPActiva;
 	QString m_sesionID;
+	QString m_lastLogOff;
+	QString m_uptime;
+	QString m_ccliente;	// Código de cliente (Campo clave para enlazarlo a los programas de gestión)
 	QSecretItem *firstItem;
 
 	void parseComment(const QString &comment);
@@ -49,7 +58,7 @@ class QSecretData
 	int firstOf(const QString &txt, const QStringList &ws, int from, int *lenMatched );
 
 public:
-	QSecretData():m_VozIP(false) {}
+	QSecretData():m_UsaIPPUblica(0) {}
 	QSecretData(const ROS::QSentence &s);
 
 	const QString &usuario() const				{ return m_usuario;	}
@@ -97,14 +106,27 @@ public:
 	const QString &SSID() const					{ return m_SSID; }
 	void setSSID(const QString &s)				{ m_SSID = s; }
 
-	bool VozIP() const							{ return m_VozIP; }
-	void setVozIP(bool v)						{ m_VozIP = v; }
+	const QString &lastLogedOff() const			{ return m_lastLogOff; }
+	void setLastLogedOff(const QString &s)		{ m_lastLogOff = s; }
+
+	const QString &uptime() const				{ return m_uptime; }
+	void setUptime(const QString &s)			{ m_uptime = s; }
+
+	const QString &codigoCliente() const		{ return m_ccliente;	}
+	void setCodigoCliente(const QString &s)		{ m_ccliente = s;		}
+
+	void setFlagUsaIPPublica(bool b, uint flag);
+	QString usaIPPublica() const;
+	void setFlagsUsaIPPublica(const QString &s);
+	bool usaIPPublica(uint flag) const { return m_UsaIPPUblica & flag; }
 
 	const QString &IPEstatica() const			{ return m_IPEstatica; }
 	void setIPEstatica(const QString &i)		{ m_IPEstatica = i; }
 
 	QString IPActiva() const					{ return m_IPActiva; }
 	void setIPActiva(const QString &ip)			{ m_IPActiva = ip; }
+
+	bool conectado() const						{ return !IPActiva().isEmpty(); }
 
 	QSecretItem *getFirstItem() const			{ return firstItem; }
 	QSecretItem *setFirstItem(QSecretItem *value) { return firstItem = value; }
@@ -113,16 +135,17 @@ public:
 	void setSesionID(const QString &s)			{ m_sesionID = s; }
 
 	QString comment();
-	bool activo() const;
+	bool dadoDeBaja() const;
 
 	void toSentence(ROS::QSentence *s);
 	bool operator==(const QSecretData &sd)const { return secretID() == sd.secretID(); }
-	bool contains(const QString &txt) const;
+	bool contains(const QString &txt, int filtro) const;
 };
 
 class QSecretsList : public QList<QSecretData>
 {
 public:
+	QSecretData findFirstByClientCode(const QString &code, const QSecretData *sdExcepcion);
 	QSecretsList()
 	{
 
@@ -161,6 +184,8 @@ public:
 	enum Columnas
 	{
 		ColUsuario,
+		ColCCliente,
+		ColContrato,
 		ColPerfil,
 		ColEstado,
 		ColIP,
@@ -171,8 +196,9 @@ public:
 		ColInstalador,
 		ColVendedor,
 		ColEMail,
-		ColVozIP,
+		ColUsaIPPublica,
 		ColNotas,
+		ColNumber,
 		NumColumnas
 	};
 protected:
@@ -184,7 +210,6 @@ public:
 
 	void setupTable();
 	void fillupTable();
-	void setColumnas(const QStringList &nombresColumnas) { m_nombresColumnas = nombresColumnas; }
 	void addSecret(const QSecretData &sd, bool addToTable = false);
 	void delSecret(const ROS::QSentence &s);
 	void actualizaUsuario(const ROS::QSentence &s);
@@ -194,6 +219,7 @@ public:
 	QSecretData *findDataByUsername(const QString &us);
 	QSecretData *findDataBySesionID(const QString &id);
 	QSecretData *findDataBySecretID(const QString &id);
+	QSecretData *findDataByClientCode(const QString &code, const QSecretData *sdExcepcion);
 	int row(const QString &id);
 
 	QStringList poblaciones() const;
@@ -203,9 +229,21 @@ public:
 	const QSecretsList &secrets() const { return m_secrets; }
 
 signals:
-	void datoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &secretID);
+	void datoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &secretID, bool *isValid);
 
 };
+
+#define FILTRO_USUARIO		(0x00000001)
+#define FILTRO_NOMBRE		(0x00000010)
+#define FILTRO_DIRECCION	(0x00000020)
+#define FILTRO_POBLACION	(0x00000040)
+#define FILTRO_TELEFONOS	(0x00000080)
+#define FILTRO_EMAIL		(0x00000100)
+#define FILTRO_PERFIL		(0x00000800)
+#define FILTRO_IP			(0x00001000)
+#define FILTRO_CCLIENTE		(0x00002000)
+#define FILTRO_ALTA			(0x00004000)
+#define FILTRO_BAJA			(0x00008000)
 
 class QSecretDataTable : public QTableView
 {
@@ -218,6 +256,7 @@ class QSecretDataTable : public QTableView
 
 private slots:
 	void onCellDobleClic(const QModelIndex & index);
+	void onCellClicked(const QModelIndex & index);
 
 public:
 	QSecretDataTable(QWidget *papi = 0);
@@ -231,11 +270,15 @@ public:
 	QSecretData *findDataBySesionID(const QString &id)	{ return im->findDataBySesionID(id); }
 	QSecretData *findDataBySecretID(const QString &id)	{ return im->findDataBySecretID(id); }
 	QSecretDataModel &secrets() { return *im; }
-	void filterRows(const QString &txt);
+	const QSecretDataModel &secrets() const { return *im; }
+	int count() const { return im->secrets().count();	}
+	QSecretsList secretsList(bool visibles = false) const;
+	void filterRows(QString txt, int filtro);
 
 signals:
 	void dobleClicUsuario(const QSecretData &sd);
-	void datoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &secretID);
+	void clicUsuario(const QSecretData &sd);
+	void datoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &secretID,bool*);
 };
 
 #endif // QSECRETDATA_H

@@ -2,14 +2,15 @@
 #include "ui_DlgNuevoUsuario.h"
 
 #include "QConfigData.h"
+#include "QRegistro.h"
 
 DlgNuevoUsuario::DlgNuevoUsuario(ROS::Comm *api, const QSecretData &sd, QSecretDataModel &secrets, QWidget *parent) :
 	QDialog(parent),
 	ui(new Ui::DlgNuevoUsuario), mktAPI(api), m_secrets(secrets), m_secret(sd)
 {
 	ui->setupUi(this);
-	gGlobalConfig.setupCBPerfilesUsables(ui->cbPerfil, sd.perfilOriginal().isEmpty() ? gGlobalConfig.perfilBasico():sd.perfilOriginal());
-	gGlobalConfig.setupCBInstaladores(ui->cbInstalador, sd.instalador().isEmpty() ? gGlobalConfig.userName() : sd.instalador());
+	gGlobalConfig.setupCBPerfilesUsables(ui->cbPerfil, sd.perfilOriginal().isEmpty() ? gGlobalConfig.perfilBasico() : sd.perfilOriginal());
+	gGlobalConfig.setupCBInstaladores(ui->cbInstalador, sd.secretID().isEmpty() ? gGlobalConfig.userName() : sd.instalador().isEmpty() ? "no-definido" : sd.instalador() );
 	gGlobalConfig.setupCBPoblaciones(ui->cbPoblacion, secrets.poblaciones(), sd.poblacion());
 	gGlobalConfig.setupCBIPsPublicas(ui->cbIPPublica, secrets.ipsEstaticas(), sd.IPEstatica());
 	gGlobalConfig.setupCBVendedores(ui->cbComercial, sd.comercial());
@@ -27,10 +28,15 @@ DlgNuevoUsuario::DlgNuevoUsuario(ROS::Comm *api, const QSecretData &sd, QSecretD
 	ui->leTelefonos->setText(sd.telefonos());
 	ui->leWPass->setText(sd.wPass());
 
-	ui->chVozIP->setChecked(sd.VozIP());
+	ui->chVozIP->setChecked(sd.usaIPPublica(IPPUBLICA_VOZIP));
+	ui->chDVR->setChecked(sd.usaIPPublica(IPPUBLICA_DVR));
+	ui->chPuertos->setChecked(sd.usaIPPublica(IPPUBLICA_PUERTOS));
+	ui->chOtros->setChecked(sd.usaIPPublica(IPPUBLICA_OTROS));
 	ui->leUser->setFocus();
 	ui->leUser->selectAll();
 
+	if( gGlobalConfig.nivelUsuario() < QConfigData::Instalador )
+		this->setDisabled(true);
 	updateDialog();
 }
 
@@ -84,7 +90,7 @@ bool DlgNuevoUsuario::checkValidEMail(const QString &email)
 #include <QMessageBox>
 bool DlgNuevoUsuario::checkValidEMail(QWidget *papi, const QString &email)
 {
-	if( !checkField(papi, tr("Correo electrónico"), email, true, "", "ASCII@._", 5, 0, 0) )
+	if( !checkField(papi, tr("Correo electrónico"), email, true, "", "ASCII@._-", 5, 0, 0) )
 		return false;
 	if( checkValidEMail(email) )
 		return true;
@@ -281,6 +287,7 @@ void DlgNuevoUsuario::updateDialog()
 		ui->cbPerfil->setEnabled(true);
 		ui->btPass->setEnabled(true);
 		ui->lbText->setText("");
+		ui->cbIPPublica->setEnabled(true);
 		ui->btCrear->setText(tr("Crear nuevo"));
 		setWindowTitle(tr("Nuevo usuario"));
 	}
@@ -292,7 +299,8 @@ void DlgNuevoUsuario::updateDialog()
 		ui->cbPerfil->setEnabled(true);
 		ui->btPass->setEnabled(true);
 		ui->lbText->setText("");
-		ui->btCrear->setText( tr("Modificar").arg(m_secret.secretID()) );
+		ui->cbIPPublica->setEnabled(true);
+		ui->btCrear->setText( tr("Modificar %1").arg(m_secret.secretID()) );
 		setWindowTitle( tr("Modificando usuario desconectado [%1]").arg(m_secret.secretID()) );
 	}
 	else
@@ -301,10 +309,63 @@ void DlgNuevoUsuario::updateDialog()
 		ui->lePass->setReadOnly(true);
 		ui->cbPerfil->setEnabled(false);
 		ui->btPass->setEnabled(false);
-		ui->lbText->setText( tr("(OjO)\n¡No puedes modificar los datos de login porque el usuario está activo!") );
+		ui->cbIPPublica->setEnabled(false);
+		ui->lbText->setText( tr("(OjO)\n¡No puedes modificar los datos de login porque el usuario está activo!\nPara ello, usa la ventana principal del programa.") );
 		ui->btCrear->setText( tr("Modificar") );
 		setWindowTitle( tr("Modificando usuario conectado [%1] (%2)").arg(m_secret.secretID(), m_secret.sesionID()) );
 	}
+}
+
+QString DlgNuevoUsuario::contactInfo()
+{
+	/* Formato creado:
+	 * <nombre> <User>/<Pass>
+	 * <dirección> <Pueblo>
+	 * <teléfonos>
+	 * Contrato [alta/baja] de <perfil>. Estado actual [activo <fecha> /inactivo <fecha>]
+	 * (Tiene VozIP, DVR, etc)
+	 * (Notas)
+	 * */
+	QString txt = tr("%1 (%2/%3)\n").arg(ui->leNombre->text(), ui->leUser->text(), ui->lePass->text());
+	txt.append(tr("%1. %2.\n").arg(ui->leDireccion->text(), ui->cbPoblacion->currentText()));
+	txt.append( tr("%1\n").arg( ui->leTelefonos->text().isEmpty()? tr("Sin teléfonos conocidos.") : tr("Teléfono: %1").arg(ui->leTelefonos->text()) ) );
+
+	if( m_secret.dadoDeBaja() )
+		txt.append( tr("Contrato de %1 dado de baja.\n").arg(ui->cbPerfil->currentText()) );
+	else
+		txt.append( tr("Contrato de alta de %1.\n").arg(ui->cbPerfil->currentText()) );
+	if( m_secret.conectado() )
+		txt.append( tr("Router/Antena conectado con IP %1 hace %2\n").arg(m_secret.IPActiva(), m_secret.uptime()) );
+	else
+		txt.append( tr("Router/Antena no conectado desde %1\n").arg(m_secret.lastLogedOff()) );
+
+	QDateTime dt = QDateTime::fromString( ui->lePass->text(), "ddMMyyyyhhmm" );
+	if( (ui->lePass->text().count() == 12) && dt.isValid() )
+		txt.append( tr("Instalado el %1 por %2.\n").arg(dt.toString("dd/MM/yyyy hh:mm"), ui->cbInstalador->currentText()));
+	else
+		txt.append( tr("Instalado por %1.\n").arg(ui->cbInstalador->currentText()) );
+
+	if( ui->chDVR->isChecked() ||
+		ui->chVozIP->isChecked() ||
+		ui->chOtros->isChecked() ||
+		ui->chPuertos->isChecked() )
+	{
+		txt.append( tr("El cliente requiere IP pública porque:\n") );
+		if( ui->chDVR->isChecked() )
+			txt.append( tr("Tiene equipos DVR.\n") );
+		if( ui->chVozIP->isChecked() )
+			txt.append( tr("Tiene telefonía VoIP.\n") );
+		if( ui->chPuertos->isChecked() )
+			txt.append( tr("Tiene puertos redirigidos.\n") );
+		if( ui->chOtros->isChecked() )
+			txt.append( tr("Razón desconocida.\n") );
+	}
+	if( ui->leSSID->text().isEmpty() )
+		txt.append( tr("No tenemos información sobre su red WiFi\n") );
+	else
+		txt.append( tr("WiFi: SSID=%1 PASS=%2\n").arg(ui->leSSID->text(), ui->leWPass->text()) );
+	txt.append( ui->leNotas->text() );
+	return txt;
 }
 
 void DlgNuevoUsuario::on_btCerrar_clicked()
@@ -314,6 +375,9 @@ void DlgNuevoUsuario::on_btCerrar_clicked()
 
 void DlgNuevoUsuario::on_btCrear_clicked()
 {
+	QSecretData secretOld = m_secret;
+	if( (m_secret.secretID().isEmpty() || (m_secret.instalador() != ui->cbInstalador->currentText())) && !checkValidInstalador(this, ui->cbInstalador->currentText()) )
+		return;
 	if( (m_secret.secretID().isEmpty() || (m_secret.usuario() != ui->leUser->text())) && !checkValidUsername(this, ui->leUser->text()) )
 		return;
 	if( (m_secret.secretID().isEmpty() || (m_secret.contra() != ui->lePass->text())) && !checkValidPassword(this, ui->lePass->text()) )
@@ -328,12 +392,18 @@ void DlgNuevoUsuario::on_btCrear_clicked()
 		return;
 	if( (m_secret.secretID().isEmpty() || (m_secret.telefonos() != ui->leTelefonos->text())) && !checkValidPhoneNumber(this, ui->leTelefonos->text()) )
 		return;
-	if( (m_secret.secretID().isEmpty() || (m_secret.SSID() != ui->leSSID->text())) && !checkValidSSID(this, ui->leSSID->text()) )
-		return;
-	if( (m_secret.secretID().isEmpty() || (m_secret.instalador() != ui->cbInstalador->currentText())) && !checkValidInstalador(this, ui->cbInstalador->currentText()) )
-		return;
-	if( (m_secret.secretID().isEmpty() || (m_secret.wPass() != ui->leWPass->text())) && !checkValidWPA(this, ui->leWPass->text()) )
-		return;
+	if( ui->grWiFi->isChecked() )
+	{
+		if( (m_secret.secretID().isEmpty() || (m_secret.SSID() != ui->leSSID->text())) && !checkValidSSID(this, ui->leSSID->text()) )
+			return;
+		if( (m_secret.secretID().isEmpty() || (m_secret.wPass() != ui->leWPass->text())) && !checkValidWPA(this, ui->leWPass->text()) )
+			return;
+	}
+	else
+	{
+		m_secret.setSSID("");
+		m_secret.setWPass("");
+	}
 	if( (m_secret.secretID().isEmpty() || (m_secret.comercial() != ui->cbComercial->currentText())) && !checkValidComercial(this, ui->cbComercial->currentText()) )
 		return;
 
@@ -352,7 +422,10 @@ void DlgNuevoUsuario::on_btCrear_clicked()
 	m_secret.setTelefonos(ui->leTelefonos->text());
 	m_secret.setSSID(ui->leSSID->text());
 	m_secret.setWPass(ui->leWPass->text());
-	m_secret.setVozIP(ui->chVozIP->isChecked());
+	m_secret.setFlagUsaIPPublica(ui->chVozIP->isChecked(), IPPUBLICA_VOZIP);
+	m_secret.setFlagUsaIPPublica(ui->chPuertos->isChecked(), IPPUBLICA_PUERTOS);
+	m_secret.setFlagUsaIPPublica(ui->chDVR->isChecked(), IPPUBLICA_DVR);
+	m_secret.setFlagUsaIPPublica(ui->chOtros->isChecked(), IPPUBLICA_OTROS);
 	m_secret.setComercial(ui->cbComercial->currentText());
 	if( !ui->leNotas->text().isEmpty() )
 		m_secret.setNotas(ui->leNotas->text());
@@ -361,9 +434,15 @@ void DlgNuevoUsuario::on_btCrear_clicked()
 	m_secret.toSentence(&s);
 
 	if( m_secret.secretID().isEmpty() )
+	{
 		s.setCommand("/ppp/secret/add");
+		logService.addRegistro(m_secret, tr("Creado nuevo usuario con perfil %1").arg(m_secret.perfilOriginal()));
+	}
 	else
+	{
 		s.setCommand("/ppp/secret/set");
+		logService.registraCambios(secretOld, m_secret);
+	}
 
 	s.setTag( gGlobalConfig.tagNuevo );
 	s.setID( m_secret.secretID() );
@@ -396,4 +475,15 @@ void DlgNuevoUsuario::on_btPassCopy_clicked()
 	cb->setText(ui->lePass->text());
 	ui->lePass->setFocus();
 	ui->lePass->selectAll();
+}
+
+void DlgNuevoUsuario::on_btCopyContactInfo_clicked()
+{
+	QGuiApplication::clipboard()->setText(contactInfo());
+}
+
+void DlgNuevoUsuario::on_btShowContactInfo_clicked()
+{
+	QMessageBox::information(this, tr("Información de %1 (%2)").arg(ui->leNombre->text(), ui->leUser->text()),
+							 contactInfo());
 }

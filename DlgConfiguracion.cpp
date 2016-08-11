@@ -23,7 +23,7 @@ DlgConfiguracion::DlgConfiguracion(QWidget *parent) :
 
 	const QStringList &ins = gGlobalConfig.instaladores();
 	QStringList com = gGlobalConfig.comerciales(true);
-	const QStringList &ppU = gGlobalConfig.perfilesUsables();
+	const QStringList &ppI = gGlobalConfig.perfilesInternos();
 	const QStringList &pp = gGlobalConfig.perfiles().nombres();
 	ui->listaInstaladores->setRowCount( qMax(com.count(), qMax(pp.count(), qMax(10, ins.count()+4))) );
 
@@ -37,34 +37,35 @@ DlgConfiguracion::DlgConfiguracion(QWidget *parent) :
 	{
 		QTableWidgetItem *it = new QTableWidgetItem(pp.at(row));
 		it->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsUserCheckable );
-		it->setCheckState( ppU.contains(pp.at(row)) ? Qt::Unchecked : Qt::Checked );
+		it->setCheckState( ppI.contains(pp.at(row)) ? Qt::Checked : Qt::Unchecked );
 		ui->listaInstaladores->setItem(row, 0, it);
 	}
 
 	if( gGlobalConfig.perfiles().nombres().isEmpty() )
 	{
 		ui->cbBasico->addItem(gGlobalConfig.perfilBasico());
-		ui->cbInactivo->addItem(gGlobalConfig.perfilInactivo());
+		ui->cbInactivo->addItem(gGlobalConfig.perfilDadoDeBaja());
 		ui->cbBasico->setCurrentIndex(0);
 		ui->cbInactivo->setCurrentIndex(0);
 	}
 	else
 	{
 		gGlobalConfig.setupCBPerfiles(ui->cbBasico, gGlobalConfig.perfilBasico());
-		gGlobalConfig.setupCBPerfiles(ui->cbInactivo, gGlobalConfig.perfilInactivo());
+		gGlobalConfig.setupCBPerfiles(ui->cbInactivo, gGlobalConfig.perfilDadoDeBaja());
 	}
 	switch( gGlobalConfig.nivelUsuario() )
 	{
 	case QConfigData::SinPermisos:
+	case QConfigData::Comercial:
 		this->setDisabled(true);
 		ui->btCancelar->setDisabled(false);
 		break;
-	case QConfigData::Administrador:
+	case QConfigData::Supervisor:
 		ui->listaInstaladores->setDisabled(false);
 		break;
 	case QConfigData::Instalador:
 		ui->listaInstaladores->setDisabled(true);
-	case QConfigData::Manager:
+	case QConfigData::Administrador:
 		ui->cbBasico->setDisabled(true);
 		ui->cbInactivo->setDisabled(true);
 		ui->grRangosIP->setDisabled(true);
@@ -89,11 +90,11 @@ void DlgConfiguracion::on_btAceptar_clicked()
 
 	QString s;
 	QStringList ins, com;
-	QStringList ppU;
+	QStringList ppI;
 	for( int row = 0; row < ui->listaInstaladores->rowCount(); row++ )
 	{
-		if( (ui->listaInstaladores->item(row, 0) != Q_NULLPTR) && (ui->listaInstaladores->item(row, 0)->checkState() != Qt::Checked) )
-			ppU.append(ui->listaInstaladores->item(row, 0)->text());
+		if( (ui->listaInstaladores->item(row, 0) != Q_NULLPTR) && (ui->listaInstaladores->item(row, 0)->checkState() == Qt::Checked) )
+			ppI.append(ui->listaInstaladores->item(row, 0)->text());
 		if( (ui->listaInstaladores->item(row, 1) != Q_NULLPTR) && !(s = ui->listaInstaladores->item(row, 1)->text()).isEmpty() )
 			ins.append(s);
 		if( (ui->listaInstaladores->item(row, 2) != Q_NULLPTR) && !(s = ui->listaInstaladores->item(row, 2)->text()).isEmpty() )
@@ -102,9 +103,8 @@ void DlgConfiguracion::on_btAceptar_clicked()
 	gGlobalConfig.setInstaladores(ins);
 	gGlobalConfig.setComerciales(com);
 	gGlobalConfig.setPerfilBasico(ui->cbBasico->currentText());
-	gGlobalConfig.setPerfilInactivo(ui->cbInactivo->currentText());
-	gGlobalConfig.setPerfilesUsables(ppU);
-	for( int row = 0; row <= ui->listaInstaladores->rowCount(); row++ )
+	gGlobalConfig.setPerfilDadoDeBaja(ui->cbInactivo->currentText());
+	gGlobalConfig.setPerfilesInternos(ppI);
 	accept();
 }
 

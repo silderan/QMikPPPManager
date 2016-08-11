@@ -239,7 +239,7 @@
    <item row="2" column="0">
     <widget class="QLabel" name="label_5">
      <property name="text">
-      <string>Perfil &quot;inactivo&quot;</string>
+      <string>Perfil para usuarios dados de baja</string>
      </property>
     </widget>
    </item>

@@ -44,12 +44,15 @@ public:
 class QConfigData
 {
 public:
+	// El órden es importante porque en un sitio se controla qué puede editar cada uno y
+	// se hace una comparación por el valor.
 	enum NivelUsuario
 	{
 		SinPermisos,			// No puede hacer nada.
+		Comercial,				// No puede modificar nada.
 		Instalador,				// No puede modificar perfiles ni desactivar cuentas.
-		Manager,				// No puede modificar nombres de usuario.
-		Administrador			// Puede hacerlo todo.
+		Administrador,			// No puede modificar la configuración del programa.
+		Supervisor				// Puede hacerlo todo.
 	};
 
 private:
@@ -59,6 +62,7 @@ private:
 	QIniData m_userData;				// Información de configuración del usuario.
 	QIniData m_rosData;					// Información de configuración del ROS.
 	NivelUsuario m_nivelUsuario;
+	QString m_exportFile;				// Fichero al que se exporta.
 
 public:
 	static const QString tagSecret;
@@ -75,8 +79,8 @@ public:
 		setRemotePort(8728);
 		setUserName("admin");
 		setUserPass("");
-		setPerfilInactivo("SinAcceso");
-		setPerfilBasico("5/1");
+		setPerfilDadoDeBaja("SinAcceso");
+		setPerfilBasico("5/1 (ONO)");
 		setTamFuente(10);
 		setAlturaLinea(17);
 		setDeIPV4(192,168,1,50);
@@ -94,6 +98,9 @@ public:
 	void load() { QIniFile::load(m_userFName, &m_userData); QIniFile::load(m_rosFName, &m_rosData); }
 	void save() const;
 
+	void setExportFile(const QString &exportFile) { m_userData["ExportFile"] = exportFile;	}
+	QString exportFile() const { return m_userData["ExportFile"]; }
+
 	void setRemoteHost(const QString &host) { m_userData["RemoteHost"] = host; }
 	QString remoteHost() const { return m_userData["RemoteHost"]; }
 
@@ -106,8 +113,17 @@ public:
 	void setUserPass(const QString &upass) { m_userData["UserPass"] = upass;	}
 	QString userPass() const { return m_userData["UserPass"]; }
 
-	void setPerfilInactivo(const QString &p) { m_rosData["PerfilInactivo"] = p; }
-	QString perfilInactivo() const { return m_rosData["PerfilInactivo"]; }
+	bool windowMaxi() const { return m_userData["anchoPantalla"].isEmpty();	}
+	void setWindowMaxi()	{ m_userData["anchoPantalla"] = "";				}
+	int anchoPantalla() const { return m_userData["anchoPantalla"].toInt();	}
+	int altoPantalla() const  { return m_userData["altoPantalla"].toInt();	}
+
+	void setAnchoPantalla(int a)	{ m_userData["anchoPantalla"] = QString::number(a);	}
+	void setAltoPantalla(int a)		{ m_userData["altoPantalla"] = QString::number(a);	}
+
+	void setPerfilDadoDeBaja(const QString &p) { m_rosData["PerfilDadoDeBaja"] = p; }
+	QString perfilDadoDeBaja() const { return m_rosData["PerfilDadoDeBaja"]; }
+	bool esPerfilDadoDeBaja(const QString &s) const { return perfilDadoDeBaja() == s ; }
 
 	void setPerfilBasico(const QString &p) { m_rosData["PerfilBasico"] = p; }
 	QString perfilBasico() const { return m_rosData["PerfilBasico"]; }
@@ -115,8 +131,9 @@ public:
 	QPerfilesList &perfiles() { return m_perfiles; }
 	void addPerfil(const ROS::QSentence &s) { m_perfiles.append(s); }
 
-	QStringList perfilesUsables() const			{ return m_rosData["PerfilesUsables"].split(',');	}
-	void setPerfilesUsables(const QStringList &pp)	{ m_rosData["PerfilesUsables"] = pp.join(',');		}
+	QStringList perfilesInternos() const			{ return m_rosData["PerfilesInternos"].split(',');	}
+	void setPerfilesInternos(const QStringList &pp)	{ m_rosData["PerfilesInternos"] = pp.join(',');		}
+	bool esPerfilInterno(const QString &per)		{ return perfilesInternos().contains(per);			}
 
 	void setTamFuente(int s) { m_userData["TamFuente"] = QString("%1").arg(s); }
 	int tamFuente() const { return m_userData["TamFuente"].toInt(); }
@@ -135,9 +152,11 @@ public:
 	bool esIPEstatica(quint32 vip) const;
 
 	void setInstaladores(const QStringList &l) { m_rosData["Instaladores"] = l.join(","); }
+	void addInstalador(const QString &ins) { if( !m_rosData["Instaladores"].contains(ins) ) m_rosData["Instaladores"].append(",").append(ins); }
 	QStringList instaladores() const { return m_rosData["Instaladores"].split(",", QString::SkipEmptyParts); }
 
 	void setComerciales(const QStringList &l) { m_rosData["Comerciales"] = l.join(","); }
+	void addComercial(const QString &com) { if( !m_rosData["Comerciales"].contains(com) ) m_rosData["Comerciales"].append(",").append(com); }
 	QStringList comerciales(bool soloComerciales) const { return m_rosData["Comerciales"].split(",", QString::SkipEmptyParts) + (soloComerciales ? QStringList() : instaladores()); }
 
 	static void select(QComboBox *cb, const QString &str);

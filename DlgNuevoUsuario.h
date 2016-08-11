@@ -32,6 +32,7 @@ class DlgNuevoUsuario : public QDialog
 						int minSize, int fixedSize, int maxSize);
 
 	void updateDialog();
+	QString contactInfo();
 public:
 	explicit DlgNuevoUsuario(ROS::Comm *api, const QSecretData &sd, QSecretDataModel &secrets, QWidget *parent = 0);
 	~DlgNuevoUsuario();
@@ -60,6 +61,8 @@ private slots:
 	void on_btPass_clicked();
 	void on_btUserCopy_clicked();
 	void on_btPassCopy_clicked();
+	void on_btCopyContactInfo_clicked();
+	void on_btShowContactInfo_clicked();
 };
 
 #endif // DLGNUEVOUSUARIO_H

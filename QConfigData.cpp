@@ -18,12 +18,17 @@ QComboBox *QConfigData::setupCBPerfiles(QComboBox *cb, const QString &select)
 
 QComboBox *QConfigData::setupCBPerfilesUsables(QComboBox *cb, const QString &select)
 {
-	return QConfigData::setupComboBox(cb, false, select, perfilesUsables());
+	QStringList pp = perfiles().nombres();
+	QString p;
+	foreach(p, pp)
+		if( esPerfilInterno(p) )
+			pp.removeOne(p);
+	return QConfigData::setupComboBox(cb, false, select, pp);
 }
 
 QComboBox *QConfigData::setupCBInstaladores(QComboBox *cb, const QString &select)
 {
-	return QConfigData::setupComboBox(cb, false, select, instaladores() );
+	return QConfigData::setupComboBox(cb, false, select, QStringList() << "no-definido" << instaladores() );
 }
 
 QComboBox *QConfigData::setupCBVendedores(QComboBox *cb, const QString &select)
@@ -70,7 +75,7 @@ QComboBox *QConfigData::setupComboBox(QComboBox *cb, bool editable, const QStrin
 void QConfigData::save() const
 {
 	QIniFile::save(m_userFName, m_userData);
-	if( nivelUsuario() > Instalador )
+	if( nivelUsuario() == Supervisor )
 		QIniFile::save(m_rosFName, m_rosData);
 }
 

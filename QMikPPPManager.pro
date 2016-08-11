@@ -21,7 +21,10 @@ SOURCES += main.cpp\
     QSecretData.cpp \
     QConfigData.cpp \
     DlgConfiguracion.cpp \
-    DlgNuevoUsuario.cpp
+    DlgNuevoUsuario.cpp \
+    QRegistro.cpp \
+	DlgExportar.cpp \
+	DlgPortScan.cpp
 
 HEADERS  += QMikPPPManager.h \
     Comm.h \
@@ -31,11 +34,16 @@ HEADERS  += QMikPPPManager.h \
     QSecretData.h \
     QConfigData.h \
     DlgConfiguracion.h \
-    DlgNuevoUsuario.h
+    DlgNuevoUsuario.h \
+    QRegistro.h \
+	DlgExportar.h \
+	DlgPortScan.h
 
 FORMS    += QMikPPPManager.ui \
     DlgConfiguracion.ui \
-    DlgNuevoUsuario.ui
+	DlgNuevoUsuario.ui \
+	DlgExportar.ui \
+	DlgPortScan.ui
 
 DISTFILES += \
     ToDo.txt

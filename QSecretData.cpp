@@ -8,13 +8,18 @@ void QSecretData::parseComment(const QString &comment)
         switch( fields.count() )
 		{
 		default:
+			setCodigoCliente(fields[12]);
+		case 12:
 			setWPass(fields[11]);
 		case 11:
 			setSSID(fields[10]);
 		case 10:
 			setNotas(fields[9]);
 		case 9:
-			setVozIP(fields[8]=="vozip");
+			if( fields[8]=="vozip" )
+				setFlagUsaIPPublica(true, IPPUBLICA_VOZIP);
+			else
+				setFlagsUsaIPPublica(fields[8]);
 		case 8:
 			setEmail(fields[7]);
 		case 7:
@@ -35,10 +40,10 @@ void QSecretData::parseComment(const QString &comment)
 	}
 	else
 	{
-		setPerfilOriginal((perfilReal().isEmpty() || (perfilReal() == gGlobalConfig.perfilInactivo())) ? gGlobalConfig.perfilBasico() : perfilReal());
+		setPerfilOriginal((perfilReal().isEmpty() || gGlobalConfig.esPerfilDadoDeBaja(perfilReal())) ? gGlobalConfig.perfilBasico() : perfilReal());
 		parsePlainComment(comment);
 	}
-	if( perfilReal() != gGlobalConfig.perfilInactivo() )
+	if( !gGlobalConfig.esPerfilDadoDeBaja(perfilReal()) )
 		setPerfilOriginal(perfilReal());
 }
 
@@ -163,7 +168,7 @@ void QSecretData::parsePlainComment(QString cm)
 
 QString QSecretData::comment()
 {
-	return QString("%1$%2$%3$%4$%5$%6$%7$%8$%9$%10$%11$%12")
+	return QString("%1$%2$%3$%4$%5$%6$%7$%8$%9$%10$%11$%12$%13")
 			.arg(perfilOriginal())
 			.arg(nombre())
 			.arg(direccion())
@@ -172,22 +177,30 @@ QString QSecretData::comment()
 			.arg(instalador())
 			.arg(comercial())
 			.arg(email())
-			.arg(VozIP()?"vozip":"no")
+			.arg(usaIPPublica())
 			.arg(notas())
 			.arg(SSID())
-			.arg(wPass());
+			.arg(wPass())
+			.arg(codigoCliente());
 }
 
-bool QSecretData::activo() const
+bool QSecretData::dadoDeBaja() const
 {
-	return perfilReal() != gGlobalConfig.perfilInactivo();
+	return gGlobalConfig.esPerfilDadoDeBaja(perfilReal());
 }
 
 void QSecretData::toSentence(ROS::QSentence *s)
 {
 	s->addAttribute("name", m_usuario);
 	s->addAttribute("password", m_contra);
-	s->addAttribute("profile", m_perfilOriginal);
+	Q_ASSERT( !m_perfilReal.isEmpty() || !m_perfilOriginal.isEmpty() );
+
+	if( m_perfilReal.isEmpty() )
+		m_perfilReal = m_perfilOriginal;
+	if( m_perfilOriginal.isEmpty() )
+		m_perfilOriginal = m_perfilReal;
+
+	s->addAttribute("profile", m_perfilReal);
 	s->addAttribute("service", "pppoe");
 	if( m_IPEstatica.isEmpty() )
 		s->addAttribute("!remote-address", "");
@@ -196,24 +209,53 @@ void QSecretData::toSentence(ROS::QSentence *s)
 	s->addAttribute("comment", comment());
 }
 
-bool QSecretData::contains(const QString &txt) const
+bool QSecretData::contains(const QString &txt, int filtro) const
 {
-	return  m_instalador.contains(txt, Qt::CaseInsensitive) ||
-			m_usuario.contains(txt, Qt::CaseInsensitive) ||
-			m_contra.contains(txt, Qt::CaseInsensitive) ||
-			m_perfilReal.contains(txt, Qt::CaseInsensitive) ||
-			m_nombre.contains(txt, Qt::CaseInsensitive) ||
-			m_direccion.contains(txt, Qt::CaseInsensitive) ||
-			m_poblacion.contains(txt, Qt::CaseInsensitive) ||
-			m_telefonos.contains(txt, Qt::CaseInsensitive) ||
-			m_comercial.contains(txt, Qt::CaseInsensitive) ||
-			m_email.contains(txt, Qt::CaseInsensitive) ||
-			m_SSID.contains(txt, Qt::CaseInsensitive) ||
-			m_WPass.contains(txt, Qt::CaseInsensitive) ||
-			m_notas.contains(txt, Qt::CaseInsensitive) ||
-			m_perfilOriginal.contains(txt, Qt::CaseInsensitive) ||
-			m_IPEstatica.contains(txt, Qt::CaseInsensitive) ||
-			m_IPActiva.contains(txt, Qt::CaseInsensitive);
+	if( filtro )
+	{
+		if( (filtro & FILTRO_ALTA) && dadoDeBaja() )
+			return false;
+		if( (filtro & FILTRO_BAJA) && !dadoDeBaja() )
+			return false;
+		if( (filtro & FILTRO_USUARIO) && !m_usuario.contains(txt, Qt::CaseInsensitive) )
+			return false;
+		if( (filtro & FILTRO_PERFIL) && !m_perfilOriginal.contains(txt, Qt::CaseInsensitive) )
+			return false;
+		if( (filtro & FILTRO_NOMBRE) && !m_nombre.contains(txt, Qt::CaseInsensitive) )
+			return false;
+		if( (filtro & FILTRO_DIRECCION) && !m_direccion.contains(txt, Qt::CaseInsensitive) )
+			return false;
+		if( (filtro & FILTRO_POBLACION) && !m_poblacion.contains(txt, Qt::CaseInsensitive) )
+			return false;
+		if( (filtro & FILTRO_EMAIL) && !m_email.contains(txt, Qt::CaseInsensitive) )
+			return false;
+		if( (filtro & FILTRO_TELEFONOS) && !m_telefonos.contains(txt, Qt::CaseInsensitive) )
+			return false;
+		if( (filtro & FILTRO_IP) && !m_IPActiva.contains(txt, Qt::CaseInsensitive)
+				&& !m_IPEstatica.contains(txt, Qt::CaseInsensitive) )
+			return false;
+		if( (filtro & FILTRO_CCLIENTE) && !m_ccliente.contains(txt, Qt::CaseInsensitive) )
+			return false;
+		return true;
+	}
+	else
+		return  m_instalador.contains(txt, Qt::CaseInsensitive) ||
+				m_usuario.contains(txt, Qt::CaseInsensitive) ||
+				m_contra.contains(txt, Qt::CaseInsensitive) ||
+				m_perfilReal.contains(txt, Qt::CaseInsensitive) ||
+				m_nombre.contains(txt, Qt::CaseInsensitive) ||
+				m_direccion.contains(txt, Qt::CaseInsensitive) ||
+				m_poblacion.contains(txt, Qt::CaseInsensitive) ||
+				m_telefonos.contains(txt, Qt::CaseInsensitive) ||
+				m_comercial.contains(txt, Qt::CaseInsensitive) ||
+				m_email.contains(txt, Qt::CaseInsensitive) ||
+				m_SSID.contains(txt, Qt::CaseInsensitive) ||
+				m_WPass.contains(txt, Qt::CaseInsensitive) ||
+				m_perfilOriginal.contains(txt, Qt::CaseInsensitive) ||
+				m_notas.contains(txt, Qt::CaseInsensitive) ||
+				m_IPEstatica.contains(txt, Qt::CaseInsensitive) ||
+				m_ccliente.contains(txt, Qt::CaseInsensitive) ||
+				m_IPActiva.contains(txt, Qt::CaseInsensitive);
 }
 
 QSecretData::QSecretData(const ROS::QSentence &s)
@@ -222,11 +264,42 @@ QSecretData::QSecretData(const ROS::QSentence &s)
 	  m_usuario(s.attribute("name")),
 	  m_contra(s.attribute("password")),
 	  m_perfilReal(s.attribute("profile")),
-	  m_VozIP(false),
+	  m_UsaIPPUblica(0),
 	  m_IPEstatica(s.attribute("remote-address")),
+	  m_lastLogOff(s.attribute("last-logged-out")),
 	  firstItem(Q_NULLPTR)
 {
 	parseComment(s.attribute("comment"));
+}
+
+void QSecretData::setFlagUsaIPPublica(bool b, uint flag)
+{
+	if( b )
+		m_UsaIPPUblica |= flag;
+	else
+		m_UsaIPPUblica &= ~flag;
+}
+
+QString QSecretData::usaIPPublica() const
+{
+	QString rtn;
+	if( usaIPPublica(IPPUBLICA_VOZIP) )
+		rtn.append("V");
+	if( usaIPPublica(IPPUBLICA_DVR) )
+		rtn.append("D");
+	if( usaIPPublica(IPPUBLICA_PUERTOS) )
+		rtn.append("P");
+	if( usaIPPublica(IPPUBLICA_OTROS) )
+		rtn.append("O");
+	return rtn;
+}
+
+void QSecretData::setFlagsUsaIPPublica(const QString &s)
+{
+	setFlagUsaIPPublica(s.contains("O"), IPPUBLICA_OTROS);
+	setFlagUsaIPPublica(s.contains("V"), IPPUBLICA_VOZIP);
+	setFlagUsaIPPublica(s.contains("D"), IPPUBLICA_DVR);
+	setFlagUsaIPPublica(s.contains("P"), IPPUBLICA_PUERTOS);
 }
 
 #include <QStyleOptionViewItem>
@@ -246,90 +319,89 @@ QWidget *QSecretDataDelegate::createEditor(QWidget *parent,
 {
 	if( gGlobalConfig.nivelUsuario() < QSecretDataModel::nivelMinimoEdicion((QSecretDataModel::Columnas)index.column()) )
 		return Q_NULLPTR;
-	if( index.column() == QSecretDataModel::ColUsuario )
-		return Q_NULLPTR;
 
-	if( index.column() == QSecretDataModel::ColPerfil )
-		return gGlobalConfig.setupCBPerfilesUsables(new QComboBox(parent), QString());
-	else
-	if( index.column() == QSecretDataModel::ColIP )
+	switch( index.column() )
 	{
+	case QSecretDataModel::ColUsuario:
+		return Q_NULLPTR;
+	case QSecretDataModel::ColPerfil:
+		return gGlobalConfig.setupCBPerfilesUsables(new QComboBox(parent), QString());
+	case QSecretDataModel::ColIP:
 		return gGlobalConfig.setupCBIPsPublicas(new QComboBox(parent),
 												static_cast<const QSecretDataModel*>(index.model())->ipsEstaticas(),
 												index.data(Qt::EditRole).toString());
-	}
-	else
-	if( index.column() == QSecretDataModel::ColEstado )
-	{
+	case QSecretDataModel::ColContrato:
+	  {
 		QComboBox *cb = new QComboBox(parent);
 		Q_ASSERT(cb);
-		cb->addItems(QStringList() << "activo" << "inactivo");
+		cb->addItems(QStringList() << "alta" << "baja");
 		return cb;
-	}
-	else
-	if( index.column() == QSecretDataModel::ColVozIP )
-	{
+	  }
+	case QSecretDataModel::ColUsaIPPublica:
+	  {
 		QComboBox *cb = new QComboBox(parent);
 		Q_ASSERT(cb);
-		cb->addItems(QStringList() << "Sí" << "No");
+		cb->addItems(QStringList() << "" << "V" << "P" << "O" << "D");
 		return cb;
-	}
-	else
-	if( index.column() == QSecretDataModel::ColPoblacion )
-	{
+	  }
+	case QSecretDataModel::ColPoblacion:
 		return gGlobalConfig.setupCBPoblaciones( new QComboBox(parent),
 												 static_cast<const QSecretDataModel*>(index.model())->poblaciones());
-	}
-	else
-	if( index.column() == QSecretDataModel::ColInstalador )
+	case QSecretDataModel::ColInstalador:
 		return gGlobalConfig.setupCBInstaladores(new QComboBox(parent), QString());
-	else
-	if( index.column() == QSecretDataModel::ColVendedor )
+	case QSecretDataModel::ColVendedor:
 		return gGlobalConfig.setupCBVendedores(new QComboBox(parent), QString());
-	else
-	{
+	default:
+		// Por defecto, todos los campos generan un editor para cambiar el dato en él.
+	  {
 		QLineEdit *le = new QLineEdit(parent);
 		Q_ASSERT(le);
 		return le;
+	  }
 	}
 }
 
 void QSecretDataDelegate::setEditorData(QWidget *editor,
 										const QModelIndex &index) const
 {
-	if( index.column() == QSecretDataModel::ColPerfil )
-		gGlobalConfig.select(static_cast<QComboBox*>(editor), index.model()->data(index, Qt::EditRole).toString());
-	else
-	if( index.column() == QSecretDataModel::ColIP )
-		gGlobalConfig.select(static_cast<QComboBox*>(editor), index.model()->data(index, Qt::EditRole).toString());
-	else
-	if( index.column() == QSecretDataModel::ColEstado )
+	switch( index.column() )
 	{
+	case QSecretDataModel::ColPerfil:
+		gGlobalConfig.select(static_cast<QComboBox*>(editor), index.model()->data(index, Qt::EditRole).toString());
+		break;
+	case QSecretDataModel::ColIP:
+		gGlobalConfig.select(static_cast<QComboBox*>(editor), index.model()->data(index, Qt::EditRole).toString());
+		break;
+	case QSecretDataModel::ColContrato:
+	  {
 		QString estado = index.model()->data(index, Qt::EditRole).toString();
 		QComboBox *cb = static_cast<QComboBox*>(editor);
-		cb->setCurrentIndex(estado == "activo" ? 0 : 1);
-	}
-	else
-	if( index.column() == QSecretDataModel::ColVozIP )
-	{
+		cb->setCurrentIndex(estado == "alta" ? 0 : 1);
+		break;
+	  }
+	case QSecretDataModel::ColUsaIPPublica:
+	  {
 		QString estado = index.model()->data(index, Qt::EditRole).toString();
 		QComboBox *cb = static_cast<QComboBox*>(editor);
-		cb->setCurrentIndex(estado == "Sí" ? 0 : 1);
-	}
-	else
-	if( index.column() == QSecretDataModel::ColPoblacion )
+		cb->setCurrentText(estado);
+		break;
+	  }
+	case QSecretDataModel::ColPoblacion:
 		gGlobalConfig.select(static_cast<QComboBox*>(editor), index.model()->data(index, Qt::EditRole).toString());
-	else
-	if( index.column() == QSecretDataModel::ColInstalador )
+		break;
+	case QSecretDataModel::ColInstalador:
 		gGlobalConfig.select(static_cast<QComboBox*>(editor), index.model()->data(index, Qt::EditRole).toString());
-	else
-	if( index.column() == QSecretDataModel::ColVendedor )
+		break;
+	case QSecretDataModel::ColVendedor:
 		gGlobalConfig.select(static_cast<QComboBox*>(editor), index.model()->data(index, Qt::EditRole).toString());
-	else
-	{
+		break;
+	default:
+	  {
 		QString txt = index.model()->data(index, Qt::EditRole).toString();
 		QLineEdit *le = static_cast<QLineEdit*>(editor);
 		le->setText(txt);
+		break;
+	  }
 	}
 }
 
@@ -352,16 +424,16 @@ void QSecretDataDelegate::setModelData(QWidget *editor, QAbstractItemModel *mode
 			model->setData(index, cb->currentText(), Qt::EditRole);
 	}
 	else
-	if( index.column() == QSecretDataModel::ColEstado )
+	if( index.column() == QSecretDataModel::ColContrato )
 	{
 		QComboBox *cb = static_cast<QComboBox*>(editor);
-		model->setData(index, cb->currentIndex() == 0 ? "activo" : "inactivo", Qt::EditRole);
+		model->setData(index, cb->currentIndex() == 0 ? "alta" : "baja", Qt::EditRole);
 	}
 	else
-	if( index.column() == QSecretDataModel::ColVozIP )
+	if( index.column() == QSecretDataModel::ColUsaIPPublica )
 	{
 		QComboBox *cb = static_cast<QComboBox*>(editor);
-		model->setData(index, cb->currentIndex() == 0 ? "Sí" : "No", Qt::EditRole);
+		model->setData(index, cb->currentText(), Qt::EditRole);
 	}
 	else
 	if( index.column() == QSecretDataModel::ColPoblacion )
@@ -426,9 +498,11 @@ void QSecretDataModel::addSecretToTable(QSecretData &s, int row)
 	if( rowCount() <= row )
 		setRowCount(row+1);
 	s.setFirstItem( setupCellItem(row, ColUsuario,	s.usuario(), s.secretID() ) );
+	setupCellItem( row, ColNumber,		QString::number(row), s.secretID() )->setData(QVariant(row), Qt::EditRole);
 	setupCellItem( row, ColPerfil,		s.perfilOriginal(), s.secretID() );
-	setupCellItem( row, ColEstado,		s.activo() ? "activo" : "inactivo", s.secretID() );
-	setupCellItem( row, ColIP,			s.IPActiva().isEmpty() ? (s.IPEstatica().isEmpty() ? "desconectado" : s.IPEstatica()) : s.IPActiva(), s.secretID() );
+	setupCellItem( row, ColContrato,	s.dadoDeBaja() ? "baja" : "alta", s.secretID() );
+	setupCellItem( row, ColEstado,		s.conectado() ? "Conectado" : tr("Desconectado el %1").arg(s.lastLogedOff()), s.secretID() );
+	setupCellItem( row, ColIP,			s.conectado() ? (s.IPEstatica().isEmpty() ? "" : s.IPEstatica()) : s.IPActiva(), s.secretID() );
 	setupCellItem( row, ColNombre,		s.nombre(), s.secretID() );
 	setupCellItem( row, ColDireccion,	s.direccion(), s.secretID() );
 	setupCellItem( row, ColPoblacion,	s.poblacion(), s.secretID() );
@@ -436,8 +510,9 @@ void QSecretDataModel::addSecretToTable(QSecretData &s, int row)
 	setupCellItem( row, ColInstalador,	s.instalador(), s.secretID() );
 	setupCellItem( row, ColVendedor,	s.comercial(), s.secretID() );
 	setupCellItem( row, ColEMail,		s.email(), s.secretID() );
-	setupCellItem( row, ColVozIP,		s.VozIP()?"Sí":"No", s.secretID() );
+	setupCellItem( row, ColUsaIPPublica,s.usaIPPublica(), s.secretID() );
 	setupCellItem( row, ColNotas,		s.notas(), s.secretID() );
+	setupCellItem( row, ColCCliente,	s.codigoCliente(), s.secretID() );
 }
 
 QSecretItem *QSecretDataModel::setupCellItem(int row, int col, const QString &txt, const QString &secret_id)
@@ -460,7 +535,10 @@ bool QSecretDataModel::setData(const QModelIndex &index, const QVariant &value, 
 		if( index.data(role).toString() != value.toString() )
 		{
 			QString ID = secretID(index.row());
-			emit datoModificado(static_cast<Columnas>(index.column()), value.toString(), ID);
+			bool isValid = true;
+			emit datoModificado(static_cast<Columnas>(index.column()), value.toString(), ID, &isValid);
+			if( !isValid )
+				return false;
 		}
 	}
 	return QStandardItemModel::setData(index, value, role);
@@ -490,8 +568,9 @@ QSecretDataTable::QSecretDataTable(QWidget *papi)
 {
 	setupTable();
 	setItemDelegate(&delegado);
-	connect(im, SIGNAL(datoModificado(QSecretDataModel::Columnas,QString,QString)), SIGNAL(datoModificado(QSecretDataModel::Columnas,QString,QString)));
+	connect(im, SIGNAL(datoModificado(QSecretDataModel::Columnas,QString,QString,bool*)), SIGNAL(datoModificado(QSecretDataModel::Columnas,QString,QString,bool*)));
 	connect(this, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(onCellDobleClic(QModelIndex)));
+	connect(this, SIGNAL(clicked(QModelIndex)), this, SLOT(onCellClicked(QModelIndex)));
 }
 
 void QSecretDataTable::onCellDobleClic(const QModelIndex &index)
@@ -500,10 +579,18 @@ void QSecretDataTable::onCellDobleClic(const QModelIndex &index)
 		emit dobleClicUsuario(*im->secretData(index.row()));
 }
 
+void QSecretDataTable::onCellClicked(const QModelIndex &index)
+{
+	if( index.column() == QSecretDataModel::ColUsuario )
+		emit clicUsuario(*im->secretData(index.row()));
+}
+
 void QSecretDataTable::setupTable()
 {
 	im = new QSecretDataModel(0, QStringList()
 								<< "Usuario"
+								<< "CCliente"
+								<< "Contrato"
 								<< "Perfil"
 								<< "Estado"
 								<< "IP"
@@ -514,8 +601,10 @@ void QSecretDataTable::setupTable()
 								<< "Instalador"
 								<< "Vendedor"
 								<< "EMail"
-								<< "VozIP"
-								<< "Notas");
+								<< "Usa IP Pública"
+								<< "Notas"
+								<< "#");
+	im->setSortRole(Qt::EditRole);
 	setModel(im);
 }
 
@@ -524,10 +613,36 @@ void QSecretDataTable::clear()
 	im->clear();
 }
 
-void QSecretDataTable::filterRows(const QString &txt)
+QSecretsList QSecretDataTable::secretsList(bool visibles) const
 {
-	for( int i = 0; i < im->secrets().count(); i++ )
-		setRowHidden(im->secrets().at(i).getFirstItem()->row(), !im->secrets().at(i).contains(txt));
+	QSecretsList sl;
+	if( !visibles )
+		sl = im->secrets();
+	else
+	{
+		// TODO: No funciona!!!!
+		for( int i = 0; i < im->secrets().count(); i++ )
+		{
+			if( !isRowHidden(im->secrets().at(i).getFirstItem()->row()) )
+				sl.append(im->secrets().at(i));
+		}
+	}
+	return sl;
+}
+
+void QSecretDataTable::filterRows(QString txt, int filtro)
+{
+	bool bVisible;
+	QStringList headerLabels;
+	for( int i = 0, c = 0; i < im->secrets().count(); i++ )
+	{
+		bVisible = im->secrets().at(i).contains(txt, filtro);
+		if( bVisible )
+			c++;
+		headerLabels.append(QString::number(c));
+		setRowHidden(im->secrets().at(i).getFirstItem()->row(), !bVisible);
+	}
+	im->setVerticalHeaderLabels(headerLabels);
 }
 
 void QSecretDataModel::fillupTable()
@@ -552,7 +667,7 @@ void QSecretDataModel::fillupTable()
  */
 void QSecretDataModel::addSecret(const QSecretData &sd, bool addToTable)
 {
-	if( gGlobalConfig.perfilesUsables().contains(sd.perfilOriginal()) )
+	if( !gGlobalConfig.esPerfilInterno(sd.perfilReal()) || gGlobalConfig.esPerfilDadoDeBaja(sd.perfilReal()) )
 	{
 		int pos;
 		int row;
@@ -572,6 +687,10 @@ void QSecretDataModel::addSecret(const QSecretData &sd, bool addToTable)
 			m_secrets[pos].setIPActiva(IP);
 		}
 
+		if( !sd.instalador().isEmpty() )
+			gGlobalConfig.addInstalador(sd.instalador());
+		if( !sd.comercial().isEmpty() )
+			gGlobalConfig.addComercial(sd.comercial());
 		if( addToTable )
 			addSecretToTable(m_secrets[pos], row);
 	}
@@ -588,7 +707,6 @@ void QSecretDataModel::delSecret(const ROS::QSentence &s)
 		m_secrets.removeOne(s);
 	}
 }
-
 void QSecretDataModel::actualizaUsuario(const ROS::QSentence &s)
 {
 	QSecretData *secret;
@@ -596,10 +714,15 @@ void QSecretDataModel::actualizaUsuario(const ROS::QSentence &s)
 	{
 		if( (secret = findDataByUsername(s.attribute("name"))) != Q_NULLPTR )
 		{
-			QSecretItem *it = static_cast<QSecretItem*>(item(secret->getFirstItem()->row(), ColIP));
+			QSecretItem *it;
 			secret->setSesionID(s.getID());
 			secret->setIPActiva(s.attribute("address"));
-			it->setText( QString("%1").arg(secret->IPActiva()) );
+			secret->setUptime(s.attribute("uptime"));
+			if( (it = static_cast<QSecretItem*>(item(secret->getFirstItem()->row(), ColIP))) != Q_NULLPTR )
+				it->setText( secret->IPActiva() );
+
+			if( (it = static_cast<QSecretItem*>(item(secret->getFirstItem()->row(), ColEstado))) != Q_NULLPTR )
+				it->setText( tr("Conectado hace %1").arg( secret->uptime() ) );
 		}
 	}
 	else
@@ -607,13 +730,16 @@ void QSecretDataModel::actualizaUsuario(const ROS::QSentence &s)
 	{
 		if( (secret = findDataBySesionID(s.getID())) != Q_NULLPTR )
 		{
-			QSecretItem *it = static_cast<QSecretItem*>(item(secret->getFirstItem()->row(), ColIP));
+			QSecretItem *it;
 			secret->setIPActiva("");
 			secret->setSesionID("");
-			if( secret->IPEstatica().isEmpty() )
-				it->setText( "desconectado" );
-			else
-				it->setText( QString("s(%1)").arg(secret->IPEstatica()) );
+			if( (it = static_cast<QSecretItem*>(item(secret->getFirstItem()->row(), ColIP))) != Q_NULLPTR )
+			{
+				if( secret->IPEstatica().isEmpty() )
+					it->setText( "" );
+			}
+			if( (it = static_cast<QSecretItem*>(item(secret->getFirstItem()->row(), ColEstado))) != Q_NULLPTR )
+				it->setText( tr("Desconectado el %1").arg(QDateTime::currentDateTime().toString()) );
 		}
 	}
 }
@@ -643,6 +769,16 @@ QSecretData *QSecretDataModel::findDataBySecretID(const QString &id)
 	for( int i = 0; i < m_secrets.count(); i++ )
 	{
 		if( m_secrets[i].secretID() == id )
+			return &(m_secrets[i]);
+	}
+	return Q_NULLPTR;
+}
+
+QSecretData *QSecretDataModel::findDataByClientCode(const QString &code, const QSecretData *sdExcepcion)
+{
+	for( int i = 0; i < m_secrets.count(); i++ )
+	{
+		if( (m_secrets[i].codigoCliente() == code) && (!sdExcepcion || (sdExcepcion->secretID() != m_secrets[i].secretID())) )
 			return &(m_secrets[i]);
 	}
 	return Q_NULLPTR;
@@ -679,14 +815,20 @@ QConfigData::NivelUsuario QSecretDataModel::nivelMinimoEdicion(QSecretDataModel:
 {
 	switch( col )
 	{
+	case ColCCliente:
+		return QConfigData::Comercial;
+	case ColNumber:
+		return QConfigData::Supervisor;
 	case ColUsuario:
 		return QConfigData::Administrador;
 	case ColPerfil:
-		return QConfigData::Manager;
+		return QConfigData::Administrador;
+	case ColContrato:
+		return QConfigData::Administrador;
 	case ColEstado:
-		return QConfigData::Manager;
+		return QConfigData::Supervisor;
 	case ColIP:
-		return QConfigData::Manager;
+		return QConfigData::Administrador;
 	case ColNombre:
 		return QConfigData::Instalador;
 	case ColDireccion:
@@ -696,17 +838,17 @@ QConfigData::NivelUsuario QSecretDataModel::nivelMinimoEdicion(QSecretDataModel:
 	case ColTelefonos:
 		return QConfigData::Instalador;
 	case ColInstalador:
-		return QConfigData::Manager;
+		return QConfigData::Administrador;
 	case ColVendedor:
-		return QConfigData::Manager;
+		return QConfigData::Administrador;
 	case ColEMail:
 		return QConfigData::Instalador;
-	case ColVozIP:
+	case ColUsaIPPublica:
 		return QConfigData::Instalador;
 	case ColNotas:
 		return QConfigData::Instalador;
 	case NumColumnas:
-		return QConfigData::Administrador;
+		return QConfigData::Supervisor;
 	}
-	return QConfigData::Administrador;
+	return QConfigData::Supervisor;
 }
