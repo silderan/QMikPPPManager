@@ -20,8 +20,13 @@
 
 #include "QMikPPPManager.h"
 #include "ui_QMikPPPManager.h"
+
 #include <QMessageBox>
 #include "QRegistro.h"
+
+#include "DlgConfiguracion.h"
+#include "DlgExportar.h"
+#include "DlgPortScan.h"
 
 QMikPPPManager::QMikPPPManager(QWidget *parent) :
 	QMainWindow(parent),
@@ -31,7 +36,8 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 
 	ui->twUsuarios->setEnabled(false);
 	// Rellenamos el diálogo con la configuración.
-	gGlobalConfig.load();
+	gGlobalConfig.loadGlobalData();
+	gGlobalConfig.loadLocalUserData();
 	updateConfig();
 
 	connect( &mktAPI, SIGNAL(comError(ROS::Comm::CommError,QAbstractSocket::SocketError)),
@@ -65,19 +71,15 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 QMikPPPManager::~QMikPPPManager()
 {
 	mktAPI.closeCom();
-	// Guardamos los datos del diálogo.
-	gGlobalConfig.setRemoteHost(ui->leIP->text());
-	gGlobalConfig.setRemotePort(ui->sbPort->value());
-	gGlobalConfig.setUserName(ui->leUser->text());
-	gGlobalConfig.setUserPass(ui->lePass->text());
+
 	if( isMaximized() )
-		gGlobalConfig.setWindowMaxi();
+		gGlobalConfig.setWindowMaximized();
 	else
 	{
 		gGlobalConfig.setAnchoPantalla(width());
 		gGlobalConfig.setAltoPantalla(height());
 	}
-	gGlobalConfig.save();
+	gGlobalConfig.saveLocalUserData();
 	logService.shutdown();
 	delete ui;
 	ui = Q_NULLPTR;
@@ -85,16 +87,11 @@ QMikPPPManager::~QMikPPPManager()
 
 void QMikPPPManager::updateConfig()
 {
-	ui->leIP->setText(gGlobalConfig.remoteHost());
-	ui->sbPort->setValue(gGlobalConfig.remotePort());
-	ui->leUser->setText(gGlobalConfig.userName());
-	ui->lePass->setText(gGlobalConfig.userPass());
-
 	QFont tableFont = ui->twUsuarios->font();
 	tableFont.setPixelSize(gGlobalConfig.tamFuente());
 	ui->twUsuarios->setFont(tableFont);
-	ui->twUsuarios->verticalHeader()->setDefaultSectionSize(gGlobalConfig.alturaLinea());
-	if( gGlobalConfig.windowMaxi() )
+	ui->twUsuarios->verticalHeader()->setDefaultSectionSize(gGlobalConfig.alturaFila());
+	if( gGlobalConfig.isWindowMaximized() )
 		this->showMaximized();
 	else
 		this->resize(gGlobalConfig.anchoPantalla(), gGlobalConfig.altoPantalla());
@@ -108,50 +105,28 @@ void QMikPPPManager::setStatusText(const QString &txt)
 	}
 }
 
-void QMikPPPManager::on_pbConnect_clicked()
-{
-	if( mktAPI.isClosing() )
-		mktAPI.closeCom(true);
-	else
-	if( mktAPI.isLoged() )
-		mktAPI.closeCom();
-	else
-	if( mktAPI.isConnected() || mktAPI.isConnecting() )
-		mktAPI.closeCom();
-	else
-	{
-		gGlobalConfig.setUserName(ui->leUser->text());
-		gGlobalConfig.setUserPass(ui->lePass->text());
-		gGlobalConfig.setRemoteHost(ui->leIP->text());
-		gGlobalConfig.setRemotePort(ui->sbPort->value());
-		mktAPI.setRemoteHost(gGlobalConfig.remoteHost(), gGlobalConfig.remotePort());
-		mktAPI.setUserNamePass(gGlobalConfig.userName(), gGlobalConfig.userPass());
-		mktAPI.connectToROS();
-	}
-}
-
 void QMikPPPManager::onStateChanged(ROS::Comm::CommState s)
 {
 	switch( s )
 	{
 	case ROS::Comm::Unconnected:
-		ui->pbConnect->setText( tr("Conectar") );
+		ui->connectButton->setText( tr("Conectar") );
 		setStatusText( tr("Desconectado") );
 		break;
 	case ROS::Comm::HostLookup:
-		ui->pbConnect->setText( tr("Cancelar") ) ;
+		ui->connectButton->setText( tr("Cancelar") ) ;
 		setStatusText( tr("Resolviendo URL") );
 		break;
 	case ROS::Comm::Connecting:
-		ui->pbConnect->setText( tr("Cancelar") );
+		ui->connectButton->setText( tr("Cancelar") );
 		setStatusText( tr("Conectando al servidor") );
 		break;
 	case ROS::Comm::Connected:
-		ui->pbConnect->setText( tr("Desconectar") );
+		ui->connectButton->setText( tr("Desconectar") );
 		setStatusText( tr("Conectado") );
 		break;
 	case ROS::Comm::Closing:
-		ui->pbConnect->setText( tr("Forzar desconexión") );
+		ui->connectButton->setText( tr("Forzar desconexión") );
 		setStatusText( tr("Cerrando conexión") );
 		break;
 	}
@@ -175,8 +150,8 @@ void QMikPPPManager::onLoginChanged(ROS::Comm::LoginState s)
 		break;
 	case ROS::Comm::LogedIn:
 		setStatusText( tr("Logado al servidor") );
-		logService.setUserName(ui->leUser->text());
-		ui->pbConnect->setText("Desconectar");
+		logService.setUserName( gGlobalConfig.userName() );
+		ui->connectButton->setText("Desconectar");
 		ui->twUsuarios->clear();
 		ui->twUsuarios->setEnabled(true);
 		pideInfoUsuarioAPI();
@@ -197,7 +172,7 @@ void QMikPPPManager::pideInfoUsuarioAPI()
 {
 	ROS::QSentence s("/user/getall");
 	s.setTag(gGlobalConfig.tagAPIUser);
-	s.addQuery("name", gGlobalConfig.userName(), ROS::QQuery::EqualProp);
+//	s.addQuery("name", gGlobalConfig.userName(), ROS::QQuery::EqualProp);
 	s.addQuery("#|");
 	mktAPI.sendSentence( s );
 }
@@ -408,38 +383,6 @@ void QMikPPPManager::actualizaUsuario(const ROS::QSentence &s)
 	ui->twUsuarios->actualizaUsuario(s);
 }
 
-void QMikPPPManager::on_anyadeUsuario_clicked()
-{
-	QSecretData s;
-#ifdef QT_DEBUG
-	s.setUsuario("AAAAAAAAAAAA");
-	s.setContra("123456789012");
-	s.setNombre("Nombre Cliente");
-	s.setDireccion("Dirección del cliente");
-	s.setPoblacion("Población");
-	s.setEmail("Correo@electr.nico");
-	s.setWPass("WPA123456");
-	s.setSSID("SSID_WIFI");
-	s.setInstalador("Aaron");
-	s.setTelefonos("123456789,123456789");
-#endif
-	dlgNuevoUsuario = new DlgNuevoUsuario(&mktAPI, s, ui->twUsuarios->secrets(), this);
-	dlgNuevoUsuario->exec();
-	dlgNuevoUsuario->deleteLater();
-	dlgNuevoUsuario = Q_NULLPTR;
-}
-
-#include "DlgConfiguracion.h"
-void QMikPPPManager::on_btConfig_clicked()
-{
-	DlgConfiguracion *dlgConfig = new DlgConfiguracion(this);
-
-	if( dlgConfig->exec() )
-		updateConfig();
-
-	dlgConfig->deleteLater();
-}
-
 void QMikPPPManager::reiniciaConexionRemota(QSecretData *sd)
 {
 	if( !sd->sesionID().isEmpty() )
@@ -490,33 +433,28 @@ void QMikPPPManager::setNivelUsuario(QConfigData::NivelUsuario lvl)
 	{
 	case QConfigData::SinPermisos:
 		ui->twUsuarios->setEnabled(false);
-		ui->anyadeUsuario->setEnabled(false);
-		ui->btConfig->setEnabled(false);
-		ui->btExportar->setEnabled(false);
+		ui->addUserButton->setEnabled(false);
+		ui->advancedConfigButton->setEnabled(false);
 		break;
 	case QConfigData::Comercial:	// El comercial puede verlo todo, por lo tanto, le dejo entrar en todos los sitios.
-		ui->anyadeUsuario->setEnabled(false);
+		ui->addUserButton->setEnabled(false);
 		ui->twUsuarios->setEnabled(true);
-		ui->btConfig->setEnabled(false);
-		ui->btExportar->setEnabled(false);
+		ui->advancedConfigButton->setEnabled(false);
 		break;
 	case QConfigData::Instalador:
-		ui->anyadeUsuario->setEnabled(true);
+		ui->addUserButton->setEnabled(true);
 		ui->twUsuarios->setEnabled(true);
-		ui->btExportar->setEnabled(false);
-		ui->btConfig->setEnabled(false);
+		ui->advancedConfigButton->setEnabled(false);
 		break;
 	case QConfigData::Administrador:
-		ui->anyadeUsuario->setEnabled(true);
+		ui->addUserButton->setEnabled(true);
 		ui->twUsuarios->setEnabled(true);
-		ui->btConfig->setEnabled(false);
-		ui->btExportar->setEnabled(true);
+		ui->advancedConfigButton->setEnabled(false);
 		break;
 	case QConfigData::Supervisor:
-		ui->anyadeUsuario->setEnabled(true);
+		ui->addUserButton->setEnabled(true);
 		ui->twUsuarios->setEnabled(true);
-		ui->btConfig->setEnabled(true);
-		ui->btExportar->setEnabled(true);
+		ui->advancedConfigButton->setEnabled(true);
 		break;
 	}
 }
@@ -628,7 +566,7 @@ void QMikPPPManager::onClicUsuario(const QSecretData &sd)
 {
 	if( !sd.IPActiva().isEmpty() )
 	{
-		int k = qApp->keyboardModifiers();
+		quint32 k = qApp->keyboardModifiers();
 		if( k & Qt::AltModifier )
 			QDesktopServices::openUrl(QUrl(QString("http://%1:80").arg(sd.IPActiva())));
 //		QMenu menu;
@@ -695,8 +633,37 @@ void QMikPPPManager::on_cbFiltro_currentIndexChanged(int )
 	filtraFilas();
 }
 
-#include "DlgExportar.h"
-void QMikPPPManager::on_btExportar_clicked()
+void QMikPPPManager::on_connectButton_clicked()
+{
+	if( gGlobalConfig.connectInfoList().isEmpty() )
+	{
+		QMessageBox::information( this, objectName(), tr("No hay ninguna conexión configurada. Configurala para poderte conectar.") );
+		dlgCnfgConnect.show();
+		return;
+	}
+	/* TODO
+	if( mktAPI.isClosing() )
+		mktAPI.closeCom(true);
+	else
+	if( mktAPI.isLoged() )
+		mktAPI.closeCom();
+	else
+	if( mktAPI.isConnected() || mktAPI.isConnecting() )
+		mktAPI.closeCom();
+	else
+	{
+		gGlobalConfig.setUserName(ui->leUser->text());
+		gGlobalConfig.setUserPass(ui->lePass->text());
+		gGlobalConfig.setRemoteHost(ui->leIP->text());
+		gGlobalConfig.setRemotePort(ui->sbPort->value());
+		mktAPI.setRemoteHost(gGlobalConfig.remoteHost(), gGlobalConfig.remotePort());
+		mktAPI.setUserNamePass(gGlobalConfig.userName(), gGlobalConfig.userPass());
+		mktAPI.connectToROS();
+	}
+	*/
+}
+
+void QMikPPPManager::on_exportButton_clicked()
 {
 	if( !ui->twUsuarios->count() )
 		QMessageBox::warning(this, objectName(), tr("Ningún usuario descargado del servidor."));
@@ -707,9 +674,53 @@ void QMikPPPManager::on_btExportar_clicked()
 	}
 }
 
-#include "DlgPortScan.h"
-void QMikPPPManager::on_btPortScan_clicked()
+void QMikPPPManager::on_portScanButton_clicked()
 {
 	DlgPortScan dlg(this, ui->twUsuarios);
 	dlg.exec();
+}
+
+void QMikPPPManager::on_localConfigButton_clicked()
+{
+	DlgConfiguracion *dlgConfig = new DlgConfiguracion(this);
+
+	if( dlgConfig->exec() )
+		updateConfig();
+
+	dlgConfig->deleteLater();
+}
+
+void QMikPPPManager::on_connectionConfigButton_clicked()
+{
+	dlgCnfgConnect.show();
+}
+
+void QMikPPPManager::onGlobalConfigChanged()
+{
+}
+
+void QMikPPPManager::on_advancedConfigButton_clicked()
+{
+
+}
+
+void QMikPPPManager::on_addUserButton_clicked()
+{
+	QSecretData s;
+#ifdef QT_DEBUG
+	s.setUsuario("AAAAAAAAAAAA");
+	s.setContra("123456789012");
+	s.setNombre("Nombre Cliente");
+	s.setDireccion("Dirección del cliente");
+	s.setPoblacion("Población");
+	s.setEmail("Correo@electr.nico");
+	s.setWPass("WPA123456");
+	s.setSSID("SSID_WIFI");
+	s.setInstalador("Aaron");
+	s.setTelefonos("123456789,123456789");
+#endif
+	dlgNuevoUsuario = new DlgNuevoUsuario(&mktAPI, s, ui->twUsuarios->secrets(), this);
+	dlgNuevoUsuario->exec();
+	dlgNuevoUsuario->deleteLater();
+	dlgNuevoUsuario = Q_NULLPTR;
 }

@@ -1,45 +1,15 @@
 #ifndef QCONFIGDATA_H
 #define QCONFIGDATA_H
-#include "QIniFile.h"
-#include "QSentences.h"
 
 #include <QComboBox>
 #include <QStringList>
 #include <QDir>
 
-#define IPV4_TO_UINT(_A, _B, _C, _D)	((quint32)(((((quint8)_A)&255)<<24)+((((quint8)_B)&255)<<16)+((((quint8)_C)&255)<<8)+(((quint8)_D)&255)))
-#define UINT_TO_IPV4A(_IPV4_)			((((quint32)_IPV4_)>>24)&255)
-#define UINT_TO_IPV4B(_IPV4_)			((((quint32)_IPV4_)>>16)&255)
-#define UINT_TO_IPV4C(_IPV4_)			((((quint32)_IPV4_)>>8)&255)
-#define UINT_TO_IPV4D(_IPV4_)			(((quint32)_IPV4_)&255)
-#define UINT_TO_SIPV4(_IPV4_)			(QString("%1.%2.%3.%4").arg(UINT_TO_IPV4A(_IPV4_)).arg(UINT_TO_IPV4B(_IPV4_)).arg(UINT_TO_IPV4C(_IPV4_)).arg(UINT_TO_IPV4D(_IPV4_)))
-
-class QPerfilData
-{
-	QString m_nombre;
-
-public:
-	const QString &nombre() const { return m_nombre; }
-	void setNombre(const QString &n) { m_nombre = n; }
-	QPerfilData(const ROS::QSentence &s)
-	{
-		m_nombre = s.attribute("name");
-	}
-	bool operator==(const QString &nombre) const
-	{
-		return m_nombre == nombre;
-	}
-};
-
-class QPerfilesList : public QList<QPerfilData>
-{
-	QStringList m_nombres;
-
-public:
-	void append(const QPerfilData &s);
-	bool contains(const QString &s) const;
-	const QStringList &nombres()const { return m_nombres; }
-};
+#include "QIniFile.h"
+#include "QSentences.h"
+#include "ConnectInfo.h"
+#include "IPv4Range.h"
+#include "ClientProfile.h"
 
 class QConfigData
 {
@@ -56,13 +26,33 @@ public:
 	};
 
 private:
+	QString m_userName;
+	QString m_userPass;
+
 	QString m_userFName;
 	QString m_rosFName;
-	QPerfilesList m_perfiles;			// Los perfiles no se guardarán.
-	QIniData m_userData;				// Información de configuración del usuario.
-	QIniData m_rosData;					// Información de configuración del ROS.
+	QString m_rosProtectedFName;
+
+	QClientProfileList m_perfiles;			// Los perfiles no se guardarán.
+
+	QStringList m_instaladores;			// Lista de nombres instaladores.
+	QStringList m_comerciales;			// Lista de nombres de los comerciales/vendedores.
 	NivelUsuario m_nivelUsuario;
+	IPv4RangeMap m_staticIPv4Map;		// Lista de rangos de IP estáticas.
+
+	QString m_profileNoService;
+	QStringList m_profilesUnusables;
+	QString m_profileBasic;
+
 	QString m_exportFile;				// Fichero al que se exporta.
+	QConnectInfoList m_connectInfoList;
+	bool m_pantallaMaximizada;
+	int m_anchoPantalla;
+	int m_altoPantalla;
+
+	// Apariencia de las tablas
+	int m_tamFuente;	// Tamaño de la fuente usada en la tabla.
+	int m_altoFilas;	// Altura de las filas de la tabla.
 
 public:
 	static const QString tagSecret;
@@ -75,89 +65,99 @@ public:
 
 	void defaults()
 	{
-		setRemoteHost("192.168.1.1");
-		setRemotePort(8728);
-		setUserName("admin");
-		setUserPass("");
 		setPerfilDadoDeBaja("SinAcceso");
-		setPerfilBasico("5/1 (ONO)");
+		setPerfilBasico("5/1 (Colt)");
 		setTamFuente(10);
-		setAlturaLinea(17);
-		setDeIPV4(192,168,1,50);
-		setAIPV4(192,168,1,254);
+		setAlturaFila(17);
+		addRange( IPv4Range(IPv4(192,168,1,50), IPv4(192,168,1,254)) );
 		setNivelUsuario(SinPermisos);
 	}
 
-	QConfigData() : m_userFName(QDir::homePath()+"/PPPManagerUser.ini"), m_rosFName("PPPManagerROS.ini")
+#ifdef QT_DEBUG
+	QConfigData() : m_userFName(QDir::homePath()+"/PPPManagerUserDebug.ini"), m_rosFName("PPPManagerROSDebug.ini"), m_rosProtectedFName("PPPManagerROSProtectedDebug.ini")
+#else
+	QConfigData() : m_userFName(QDir::homePath()+"/PPPManagerUser.ini"), m_rosFName("PPPManagerROS.ini"), m_rosProtectedFName("PPPManagerROSProtected.ini")
+#endif
 	{
 		defaults();
 	}
 	~QConfigData()
 	{
 	}
-	void load() { QIniFile::load(m_userFName, &m_userData); QIniFile::load(m_rosFName, &m_rosData); }
-	void save() const;
+	void loadLocalUserData();
+	void loadGlobalData();
+	void loadGlobalProtectedData();
+	void saveLocalUserData() const;
+	void saveGlobalProtectedData() const;
+	void saveGlobalData() const;
 
-	void setExportFile(const QString &exportFile) { m_userData["ExportFile"] = exportFile;	}
-	QString exportFile() const { return m_userData["ExportFile"]; }
+	QConnectInfoList &connectInfoList() { return m_connectInfoList;	}
 
-	void setRemoteHost(const QString &host) { m_userData["RemoteHost"] = host; }
-	QString remoteHost() const { return m_userData["RemoteHost"]; }
+	void setExportFile(const QString &exportFile) { m_exportFile = exportFile;	}
+	QString exportFile() const { return m_exportFile; }
 
-	void setRemotePort(const quint16 &port) { m_userData["RemotePort"] = QString("%1").arg(port); }
-	quint16 remotePort() const { return m_userData["RemotePort"].toUShort(); }
+//	void setRemoteHost(const QString &host) { m_userData["RemoteHost"] = host; }
+//	QString remoteHost() const { return m_userData["RemoteHost"]; }
 
-	void setUserName(const QString &uname) { m_userData["UserName"] = uname;	}
-	QString userName() const { return m_userData["UserName"]; }
+//	void setRemotePort(const quint16 &port) { m_userData["RemotePort"] = QString("%1").arg(port); }
+//	quint16 remotePort() const { return m_userData["RemotePort"].toUShort(); }
 
-	void setUserPass(const QString &upass) { m_userData["UserPass"] = upass;	}
-	QString userPass() const { return m_userData["UserPass"]; }
+//	void setUserName(const QString &uname) { m_userData["UserName"] = uname;	}
+//	QString userName() const { return m_userData["UserName"]; }
 
-	bool windowMaxi() const { return m_userData["anchoPantalla"].isEmpty();	}
-	void setWindowMaxi()	{ m_userData["anchoPantalla"] = "";				}
-	int anchoPantalla() const { return m_userData["anchoPantalla"].toInt();	}
-	int altoPantalla() const  { return m_userData["altoPantalla"].toInt();	}
+//	void setUserPass(const QString &upass) { m_userData["UserPass"] = upass;	}
+//	QString userPass() const { return m_userData["UserPass"]; }
 
-	void setAnchoPantalla(int a)	{ m_userData["anchoPantalla"] = QString::number(a);	}
-	void setAltoPantalla(int a)		{ m_userData["altoPantalla"] = QString::number(a);	}
+	const QString &userName() const				{ return m_userName;	}
+	void setUserName(const QString &userName)	{ m_userName = userName;}
 
-	void setPerfilDadoDeBaja(const QString &p) { m_rosData["PerfilDadoDeBaja"] = p; }
-	QString perfilDadoDeBaja() const { return m_rosData["PerfilDadoDeBaja"]; }
+	const QString &userPass() const				{ return m_userPass;	}
+	void setUserPass(const QString &userPass)	{ m_userPass = userPass;}
+
+	bool isWindowMaximized() const					{ return m_pantallaMaximizada;		}
+	void setWindowMaximized(bool maximizada = true)	{ m_pantallaMaximizada = maximizada;}
+
+	int anchoPantalla() const			{ return m_anchoPantalla;	}
+	int altoPantalla() const			{ return m_altoPantalla;	}
+
+	void setAnchoPantalla(int a)		{ m_anchoPantalla = a;	}
+	void setAltoPantalla(int a)			{ m_altoPantalla = a;	}
+
+	void setTamFuente(int tamFuente)	{ m_tamFuente = tamFuente; }
+	int tamFuente() const				{ return m_tamFuente;		}
+
+	void setAlturaFila(int altoFilas)	{ m_altoFilas = altoFilas;	}
+	int alturaFila() const				{ return m_altoFilas;		}
+
+	void setPerfilDadoDeBaja(const QString &p)		{ m_profileNoService = p;	}
+	QString perfilDadoDeBaja() const				{ return m_profileNoService;}
 	bool esPerfilDadoDeBaja(const QString &s) const { return perfilDadoDeBaja() == s ; }
 
-	void setPerfilBasico(const QString &p) { m_rosData["PerfilBasico"] = p; }
-	QString perfilBasico() const { return m_rosData["PerfilBasico"]; }
+	void setPerfilBasico(const QString &p)			{ m_profileBasic = p;	}
+	QString perfilBasico() const					{ return m_profileBasic;}
 
-	QPerfilesList &perfiles() { return m_perfiles; }
-	void addPerfil(const ROS::QSentence &s) { m_perfiles.append(s); }
+	QStringList perfilesInternos() const			{ return m_profilesUnusables;	}
+	void setPerfilesInternos(const QStringList &pp)	{ m_profilesUnusables = pp;		}
+	bool esPerfilInterno(const QString &per)		{ return perfilesInternos().contains(per);	}
 
-	QStringList perfilesInternos() const			{ return m_rosData["PerfilesInternos"].split(',');	}
-	void setPerfilesInternos(const QStringList &pp)	{ m_rosData["PerfilesInternos"] = pp.join(',');		}
-	bool esPerfilInterno(const QString &per)		{ return perfilesInternos().contains(per);			}
+	QClientProfileList &perfiles()						{ return m_perfiles;	}
+	void addPerfil(const ROS::QSentence &s)			{ m_perfiles.append(s); }
 
-	void setTamFuente(int s) { m_userData["TamFuente"] = QString("%1").arg(s); }
-	int tamFuente() const { return m_userData["TamFuente"].toInt(); }
+	void addRange(const IPv4Range &ipv4Range)		{ m_staticIPv4Map.addRange(ipv4Range);			}
+	void delRange(const QString &ipv4RangeName)		{ m_staticIPv4Map.delRange(ipv4RangeName);		}
+	void delRange(const IPv4Range &ipv4Range)		{ m_staticIPv4Map.delRange(ipv4Range.name());	}
 
-	void setAlturaLinea(int s) { m_userData["AlturaLinea"] = QString("%1").arg(s); }
-	int alturaLinea() const { return m_userData["AlturaLinea"].toInt(); }
+	bool esIPEstatica(const IPv4 &ipv4) const		{ return m_staticIPv4Map.inRange(ipv4);	}
 
-	void setDeIPV4(quint32 ip) { m_rosData["DeIPV4"] = QString("%1").arg(ip); }
-	void setDeIPV4(quint8 A, quint8 B, quint8 C, quint8 D) { setDeIPV4(IPV4_TO_UINT(A, B, C, D)); }
-	quint32 deIPV4() const { return m_rosData["DeIPV4"].toUInt(); }
-	void setAIPV4(quint32 ip) { m_rosData["AIPV4"] = QString("%1").arg(ip); }
-	void setAIPV4(quint8 A, quint8 B, quint8 C, quint8 D) { setAIPV4(IPV4_TO_UINT(A, B, C, D)); }
-	quint32 aIPV4() const { return m_rosData["AIPV4"].toUInt(); }
-	static quint32 toVIPV4(const QString &sip);
-	bool esIPEstatica(const QString &sip) const;
-	bool esIPEstatica(quint32 vip) const;
+	void setInstaladores(const QStringList &l)		{ m_instaladores = l;	}
+	void addInstalador(const QString &instalador)	{ if( !m_instaladores.contains(instalador) ) m_instaladores.append(instalador); }
+	const QStringList &instaladores() const			{ return m_instaladores;}
 
-	void setInstaladores(const QStringList &l) { m_rosData["Instaladores"] = l.join(","); }
-	void addInstalador(const QString &ins) { if( !m_rosData["Instaladores"].contains(ins) ) m_rosData["Instaladores"].append(",").append(ins); }
-	QStringList instaladores() const { return m_rosData["Instaladores"].split(",", QString::SkipEmptyParts); }
+	void setComerciales(const QStringList &l)		{ m_comerciales = l;	}
+	void addComercial(const QString &instalador)	{ if( !m_comerciales.contains(instalador) ) m_comerciales.append(instalador); }
+	const QStringList &comerciales() const			{ return m_comerciales; }
 
-	void setComerciales(const QStringList &l) { m_rosData["Comerciales"] = l.join(","); }
-	void addComercial(const QString &com) { if( !m_rosData["Comerciales"].contains(com) ) m_rosData["Comerciales"].append(",").append(com); }
-	QStringList comerciales(bool soloComerciales) const { return m_rosData["Comerciales"].split(",", QString::SkipEmptyParts) + (soloComerciales ? QStringList() : instaladores()); }
+	const IPv4RangeMap &staticIPv4Map() const		{ return m_staticIPv4Map;	}
 
 	static void select(QComboBox *cb, const QString &str);
 	static QComboBox *setupComboBox(QComboBox *cb, bool editable, const QString &select, const QStringList &s);
@@ -165,19 +165,9 @@ public:
 	QComboBox *setupCBPerfilesUsables(QComboBox *cb, const QString &select);
 	QComboBox *setupCBInstaladores(QComboBox *cb, const QString &select);
 	QComboBox *setupCBVendedores(QComboBox *cb, const QString &select);
-	QComboBox *setupCBIPsPublicas(QComboBox *cb, const QStringList &ipsUsadas, const QString &ipActual = QString());
+
 	QComboBox *setupCBPoblaciones(QComboBox *cb, const QStringList &poblaciones, const QString &poblacion = QString());
-	//	void setPoblaciones(const QStringList &l) { m_iniData["Poblaciones"] = l.join(","); }
-//	QStringList poblaciones() const { return m_iniData["Poblaciones"].split(","); }
-//	void addPoblacion(const QString &p)
-//	{
-//		if( !m_iniData["Poblaciones"].contains(p) )
-//		{
-//			QStringList pob = poblaciones();
-//			pob.append(p);
-//			setPoblaciones(pob);
-//		}
-//	}
+
 	QConfigData::NivelUsuario nivelUsuario() const { return m_nivelUsuario; }
 	void setNivelUsuario(const QConfigData::NivelUsuario &n) { m_nivelUsuario = n; }
 };

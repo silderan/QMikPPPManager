@@ -12,7 +12,9 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QInputEvent>
+
 #include "DlgNuevoUsuario.h"
+#include "DlgCnfgConnect.h"
 
 namespace Ui
 {
@@ -24,6 +26,8 @@ class QMikPPPManager : public QMainWindow
 	Q_OBJECT
 	Ui::QMikPPPManager *ui;
 	DlgNuevoUsuario *dlgNuevoUsuario;
+	DlgCnfgConnect dlgCnfgConnect;
+
 	ROS::Comm mktAPI;
 	QStringList perfiles;
 
@@ -58,26 +62,29 @@ class QMikPPPManager : public QMainWindow
 	void filtraFilas();
 
 	bool codigoClienteValido(const QString &code, const QSecretData *sdOri);
+
 private slots:
-	void on_pbConnect_clicked();
 	void onComError(ROS::Comm::CommError, QAbstractSocket::SocketError);
 	void onReceive(ROS::QSentence &s);
 	void onStateChanged(ROS::Comm::CommState s);
 	void onLoginChanged(ROS::Comm::LoginState s);
 
-	void on_anyadeUsuario_clicked();
-	void on_btConfig_clicked();
-
 	void onDatoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &id, bool *isValid);
 	void onDobleClicUsuario(const QSecretData &sd);
 	void onClicUsuario(const QSecretData &sd);
-	void on_leFiltro_textChanged(const QString &);
 
+	void on_leFiltro_textChanged(const QString &);
 	void on_cbFiltro_currentIndexChanged(int);
 
-	void on_btExportar_clicked();
+	void onGlobalConfigChanged();
 
-	void on_btPortScan_clicked();
+	void on_connectButton_clicked();
+	void on_exportButton_clicked();
+	void on_portScanButton_clicked();
+	void on_localConfigButton_clicked();
+	void on_connectionConfigButton_clicked();
+	void on_advancedConfigButton_clicked();
+	void on_addUserButton_clicked();
 
 public slots:
 	void updateConfig();

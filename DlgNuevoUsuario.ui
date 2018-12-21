@@ -124,7 +124,7 @@
        </widget>
       </item>
       <item row="3" column="1">
-       <widget class="QComboBox" name="cbIPPublica"/>
+       <widget class="QIPv4RangeComboBox" name="cbIPPublica"/>
       </item>
      </layout>
     </widget>
@@ -531,6 +531,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QIPv4RangeComboBox</class>
+   <extends>QComboBox</extends>
+   <header>QIPv4RangeComboBox.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>leUser</tabstop>
   <tabstop>btUserCopy</tabstop>

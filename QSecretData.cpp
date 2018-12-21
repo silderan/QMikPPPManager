@@ -1,5 +1,7 @@
 #include "QSecretData.h"
 
+#include "QStaticIPComboBox.h"
+
 void QSecretData::parseComment(const QString &comment)
 {
     QStringList fields = comment.split("$");
@@ -9,30 +11,41 @@ void QSecretData::parseComment(const QString &comment)
 		{
 		default:
 			setCodigoCliente(fields[12]);
-		case 12:
+            [[fallthrough]];
+        case 12:
 			setWPass(fields[11]);
-		case 11:
+            [[fallthrough]];
+        case 11:
 			setSSID(fields[10]);
-		case 10:
+            [[fallthrough]];
+        case 10:
 			setNotas(fields[9]);
-		case 9:
+            [[fallthrough]];
+        case 9:
 			if( fields[8]=="vozip" )
 				setFlagUsaIPPublica(true, IPPUBLICA_VOZIP);
 			else
 				setFlagsUsaIPPublica(fields[8]);
-		case 8:
+            [[fallthrough]];
+        case 8:
 			setEmail(fields[7]);
-		case 7:
+            [[fallthrough]];
+        case 7:
 			setComercial(fields[6]);
-		case 6:
+            [[fallthrough]];
+        case 6:
 			setInstalador(fields[5]);
-		case 5:
+            [[fallthrough]];
+        case 5:
 			setTelefonos(fields[4]);
-		case 4:
+            [[fallthrough]];
+        case 4:
 			setPoblacion(fields[3]);
-		case 3:
+            [[fallthrough]];
+        case 3:
 			setDireccion(fields[2]);
-		case 2:
+            [[fallthrough]];
+        case 2:
 			setNombre(fields[1]);
 			setPerfilOriginal(fields[0]);
 			break;
@@ -317,7 +330,7 @@ QWidget *QSecretDataDelegate::createEditor(QWidget *parent,
 									   const QStyleOptionViewItem &/*option*/,
 									   const QModelIndex &index ) const
 {
-	if( gGlobalConfig.nivelUsuario() < QSecretDataModel::nivelMinimoEdicion((QSecretDataModel::Columnas)index.column()) )
+	if( gGlobalConfig.nivelUsuario() < QSecretDataModel::nivelMinimoEdicion(static_cast<QSecretDataModel::Columnas>(index.column())) )
 		return Q_NULLPTR;
 
 	switch( index.column() )
@@ -327,9 +340,11 @@ QWidget *QSecretDataDelegate::createEditor(QWidget *parent,
 	case QSecretDataModel::ColPerfil:
 		return gGlobalConfig.setupCBPerfilesUsables(new QComboBox(parent), QString());
 	case QSecretDataModel::ColIP:
-		return gGlobalConfig.setupCBIPsPublicas(new QComboBox(parent),
-												static_cast<const QSecretDataModel*>(index.model())->ipsEstaticas(),
-												index.data(Qt::EditRole).toString());
+	{
+		QStaticIPComboBox *staticIPComboBox = new QStaticIPComboBox(parent);
+		staticIPComboBox->setup(gGlobalConfig.staticIPv4Map(), static_cast<const QSecretDataModel*>(index.model())->ipsEstaticasUsadas());
+		return staticIPComboBox;
+	}
 	case QSecretDataModel::ColContrato:
 	  {
 		QComboBox *cb = new QComboBox(parent);
@@ -463,23 +478,6 @@ void QSecretDataDelegate::setModelData(QWidget *editor, QAbstractItemModel *mode
 void QSecretDataDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &/* index */) const
 {
 	editor->setGeometry(option.rect);
-}
-
-void QPerfilesList::append(const QPerfilData &s)
-{
-	if( !m_nombres.contains(s.nombre()) )
-	{
-		m_nombres.append(s.nombre());
-		QList::append(s);
-	}
-}
-
-bool QPerfilesList::contains(const QString &s) const
-{
-	for( int i = 0; i < count(); i++ )
-		if( at(i) == s )
-			return true;
-	return false;
 }
 
 QSecretDataModel::QSecretDataModel(int rows, const QStringList &cols, QObject *p)
@@ -803,11 +801,12 @@ QStringList QSecretDataModel::poblaciones() const
 	return pobs;
 }
 
-QStringList QSecretDataModel::ipsEstaticas() const
+IPv4List QSecretDataModel::ipsEstaticasUsadas() const
 {
-	QStringList ips;
+	IPv4List ips;
 	for( int i = 0; i < m_secrets.count(); i++ )
-		ips.append(m_secrets[i].IPEstatica());
+		if( !m_secrets[i].IPEstatica().isEmpty() )
+			ips.append( IPv4(m_secrets[i].IPEstatica()) );
 	return ips;
 }
 

@@ -223,7 +223,7 @@ public:
 	int row(const QString &id);
 
 	QStringList poblaciones() const;
-	QStringList ipsEstaticas() const;
+	IPv4List ipsEstaticasUsadas() const;
 
 	static QConfigData::NivelUsuario nivelMinimoEdicion(Columnas col);
 	const QSecretsList &secrets() const { return m_secrets; }

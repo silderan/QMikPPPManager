@@ -96,35 +96,35 @@ void DlgPortScan::procesaDatosGUI()
 	if( isRunning() )
 		return;
 
-	QStringList puertos = ui->lePuertos->text().split(",");
-	quint16 p;
-	clearPuertos();
-	for( int i = 0; i < puertos.count(); i++ )
-	{
-		if( !(puertos[i] = puertos[i].trimmed()).isEmpty() &&
-			((p = quint16(puertos[i].toInt())) > 0) &&
-			!(m_puertos().contains(p)) )
-		{
-			addPuerto(p);
-		}
-	}
-	// TODO: Comprobar si el valor es válido?
-	intentos = ui->sbIntentos->value();
-	pasos = deviceInfoList.count() * puertos.count() * intentos;
+//	QStringList puertos = ui->lePuertos->text().split(",");
+//	quint16 p;
+//	clearPuertos();
+//	for( int i = 0; i < puertos.count(); i++ )
+//	{
+//		if( !(puertos[i] = puertos[i].trimmed()).isEmpty() &&
+//			((p = quint16(puertos[i].toInt())) > 0) &&
+//			!(m_puertos().contains(p)) )
+//		{
+//			addPuerto(p);
+//		}
+//	}
+//	// TODO: Comprobar si el valor es válido?
+//	intentos = ui->sbIntentos->value();
+//	pasos = deviceInfoList.count() * puertos.count() * intentos;
 }
 
 void DlgPortScan::setupProgressBar()
 {
-	if( pasos > 0 )
-	{
-		ui->pbProgreso->setMaximum(m);
-		ui->pbProgreso->setValue(0);
-	}
-	else
-	{
-		ui->pbProgreso->setMaximum(0);
-		ui->pbProgreso->setValue(0);
-	}
+//	if( pasos > 0 )
+//	{
+//		ui->pbProgreso->setMaximum(m);
+//		ui->pbProgreso->setValue(0);
+//	}
+//	else
+//	{
+//		ui->pbProgreso->setMaximum(0);
+//		ui->pbProgreso->setValue(0);
+//	}
 }
 
 void DlgPortScan::pararEscaneo()
@@ -149,12 +149,13 @@ void DlgPortScan::crearListaProcesos()
 
 void DlgPortScan::calcularPasos()
 {
-	pasos = deviceInfoList.count() * m_puertos.count();
+//	pasos = deviceInfoList.count() * m_puertos.count();
 }
 
 int DlgPortScan::siguientePaso()
 {
-	paso++;
+//	paso++;
+    return 0;
 }
 
 // Obtiene la información del paso.
@@ -162,13 +163,14 @@ DlgPortScan::_InfoPaso DlgPortScan::infoPaso(int paso)
 {
 	// ToDo: mensage de debug si ocurre esto.
 	if( paso >= m_pasos )
-		return;
+        return _InfoPaso();
 
 	_InfoPaso info;
-	info.indice = paso / m_puertos.count() / m_intentos;
+    info.indice = static_cast<quint16>(paso / m_puertos.count() / static_cast<int>(m_intentos));
 	info.intento = paso % m_intentos;
-	paso -= info.intento;
-	info.puerto = paso % m_puertos.count();
+    paso -= info.intento;
+    info.puerto = static_cast<quint16>(paso % m_puertos.count());
+    return info;
 }
 
 void DlgPortScan::on_lePuertos_textChanged(const QString &)

@@ -24,7 +24,13 @@ SOURCES += main.cpp\
     DlgNuevoUsuario.cpp \
     QRegistro.cpp \
 	DlgExportar.cpp \
-	DlgPortScan.cpp
+	DlgPortScan.cpp \
+    DlgCnfgConnect.cpp \
+    IPv4Range.cpp \
+    QIPv4RangeComboBox.cpp \
+    QStaticIPComboBox.cpp \
+    ConnectInfo.cpp \
+    ClientProfile.cpp
 
 HEADERS  += QMikPPPManager.h \
     Comm.h \
@@ -37,13 +43,20 @@ HEADERS  += QMikPPPManager.h \
     DlgNuevoUsuario.h \
     QRegistro.h \
 	DlgExportar.h \
-	DlgPortScan.h
+	DlgPortScan.h \
+    DlgCnfgConnect.h \
+    IPv4Range.h \
+    QIPv4RangeComboBox.h \
+    QStaticIPComboBox.h \
+    ConnectInfo.h \
+    ClientProfile.h
 
 FORMS    += QMikPPPManager.ui \
     DlgConfiguracion.ui \
 	DlgNuevoUsuario.ui \
 	DlgExportar.ui \
-	DlgPortScan.ui
+	DlgPortScan.ui \
+    DlgCnfgConnect.ui
 
 DISTFILES += \
     ToDo.txt

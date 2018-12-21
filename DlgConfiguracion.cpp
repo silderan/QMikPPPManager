@@ -1,58 +1,54 @@
 #include "DlgConfiguracion.h"
 #include "ui_DlgConfiguracion.h"
 
+#include <QTableWidgetItem>
+#include <QLineEdit>
+
 DlgConfiguracion::DlgConfiguracion(QWidget *parent) :
 	QDialog(parent),
 	ui(new Ui::DlgConfiguracion)
 {
+	int row;
 	ui->setupUi(this);
 	ui->sbTamTxt->setValue(gGlobalConfig.tamFuente());
-	ui->sbAltFilas->setValue(gGlobalConfig.alturaLinea());
+	ui->sbAltFilas->setValue(gGlobalConfig.alturaFila());
 
-	quint32 ip = gGlobalConfig.deIPV4();
-	ui->sbDeIPA->setValue(UINT_TO_IPV4A(ip));
-	ui->sbDeIPB->setValue(UINT_TO_IPV4B(ip));
-	ui->sbDeIPC->setValue(UINT_TO_IPV4C(ip));
-	ui->sbDeIPD->setValue(UINT_TO_IPV4D(ip));
-
-	ip = gGlobalConfig.aIPV4();
-	ui->sbAIPA->setValue(UINT_TO_IPV4A(ip));
-	ui->sbAIPB->setValue(UINT_TO_IPV4B(ip));
-	ui->sbAIPC->setValue(UINT_TO_IPV4C(ip));
-	ui->sbAIPD->setValue(UINT_TO_IPV4D(ip));
-
-	const QStringList &ins = gGlobalConfig.instaladores();
-	QStringList com = gGlobalConfig.comerciales(true);
-	const QStringList &ppI = gGlobalConfig.perfilesInternos();
-	const QStringList &pp = gGlobalConfig.perfiles().nombres();
-	ui->listaInstaladores->setRowCount( qMax(com.count(), qMax(pp.count(), qMax(10, ins.count()+4))) );
-
-	for( int row = 0; row < ins.count(); row++ )
-		ui->listaInstaladores->setItem(row, 1, new QTableWidgetItem(ins.at(row)));
-
-	for( int row = 0; row < com.count(); row++ )
-		ui->listaInstaladores->setItem(row, 2, new QTableWidgetItem(com.at(row)));
-
-	for( int row = 0; row < pp.count(); row++ )
+	IPv4RangeMapIterator it(gGlobalConfig.staticIPv4Map());
+	while( it.hasNext() )
 	{
-		QTableWidgetItem *it = new QTableWidgetItem(pp.at(row));
-		it->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsUserCheckable );
-		it->setCheckState( ppI.contains(pp.at(row)) ? Qt::Checked : Qt::Unchecked );
-		ui->listaInstaladores->setItem(row, 0, it);
+		it.next();
+		row = ui->staticIPv4Table->rowCount();
+		ui->staticIPv4Table->insertRow(row);
+		ui->staticIPv4Table->setItem(row, 0, new QTableWidgetItem(it.value().first().toString()));
+		ui->staticIPv4Table->setItem(row, 1, new QTableWidgetItem(it.value().last().toString()));
+		ui->staticIPv4Table->setItem(row, 0, new QTableWidgetItem(it.key()));
 	}
 
-	if( gGlobalConfig.perfiles().nombres().isEmpty() )
+	for( row = 0; row < gGlobalConfig.instaladores().count(); ++row )
 	{
-		ui->cbBasico->addItem(gGlobalConfig.perfilBasico());
-		ui->cbInactivo->addItem(gGlobalConfig.perfilDadoDeBaja());
-		ui->cbBasico->setCurrentIndex(0);
-		ui->cbInactivo->setCurrentIndex(0);
+		ui->listaInstaladores->insertRow(row);
+		ui->listaInstaladores->setItem(row, 0, new QTableWidgetItem(gGlobalConfig.instaladores()[row]));
 	}
-	else
+
+	for( row = 0; row < gGlobalConfig.comerciales().count(); ++row )
 	{
-		gGlobalConfig.setupCBPerfiles(ui->cbBasico, gGlobalConfig.perfilBasico());
-		gGlobalConfig.setupCBPerfiles(ui->cbInactivo, gGlobalConfig.perfilDadoDeBaja());
+		if( row >= ui->listaInstaladores->rowCount() )
+			ui->listaInstaladores->insertRow(row);
+		ui->listaInstaladores->setItem(row, 1, new QTableWidgetItem(gGlobalConfig.instaladores()[row]));
 	}
+
+	m_profilesGroupNameList.append( tr("Básico") );
+	m_profilesGroupNameList.append( tr("Interno") );
+	m_profilesGroupNameList.append( tr("Baja") );
+
+	for( row = 0; row < gGlobalConfig.perfiles().count(); ++row )
+	{
+		if( !m_profilesGroupNameList.contains(gGlobalConfig.perfiles().at(row).group()) )
+			m_profilesGroupNameList.append(gGlobalConfig.perfiles().at(row).group());
+	}
+	for( row = 0; row < gGlobalConfig.perfiles().count(); ++row )
+		addProfileTableRow(gGlobalConfig.perfiles().at(row));
+
 	switch( gGlobalConfig.nivelUsuario() )
 	{
 	case QConfigData::SinPermisos:
@@ -65,14 +61,13 @@ DlgConfiguracion::DlgConfiguracion(QWidget *parent) :
 		break;
 	case QConfigData::Instalador:
 		ui->listaInstaladores->setDisabled(true);
+		[[fallthrough]];
 	case QConfigData::Administrador:
-		ui->cbBasico->setDisabled(true);
-		ui->cbInactivo->setDisabled(true);
 		ui->grRangosIP->setDisabled(true);
 		break;
 	}
 	on_sbTamTxt_valueChanged(gGlobalConfig.tamFuente());
-	on_sbAltFilas_valueChanged(gGlobalConfig.alturaLinea());
+	on_sbAltFilas_valueChanged(gGlobalConfig.alturaFila());
 }
 
 DlgConfiguracion::~DlgConfiguracion()
@@ -80,31 +75,71 @@ DlgConfiguracion::~DlgConfiguracion()
 	delete ui;
 }
 
+void DlgConfiguracion::on_cbEditingFinished()
+{
+	QString text = static_cast<QLineEdit*>(sender())->text();
+	if( !m_profilesGroupNameList.contains(text) )
+	{
+		m_profilesGroupNameList.append(text);
+		for( int row = 0; row < ui->profilesTable->rowCount(); ++row )
+			static_cast<QComboBox*>(ui->profilesTable->cellWidget(row, 1))->addItem(text);
+	}
+}
+
+void DlgConfiguracion::addProfileTableRow(const ClientProfileData &clientProfileData)
+{
+	/*
+	 * The combo box for the profile group has some special tractment so needs
+	 * to keep track of all them to keep their data up to date.
+	*/
+	int row = ui->profilesTable->rowCount();
+
+	ui->profilesTable->insertRow(row);
+	gGlobalConfig.perfiles()[row].name();
+
+	QComboBox *profileCB = new QComboBox();
+	profileCB->addItem( tr("[Básico]"), "defaultProfile" );
+	profileCB->addItem( tr("[Baja]"), "disabledProfile" );
+	profileCB->addItem( tr("[Interno]"), "internalProfile" );
+
+	profileCB->addItems(m_profilesGroupNameList);
+	connect( profileCB->lineEdit(), SIGNAL(editingFinished()), this, SLOT(on_cbEditingFinished()) );
+
+	ui->profilesTable->setItem(row, 0, new QTableWidgetItem(clientProfileData.name()) );
+	ui->profilesTable->setCellWidget(row, 1, profileCB );
+}
+
 void DlgConfiguracion::on_btAceptar_clicked()
 {
-	gGlobalConfig.setAlturaLinea(ui->sbAltFilas->value());
+	gGlobalConfig.setAlturaFila(ui->sbAltFilas->value());
 	gGlobalConfig.setTamFuente(ui->sbTamTxt->value());
-
-	gGlobalConfig.setDeIPV4(ui->sbDeIPA->value(), ui->sbDeIPB->value(), ui->sbDeIPC->value(), ui->sbDeIPD->value());
-	gGlobalConfig.setAIPV4(ui->sbAIPA->value(), ui->sbAIPB->value(), ui->sbAIPC->value(), ui->sbAIPD->value());
 
 	QString s;
 	QStringList ins, com;
-	QStringList ppI;
-	for( int row = 0; row < ui->listaInstaladores->rowCount(); row++ )
+	int row;
+	for( row = 0; row < ui->listaInstaladores->rowCount(); ++row )
 	{
-		if( (ui->listaInstaladores->item(row, 0) != Q_NULLPTR) && (ui->listaInstaladores->item(row, 0)->checkState() == Qt::Checked) )
-			ppI.append(ui->listaInstaladores->item(row, 0)->text());
-		if( (ui->listaInstaladores->item(row, 1) != Q_NULLPTR) && !(s = ui->listaInstaladores->item(row, 1)->text()).isEmpty() )
+		if( (ui->listaInstaladores->item(row, 0) != Q_NULLPTR) && !(s = ui->listaInstaladores->item(row, 0)->text()).isEmpty() )
 			ins.append(s);
-		if( (ui->listaInstaladores->item(row, 2) != Q_NULLPTR) && !(s = ui->listaInstaladores->item(row, 2)->text()).isEmpty() )
+		if( (ui->listaInstaladores->item(row, 1) != Q_NULLPTR) && !(s = ui->listaInstaladores->item(row, 1)->text()).isEmpty() )
 			com.append(s);
 	}
 	gGlobalConfig.setInstaladores(ins);
 	gGlobalConfig.setComerciales(com);
-	gGlobalConfig.setPerfilBasico(ui->cbBasico->currentText());
-	gGlobalConfig.setPerfilDadoDeBaja(ui->cbInactivo->currentText());
-	gGlobalConfig.setPerfilesInternos(ppI);
+
+	for( row = 0; row < ui->profilesTable->rowCount(); ++row )
+	{
+		QString profileName = ui->profilesTable->item(row, 0)->text();
+		QComboBox *profileCB = static_cast<QComboBox*>(ui->profilesTable->cellWidget(row, 1));
+
+		if( profileCB->currentData().toString() == "defaultProfile" )
+			gGlobalConfig.perfiles().setDefaultProfile(row);
+
+		if( profileCB->currentData().toString() == "disabledProfile" )
+			gGlobalConfig.perfiles().setDisabledProfile(row);
+
+		gGlobalConfig.perfiles().setProfileGroupName(row, profileCB->currentText());
+	}
 	accept();
 }
 

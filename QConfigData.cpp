@@ -10,15 +10,14 @@ const QString QConfigData::tagAPIUser	= "APIUser";
 
 QConfigData gGlobalConfig;
 
-
 QComboBox *QConfigData::setupCBPerfiles(QComboBox *cb, const QString &select)
 {
-	return QConfigData::setupComboBox(cb, false, select, perfiles().nombres());
+	return QConfigData::setupComboBox(cb, false, select, perfiles().profileNames());
 }
 
 QComboBox *QConfigData::setupCBPerfilesUsables(QComboBox *cb, const QString &select)
 {
-	QStringList pp = perfiles().nombres();
+	QStringList pp = perfiles().profileNames();
 	QString p;
 	foreach(p, pp)
 		if( esPerfilInterno(p) )
@@ -33,21 +32,7 @@ QComboBox *QConfigData::setupCBInstaladores(QComboBox *cb, const QString &select
 
 QComboBox *QConfigData::setupCBVendedores(QComboBox *cb, const QString &select)
 {
-	return QConfigData::setupComboBox(cb, true, select, comerciales(false) );
-}
-
-QComboBox *QConfigData::setupCBIPsPublicas(QComboBox *cb, const QStringList &ipsUsadas, const QString &ipActual)
-{
-	cb->addItem("IP dinámica"); // El primer elemento será para borrar la IP estática
-
-	for( quint32 ip = gGlobalConfig.deIPV4(); ip <= gGlobalConfig.aIPV4(); ip++ )
-	{
-		QString sip = UINT_TO_SIPV4(ip);
-		if( !ipsUsadas.contains(sip) || (sip == ipActual) )
-			cb->addItem(sip);
-	}
-	select(cb, ipActual);
-	return cb;
+	return QConfigData::setupComboBox(cb, true, select, comerciales()+instaladores() );
 }
 
 QComboBox *QConfigData::setupCBPoblaciones(QComboBox *cb, const QStringList &poblaciones, const QString &poblacion)
@@ -72,37 +57,101 @@ QComboBox *QConfigData::setupComboBox(QComboBox *cb, bool editable, const QStrin
 	return cb;
 }
 
-void QConfigData::save() const
+// Local user data keys.
+#define LKEY_USERNAME		("user-name")
+#define LKEY_USERPASS		("user-password")
+#define LKEY_EXPORT_FILE	("export-file")
+#define LKEY_ANCHO_PANTALLA	("ancho-pantalla")
+#define LKEY_ALTO_PANTALLA	("alto-pantalla")
+#define LKEY_MAXIMIZADA		("pantalla-maximmizada")
+#define LKEY_TAM_FUENTE		("tam-fuente-tabla")
+#define LKEY_ALTO_FILA		("altura-fila-tabla")
+
+// Global protected data keys.
+#define GPKEY_PROFILE_NO_SERVICE	("perfil-clientes-de-baja")
+#define GPKEY_PROFILES_UNUSABLES	("perfiles-no-usables")
+#define GPKEY_PROFILE_BASIC			("perfil-basico")
+#define GPKEY_COMERCIALES			("comerciales")
+#define GPKEY_INSTALADORES			("instaladores")
+
+void QConfigData::loadLocalUserData()
 {
-	QIniFile::save(m_userFName, m_userData);
+	QIniData cnfgData;
+	QIniFile::load(m_userFName, &cnfgData);
+
+	m_userName = cnfgData[LKEY_USERNAME];
+	m_userPass = cnfgData[LKEY_USERPASS];
+
+	m_exportFile = cnfgData[LKEY_EXPORT_FILE];
+
+	m_anchoPantalla			= cnfgData[LKEY_ANCHO_PANTALLA].toInt();
+	m_altoPantalla			= cnfgData[LKEY_ALTO_PANTALLA].toInt();
+	m_pantallaMaximizada	= cnfgData[LKEY_MAXIMIZADA] == "true";
+
+	m_tamFuente = cnfgData[LKEY_TAM_FUENTE].toInt();
+	m_altoFilas = cnfgData[LKEY_ALTO_FILA].toInt();
+}
+
+void QConfigData::loadGlobalProtectedData()
+{
+	QIniData cnfgData;
+	QIniFile::load(m_rosProtectedFName, &cnfgData);
+
+	m_profileNoService	= cnfgData[GPKEY_PROFILE_NO_SERVICE];
+	m_profilesUnusables	= cnfgData[GPKEY_PROFILES_UNUSABLES].split(',', QString::SkipEmptyParts);
+	m_profileBasic		= cnfgData[GPKEY_PROFILE_BASIC];
+	m_comerciales		= cnfgData[GPKEY_COMERCIALES].split(',', QString::SkipEmptyParts);
+
+	m_staticIPv4Map.load(cnfgData);
+}
+
+void QConfigData::loadGlobalData()
+{
+	QIniData cnfgData;
+	QIniFile::load(m_rosFName, &cnfgData);
+	m_connectInfoList.load(cnfgData);
+}
+
+void QConfigData::saveLocalUserData() const
+{
+	QIniData cnfgData;
+
+	cnfgData[LKEY_USERNAME]	= m_userName;
+	cnfgData[LKEY_USERPASS]	= m_userPass;
+
+	cnfgData[LKEY_EXPORT_FILE] = m_exportFile;
+
+	cnfgData[LKEY_ANCHO_PANTALLA] = QString::number(m_anchoPantalla);
+	cnfgData[LKEY_ALTO_PANTALLA] = QString::number(m_altoPantalla);
+	cnfgData[LKEY_MAXIMIZADA] = m_pantallaMaximizada ? "true" : "false";
+
+	cnfgData[LKEY_TAM_FUENTE] = QString::number(m_tamFuente);
+	cnfgData[LKEY_ALTO_FILA] = QString::number(m_altoFilas);
+
+	QIniFile::save(m_userFName, cnfgData);
+}
+
+void QConfigData::saveGlobalProtectedData() const
+{
 	if( nivelUsuario() == Supervisor )
-		QIniFile::save(m_rosFName, m_rosData);
-}
-
-quint32 QConfigData::toVIPV4(const QString &sip)
-{
-	QStringList slip = sip.split('.');
-	quint32 vip = 0;
-	if( slip.count() == 4 )
 	{
-		vip = ((slip[0].toInt()<<24)&0xFF) +
-			  ((slip[1].toInt()<<16)&0xFF) +
-			  ((slip[2].toInt()<<8)&0xFF) +
-			  (slip[3].toInt()&0xFF);
+		QIniData cnfgData;
+
+		cnfgData[GPKEY_PROFILE_NO_SERVICE]	= m_profileNoService;
+		cnfgData[GPKEY_PROFILES_UNUSABLES]	= m_profilesUnusables.join(',');
+		cnfgData[GPKEY_PROFILE_BASIC]		= m_profileBasic;
+		cnfgData[GPKEY_COMERCIALES]			= m_comerciales.join(',');
+		cnfgData[GPKEY_INSTALADORES]			= m_instaladores.join(',');
+
+		m_staticIPv4Map.save(cnfgData);
+
+		QIniFile::save(m_rosProtectedFName, cnfgData);
 	}
-	return vip;
 }
 
-bool QConfigData::esIPEstatica(quint32 vip) const
+void QConfigData::saveGlobalData() const
 {
-	if( deIPV4() > vip )
-		return false;
-	if( aIPV4() < vip )
-		return false;
-	return true;
-}
-
-bool QConfigData::esIPEstatica(const QString &sip) const
-{
-	return esIPEstatica(toVIPV4(sip));
+	QIniData cnfgData;
+	m_connectInfoList.save(cnfgData);
+	QIniFile::save(m_rosFName, cnfgData);
 }

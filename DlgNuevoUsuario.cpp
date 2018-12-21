@@ -9,10 +9,10 @@ DlgNuevoUsuario::DlgNuevoUsuario(ROS::Comm *api, const QSecretData &sd, QSecretD
 	ui(new Ui::DlgNuevoUsuario), mktAPI(api), m_secrets(secrets), m_secret(sd)
 {
 	ui->setupUi(this);
-	gGlobalConfig.setupCBPerfilesUsables(ui->cbPerfil, sd.perfilOriginal().isEmpty() ? gGlobalConfig.perfilBasico() : sd.perfilOriginal());
-	gGlobalConfig.setupCBInstaladores(ui->cbInstalador, sd.secretID().isEmpty() ? gGlobalConfig.userName() : sd.instalador().isEmpty() ? "no-definido" : sd.instalador() );
+	gGlobalConfig.setupCBPerfilesUsables( ui->cbPerfil, sd.perfilOriginal().isEmpty() ? gGlobalConfig.perfilBasico() : sd.perfilOriginal() );
+	gGlobalConfig.setupCBInstaladores( ui->cbInstalador, sd.secretID().isEmpty() ? gGlobalConfig.userName() : sd.instalador().isEmpty() ? "no-definido" : sd.instalador() );
 	gGlobalConfig.setupCBPoblaciones(ui->cbPoblacion, secrets.poblaciones(), sd.poblacion());
-	gGlobalConfig.setupCBIPsPublicas(ui->cbIPPublica, secrets.ipsEstaticas(), sd.IPEstatica());
+	ui->cbIPPublica->setup(gGlobalConfig.staticIPv4Map(), secrets.ipsEstaticasUsadas(), IPv4(sd.IPEstatica()) );
 	gGlobalConfig.setupCBVendedores(ui->cbComercial, sd.comercial());
 
 	ui->leUser->setText(sd.usuario());
