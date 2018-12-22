@@ -96,12 +96,46 @@ int QClientProfileList::indexOfDisabled() const
 	return -1;
 }
 
+ClientProfileData QClientProfileList::disabledProfile() const
+{
+	int i = indexOfDisabled();
+	if( i != -1 )
+		return at(i);
+	return ClientProfileData();
+}
+
+bool QClientProfileList::isDisabledProfile(const QString &profileName) const
+{
+	return disabledProfile().name() == profileName;
+}
+
 int QClientProfileList::indexOfDefault() const
 {
 	for( int i = 0; i < count(); ++i )
 		if( at(i).isDefault() )
 			return i;
 	return -1;
+}
+
+ClientProfileData QClientProfileList::defaultProfile() const
+{
+	int i = indexOfDefault();
+	if( i != -1 )
+		return at(i);
+	return ClientProfileData();
+}
+
+bool QClientProfileList::isDefaultProfile(const QString &profileName) const
+{
+	return defaultProfile().name() == profileName;
+}
+
+int QClientProfileList::isInternalProfile(const QString &profileName) const
+{
+	for( int i = 0; i < count(); ++i )
+		if( at(i).name() == profileName )
+			return at(i).isInternal();
+	return false;
 }
 
 void QClientProfileList::setDisabledProfile(int index)

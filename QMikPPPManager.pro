@@ -30,7 +30,9 @@ SOURCES += main.cpp\
     QIPv4RangeComboBox.cpp \
     QStaticIPComboBox.cpp \
     ConnectInfo.cpp \
-    ClientProfile.cpp
+    ClientProfile.cpp \
+    DlgLookConfig.cpp \
+    TableCellLook.cpp
 
 HEADERS  += QMikPPPManager.h \
     Comm.h \
@@ -49,14 +51,17 @@ HEADERS  += QMikPPPManager.h \
     QIPv4RangeComboBox.h \
     QStaticIPComboBox.h \
     ConnectInfo.h \
-    ClientProfile.h
+    ClientProfile.h \
+    DlgLookConfig.h \
+    TableCellLook.h
 
 FORMS    += QMikPPPManager.ui \
     DlgConfiguracion.ui \
 	DlgNuevoUsuario.ui \
 	DlgExportar.ui \
 	DlgPortScan.ui \
-    DlgCnfgConnect.ui
+    DlgCnfgConnect.ui \
+    DlgLookConfig.ui
 
 DISTFILES += \
     ToDo.txt

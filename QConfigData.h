@@ -4,12 +4,14 @@
 #include <QComboBox>
 #include <QStringList>
 #include <QDir>
+#include <QColor>
 
 #include "QIniFile.h"
 #include "QSentences.h"
 #include "ConnectInfo.h"
 #include "IPv4Range.h"
 #include "ClientProfile.h"
+#include "TableCellLook.h"
 
 class QConfigData
 {
@@ -40,9 +42,9 @@ private:
 	NivelUsuario m_nivelUsuario;
 	IPv4RangeMap m_staticIPv4Map;		// Lista de rangos de IP estáticas.
 
-	QString m_profileNoService;
-	QStringList m_profilesUnusables;
-	QString m_profileBasic;
+//	QString m_profileNoService;
+//	QStringList m_profilesUnusables;
+//	QString m_profileBasic;
 
 	QString m_exportFile;				// Fichero al que se exporta.
 	QConnectInfoList m_connectInfoList;
@@ -51,8 +53,7 @@ private:
 	int m_altoPantalla;
 
 	// Apariencia de las tablas
-	int m_tamFuente;	// Tamaño de la fuente usada en la tabla.
-	int m_altoFilas;	// Altura de las filas de la tabla.
+	TableCellLook m_tableCellLook;
 
 public:
 	static const QString tagSecret;
@@ -65,10 +66,6 @@ public:
 
 	void defaults()
 	{
-		setPerfilDadoDeBaja("SinAcceso");
-		setPerfilBasico("5/1 (Colt)");
-		setTamFuente(10);
-		setAlturaFila(17);
 		addRange( IPv4Range(IPv4(192,168,1,50), IPv4(192,168,1,254)) );
 		setNivelUsuario(SinPermisos);
 	}
@@ -96,18 +93,6 @@ public:
 	void setExportFile(const QString &exportFile) { m_exportFile = exportFile;	}
 	QString exportFile() const { return m_exportFile; }
 
-//	void setRemoteHost(const QString &host) { m_userData["RemoteHost"] = host; }
-//	QString remoteHost() const { return m_userData["RemoteHost"]; }
-
-//	void setRemotePort(const quint16 &port) { m_userData["RemotePort"] = QString("%1").arg(port); }
-//	quint16 remotePort() const { return m_userData["RemotePort"].toUShort(); }
-
-//	void setUserName(const QString &uname) { m_userData["UserName"] = uname;	}
-//	QString userName() const { return m_userData["UserName"]; }
-
-//	void setUserPass(const QString &upass) { m_userData["UserPass"] = upass;	}
-//	QString userPass() const { return m_userData["UserPass"]; }
-
 	const QString &userName() const				{ return m_userName;	}
 	void setUserName(const QString &userName)	{ m_userName = userName;}
 
@@ -123,24 +108,18 @@ public:
 	void setAnchoPantalla(int a)		{ m_anchoPantalla = a;	}
 	void setAltoPantalla(int a)			{ m_altoPantalla = a;	}
 
-	void setTamFuente(int tamFuente)	{ m_tamFuente = tamFuente; }
-	int tamFuente() const				{ return m_tamFuente;		}
+//	void setPerfilDadoDeBaja(const QString &p)		{ m_profileNoService = p;	}
+//	QString perfilDadoDeBaja() const				{ return m_profileNoService;}
+//	bool esPerfilDadoDeBaja(const QString &s) const { return perfilDadoDeBaja() == s ; }
 
-	void setAlturaFila(int altoFilas)	{ m_altoFilas = altoFilas;	}
-	int alturaFila() const				{ return m_altoFilas;		}
+//	void setPerfilBasico(const QString &p)			{ m_profileBasic = p;	}
+//	QString perfilBasico() const					{ return m_profileBasic;}
 
-	void setPerfilDadoDeBaja(const QString &p)		{ m_profileNoService = p;	}
-	QString perfilDadoDeBaja() const				{ return m_profileNoService;}
-	bool esPerfilDadoDeBaja(const QString &s) const { return perfilDadoDeBaja() == s ; }
+//	QStringList perfilesInternos() const			{ return m_profilesUnusables;	}
+//	void setPerfilesInternos(const QStringList &pp)	{ m_profilesUnusables = pp;		}
+//	bool esPerfilInterno(const QString &per)		{ return perfilesInternos().contains(per);	}
 
-	void setPerfilBasico(const QString &p)			{ m_profileBasic = p;	}
-	QString perfilBasico() const					{ return m_profileBasic;}
-
-	QStringList perfilesInternos() const			{ return m_profilesUnusables;	}
-	void setPerfilesInternos(const QStringList &pp)	{ m_profilesUnusables = pp;		}
-	bool esPerfilInterno(const QString &per)		{ return perfilesInternos().contains(per);	}
-
-	QClientProfileList &perfiles()						{ return m_perfiles;	}
+	QClientProfileList &perfiles()					{ return m_perfiles;	}
 	void addPerfil(const ROS::QSentence &s)			{ m_perfiles.append(s); }
 
 	void addRange(const IPv4Range &ipv4Range)		{ m_staticIPv4Map.addRange(ipv4Range);			}
@@ -158,6 +137,8 @@ public:
 	const QStringList &comerciales() const			{ return m_comerciales; }
 
 	const IPv4RangeMap &staticIPv4Map() const		{ return m_staticIPv4Map;	}
+
+	TableCellLook &tableCellLook()					{ return m_tableCellLook;	}
 
 	static void select(QComboBox *cb, const QString &str);
 	static QComboBox *setupComboBox(QComboBox *cb, bool editable, const QString &select, const QStringList &s);

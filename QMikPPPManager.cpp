@@ -27,6 +27,7 @@
 #include "DlgConfiguracion.h"
 #include "DlgExportar.h"
 #include "DlgPortScan.h"
+#include "DlgLookConfig.h"
 
 QMikPPPManager::QMikPPPManager(QWidget *parent) :
 	QMainWindow(parent),
@@ -88,9 +89,9 @@ QMikPPPManager::~QMikPPPManager()
 void QMikPPPManager::updateConfig()
 {
 	QFont tableFont = ui->twUsuarios->font();
-	tableFont.setPixelSize(gGlobalConfig.tamFuente());
-	ui->twUsuarios->setFont(tableFont);
-	ui->twUsuarios->verticalHeader()->setDefaultSectionSize(gGlobalConfig.alturaFila());
+	tableFont.setPixelSize( gGlobalConfig.tableCellLook().m_fontSize );
+	ui->twUsuarios->setFont( tableFont );
+	ui->twUsuarios->verticalHeader()->setDefaultSectionSize( gGlobalConfig.tableCellLook().m_rowHeight );
 	if( gGlobalConfig.isWindowMaximized() )
 		this->showMaximized();
 	else
@@ -328,7 +329,7 @@ void QMikPPPManager::onPerfilRecibido(const ROS::QSentence &s)
 		ui->statusBar->showMessage( tr("Perfiles recibidos.") );
 		break;
 	case ROS::QSentence::Reply:
-		gGlobalConfig.addPerfil(s);
+		gGlobalConfig.perfiles().append(s);
 		break;
 	case ROS::QSentence::Trap:
 		break;
@@ -489,11 +490,11 @@ void QMikPPPManager::onDatoModificado(QSecretDataModel::Columnas col, const QStr
 
 			// TODO: Repasar esto!!!!
 			if( !sd->dadoDeBaja() )
-				sd->setPerfilReal(gGlobalConfig.perfilDadoDeBaja());
+				sd->setPerfilReal( gGlobalConfig.perfiles().defaultProfile().name() );
 			else
-				sd->setPerfilReal(sd->perfilOriginal());
-			actualizaPerfilRemoto(sd);
-			reiniciaConexionRemota(sd);
+				sd->setPerfilReal( sd->perfilOriginal() );
+			actualizaPerfilRemoto( sd );
+			reiniciaConexionRemota( sd );
 		}
 		break;
 	case QSecretDataModel::ColEstado:	// No es modificable localmente.
@@ -682,12 +683,16 @@ void QMikPPPManager::on_portScanButton_clicked()
 
 void QMikPPPManager::on_localConfigButton_clicked()
 {
-	DlgConfiguracion *dlgConfig = new DlgConfiguracion(this);
+	DlgLookConfig dlg(this);
+	dlg.show();
 
-	if( dlgConfig->exec() )
+	if( dlg.exec() )
+	{
 		updateConfig();
+		gGlobalConfig.saveLocalUserData();
+	}
 
-	dlgConfig->deleteLater();
+	dlg.deleteLater();
 }
 
 void QMikPPPManager::on_connectionConfigButton_clicked()
@@ -701,7 +706,12 @@ void QMikPPPManager::onGlobalConfigChanged()
 
 void QMikPPPManager::on_advancedConfigButton_clicked()
 {
+	DlgConfiguracion *dlgConfig = new DlgConfiguracion(this);
 
+	if( dlgConfig->exec() )
+		updateConfig();
+
+	dlgConfig->deleteLater();
 }
 
 void QMikPPPManager::on_addUserButton_clicked()

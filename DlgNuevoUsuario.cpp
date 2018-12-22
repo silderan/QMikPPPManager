@@ -9,7 +9,7 @@ DlgNuevoUsuario::DlgNuevoUsuario(ROS::Comm *api, const QSecretData &sd, QSecretD
 	ui(new Ui::DlgNuevoUsuario), mktAPI(api), m_secrets(secrets), m_secret(sd)
 {
 	ui->setupUi(this);
-	gGlobalConfig.setupCBPerfilesUsables( ui->cbPerfil, sd.perfilOriginal().isEmpty() ? gGlobalConfig.perfilBasico() : sd.perfilOriginal() );
+	gGlobalConfig.setupCBPerfilesUsables( ui->cbPerfil, sd.perfilOriginal().isEmpty() ? gGlobalConfig.perfiles().defaultProfile().name() : sd.perfilOriginal() );
 	gGlobalConfig.setupCBInstaladores( ui->cbInstalador, sd.secretID().isEmpty() ? gGlobalConfig.userName() : sd.instalador().isEmpty() ? "no-definido" : sd.instalador() );
 	gGlobalConfig.setupCBPoblaciones(ui->cbPoblacion, secrets.poblaciones(), sd.poblacion());
 	ui->cbIPPublica->setup(gGlobalConfig.staticIPv4Map(), secrets.ipsEstaticasUsadas(), IPv4(sd.IPEstatica()) );

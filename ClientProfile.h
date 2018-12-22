@@ -70,6 +70,7 @@ public:
 
 class QClientProfileList : public QList<ClientProfileData>
 {
+	// TODO: caching current default and disabled profiles to improve lookup speed.
 public:
 	void append(const ClientProfileData &s);
 	void append(const ROS::QSentence &s)	{ append( ClientProfileData(s) ); }
@@ -80,7 +81,14 @@ public:
 	void load(const QIniData &cnfgData);
 
 	int indexOfDisabled()const;
+	ClientProfileData disabledProfile()const;
+	bool isDisabledProfile(const QString &profileName)const;
+
 	int indexOfDefault()const;
+	ClientProfileData defaultProfile()const;
+	bool isDefaultProfile(const QString &profileName)const;
+
+	int isInternalProfile(const QString &profileName)const;
 
 	void setDisabledProfile(int index);
 	void setDefaultProfile(int index);

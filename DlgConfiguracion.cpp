@@ -10,8 +10,6 @@ DlgConfiguracion::DlgConfiguracion(QWidget *parent) :
 {
 	int row;
 	ui->setupUi(this);
-	ui->sbTamTxt->setValue(gGlobalConfig.tamFuente());
-	ui->sbAltFilas->setValue(gGlobalConfig.alturaFila());
 
 	IPv4RangeMapIterator it(gGlobalConfig.staticIPv4Map());
 	while( it.hasNext() )
@@ -66,8 +64,6 @@ DlgConfiguracion::DlgConfiguracion(QWidget *parent) :
 		ui->grRangosIP->setDisabled(true);
 		break;
 	}
-	on_sbTamTxt_valueChanged(gGlobalConfig.tamFuente());
-	on_sbAltFilas_valueChanged(gGlobalConfig.alturaFila());
 }
 
 DlgConfiguracion::~DlgConfiguracion()
@@ -111,9 +107,6 @@ void DlgConfiguracion::addProfileTableRow(const ClientProfileData &clientProfile
 
 void DlgConfiguracion::on_btAceptar_clicked()
 {
-	gGlobalConfig.setAlturaFila(ui->sbAltFilas->value());
-	gGlobalConfig.setTamFuente(ui->sbTamTxt->value());
-
 	QString s;
 	QStringList ins, com;
 	int row;

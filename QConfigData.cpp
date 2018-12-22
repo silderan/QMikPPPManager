@@ -20,7 +20,7 @@ QComboBox *QConfigData::setupCBPerfilesUsables(QComboBox *cb, const QString &sel
 	QStringList pp = perfiles().profileNames();
 	QString p;
 	foreach(p, pp)
-		if( esPerfilInterno(p) )
+		if( perfiles().isInternalProfile(p) )
 			pp.removeOne(p);
 	return QConfigData::setupComboBox(cb, false, select, pp);
 }
@@ -64,13 +64,8 @@ QComboBox *QConfigData::setupComboBox(QComboBox *cb, bool editable, const QStrin
 #define LKEY_ANCHO_PANTALLA	("ancho-pantalla")
 #define LKEY_ALTO_PANTALLA	("alto-pantalla")
 #define LKEY_MAXIMIZADA		("pantalla-maximmizada")
-#define LKEY_TAM_FUENTE		("tam-fuente-tabla")
-#define LKEY_ALTO_FILA		("altura-fila-tabla")
 
 // Global protected data keys.
-#define GPKEY_PROFILE_NO_SERVICE	("perfil-clientes-de-baja")
-#define GPKEY_PROFILES_UNUSABLES	("perfiles-no-usables")
-#define GPKEY_PROFILE_BASIC			("perfil-basico")
 #define GPKEY_COMERCIALES			("comerciales")
 #define GPKEY_INSTALADORES			("instaladores")
 
@@ -88,8 +83,7 @@ void QConfigData::loadLocalUserData()
 	m_altoPantalla			= cnfgData[LKEY_ALTO_PANTALLA].toInt();
 	m_pantallaMaximizada	= cnfgData[LKEY_MAXIMIZADA] == "true";
 
-	m_tamFuente = cnfgData[LKEY_TAM_FUENTE].toInt();
-	m_altoFilas = cnfgData[LKEY_ALTO_FILA].toInt();
+	m_tableCellLook.load(cnfgData);
 }
 
 void QConfigData::loadGlobalProtectedData()
@@ -97,11 +91,9 @@ void QConfigData::loadGlobalProtectedData()
 	QIniData cnfgData;
 	QIniFile::load(m_rosProtectedFName, &cnfgData);
 
-	m_profileNoService	= cnfgData[GPKEY_PROFILE_NO_SERVICE];
-	m_profilesUnusables	= cnfgData[GPKEY_PROFILES_UNUSABLES].split(',', QString::SkipEmptyParts);
-	m_profileBasic		= cnfgData[GPKEY_PROFILE_BASIC];
 	m_comerciales		= cnfgData[GPKEY_COMERCIALES].split(',', QString::SkipEmptyParts);
 
+	m_perfiles.load(cnfgData);
 	m_staticIPv4Map.load(cnfgData);
 }
 
@@ -125,9 +117,7 @@ void QConfigData::saveLocalUserData() const
 	cnfgData[LKEY_ALTO_PANTALLA] = QString::number(m_altoPantalla);
 	cnfgData[LKEY_MAXIMIZADA] = m_pantallaMaximizada ? "true" : "false";
 
-	cnfgData[LKEY_TAM_FUENTE] = QString::number(m_tamFuente);
-	cnfgData[LKEY_ALTO_FILA] = QString::number(m_altoFilas);
-
+	m_tableCellLook.save(cnfgData);
 	QIniFile::save(m_userFName, cnfgData);
 }
 
@@ -137,12 +127,10 @@ void QConfigData::saveGlobalProtectedData() const
 	{
 		QIniData cnfgData;
 
-		cnfgData[GPKEY_PROFILE_NO_SERVICE]	= m_profileNoService;
-		cnfgData[GPKEY_PROFILES_UNUSABLES]	= m_profilesUnusables.join(',');
-		cnfgData[GPKEY_PROFILE_BASIC]		= m_profileBasic;
-		cnfgData[GPKEY_COMERCIALES]			= m_comerciales.join(',');
-		cnfgData[GPKEY_INSTALADORES]			= m_instaladores.join(',');
+		cnfgData[GPKEY_COMERCIALES]	= m_comerciales.join(',');
+		cnfgData[GPKEY_INSTALADORES]= m_instaladores.join(',');
 
+		m_perfiles.save(cnfgData);
 		m_staticIPv4Map.save(cnfgData);
 
 		QIniFile::save(m_rosProtectedFName, cnfgData);

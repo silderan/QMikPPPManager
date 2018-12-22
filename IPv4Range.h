@@ -1,6 +1,7 @@
 #ifndef IPV4RANGE_H
 #define IPV4RANGE_H
 
+#include <QString>
 #include <QList>
 #include <QMap>
 
@@ -51,35 +52,25 @@ public:
 	IPv4 &operator=(const IPv4 &ipv4)	{ this->m_ip = ipv4.m_ip; return *this;	}
 	IPv4 &operator=(const QString &ipv4){ fromString(ipv4);	return *this;		}
 
-	friend bool operator ==(const quint32 &ipv4A, const IPv4 &ipv4B);
-	friend bool operator ==(const QString &ipv4A, const IPv4 &ipv4B);
 	bool operator ==(const IPv4 &ipv4) const	{ return this->m_ip == ipv4.m_ip;	}
 	bool operator ==(const quint32 &ipv4) const	{ return this->m_ip == ipv4;		}
-	bool operator ==(const QString &ipv4) const	{ return this->m_ip == IPv4::FromString(ipv4);	}
+	bool operator ==(const QString &ipv4) const	{ return this->m_ip == IPv4::FromString(ipv4).m_ip;	}
 
-	friend bool operator >=(const quint32 &ipv4, const IPv4 &ipv4B);
-	friend bool operator >=(const QString &ipv4, const IPv4 &ipv4B);
 	bool operator >=(const IPv4 &ipv4) const	{ return this->m_ip >= ipv4.m_ip;	}
 	bool operator >=(const quint32 &ipv4) const	{ return this->m_ip >= ipv4;		}
-	bool operator >=(const QString &ipv4) const	{ return this->m_ip >= IPv4::FromString(ipv4);	}
+	bool operator >=(const QString &ipv4) const	{ return this->m_ip >= IPv4::FromString(ipv4).m_ip;	}
 
-	friend bool operator >(const quint32 &ipv4, const IPv4 &ipv4B);
-	friend bool operator >(const QString &ipv4, const IPv4 &ipv4B);
 	bool operator >(const IPv4 &ipv4) const		{ return this->m_ip > ipv4.m_ip;}
 	bool operator >(const quint32 &ipv4) const	{ return this->m_ip > ipv4;		}
-	bool operator >(const QString &ipv4) const	{ return this->m_ip > IPv4::FromString(ipv4);	}
+	bool operator >(const QString &ipv4) const	{ return this->m_ip > IPv4::FromString(ipv4).m_ip;	}
 
-	friend bool operator <(const quint32 &ipv4, const IPv4 &ipv4B);
-	friend bool operator <(const QString &ipv4, const IPv4 &ipv4B);
 	bool operator <(const IPv4 &ipv4) const		{ return this->m_ip < ipv4.m_ip;}
 	bool operator <(const quint32 &ipv4) const	{ return this->m_ip < ipv4;		}
-	bool operator <(const QString &ipv4) const	{ return this->m_ip < IPv4::FromString(ipv4);	}
+	bool operator <(const QString &ipv4) const	{ return this->m_ip < IPv4::FromString(ipv4).m_ip;	}
 
-	friend bool operator <=(const quint32 &ipv4, const IPv4 &ipv4B);
-	friend bool operator <=(const QString &ipv4, const IPv4 &ipv4B);
 	bool operator <=(const IPv4 &ipv4) const	{ return this->m_ip <= ipv4.m_ip;	}
 	bool operator <=(const quint32 &ipv4) const	{ return this->m_ip <= ipv4;		}
-	bool operator <=(const QString &ipv4) const	{ return this->m_ip <= IPv4::FromString(ipv4);	}
+	bool operator <=(const QString &ipv4) const	{ return this->m_ip <= IPv4::FromString(ipv4).m_ip;	}
 
 	IPv4 operator+(quint32 i)	{ return IPv4(this->m_ip+i);	}
 	IPv4 operator-(quint32 i)	{ return IPv4(this->m_ip-i);	}
@@ -96,14 +87,14 @@ public:
 
 inline bool operator ==(const quint32 &ipv4A, const IPv4 &ipv4B)	{ return ipv4B == ipv4A;}
 inline bool operator ==(const QString &ipv4A, const IPv4 &ipv4B)	{ return ipv4B == ipv4A;}
-inline bool operator >=(const quint32 &ipv4A, const IPv4 &ipv4B)	{ return ipv4B >= ipv4A;}
-inline bool operator >=(const QString &ipv4A, const IPv4 &ipv4B)	{ return ipv4B >= ipv4A;}
-inline bool operator >(const quint32 &ipv4A, const IPv4 &ipv4B)		{ return ipv4B > ipv4A; }
-inline bool operator >(const QString &ipv4A, const IPv4 &ipv4B)		{ return ipv4B > ipv4A; }
-inline bool operator <=(const quint32 &ipv4A, const IPv4 &ipv4B)	{ return ipv4B <= ipv4A;}
-inline bool operator <=(const QString &ipv4A, const IPv4 &ipv4B)	{ return ipv4B <= ipv4A;}
-inline bool operator <(const quint32 &ipv4A, const IPv4 &ipv4B)		{ return ipv4B < ipv4A; }
-inline bool operator <(const QString &ipv4A, const IPv4 &ipv4B)		{ return ipv4B < ipv4A; }
+inline bool operator >=(const quint32 &ipv4A, const IPv4 &ipv4B)	{ return ipv4B <= ipv4A;}
+inline bool operator >=(const QString &ipv4A, const IPv4 &ipv4B)	{ return ipv4B <= ipv4A;}
+inline bool operator >(const quint32 &ipv4A, const IPv4 &ipv4B)		{ return ipv4B < ipv4A; }
+inline bool operator >(const QString &ipv4A, const IPv4 &ipv4B)		{ return ipv4B < ipv4A; }
+inline bool operator <=(const quint32 &ipv4A, const IPv4 &ipv4B)	{ return ipv4B >= ipv4A;}
+inline bool operator <=(const QString &ipv4A, const IPv4 &ipv4B)	{ return ipv4B >= ipv4A;}
+inline bool operator <(const quint32 &ipv4A, const IPv4 &ipv4B)		{ return ipv4B > ipv4A; }
+inline bool operator <(const QString &ipv4A, const IPv4 &ipv4B)		{ return ipv4B > ipv4A; }
 
 typedef QList<IPv4> IPv4List;
 
