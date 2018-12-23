@@ -22,9 +22,15 @@ struct ConnectInfo
 	{
 
 	}
-	ConnectInfo(const QString &loadLine)
+	explicit ConnectInfo(const QString &loadLine)
 	{
 		fromString(loadLine);
+	}
+	ConnectInfo( const QString &userName, const QString &userPass, const IPv4 &hostAddr, quint16 hostPort ):
+		m_uname(userName), m_upass(userPass),
+		m_hostIPv4(hostAddr), m_hostPort(hostPort)
+	{
+
 	}
 
 	void fromString(const QString &line);

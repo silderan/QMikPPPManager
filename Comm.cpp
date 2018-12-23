@@ -46,7 +46,7 @@ Comm::~Comm()
  * or a custom one.
  * @return A human-readable string descriving the last error.
  */
-QString Comm::errorString()
+QString Comm::errorString() const
 {
 	switch( lastCommError )
 	{

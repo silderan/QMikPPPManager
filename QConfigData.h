@@ -42,12 +42,10 @@ private:
 	NivelUsuario m_nivelUsuario;
 	IPv4RangeMap m_staticIPv4Map;		// Lista de rangos de IP estáticas.
 
-//	QString m_profileNoService;
-//	QStringList m_profilesUnusables;
-//	QString m_profileBasic;
-
 	QString m_exportFile;				// Fichero al que se exporta.
+
 	QConnectInfoList m_connectInfoList;
+
 	bool m_pantallaMaximizada;
 	int m_anchoPantalla;
 	int m_altoPantalla;
@@ -88,7 +86,7 @@ public:
 	void saveGlobalProtectedData() const;
 	void saveGlobalData() const;
 
-	QConnectInfoList &connectInfoList() { return m_connectInfoList;	}
+	QConnectInfoList &connectInfoList() { return   m_connectInfoList;	}
 
 	void setExportFile(const QString &exportFile) { m_exportFile = exportFile;	}
 	QString exportFile() const { return m_exportFile; }
@@ -107,17 +105,6 @@ public:
 
 	void setAnchoPantalla(int a)		{ m_anchoPantalla = a;	}
 	void setAltoPantalla(int a)			{ m_altoPantalla = a;	}
-
-//	void setPerfilDadoDeBaja(const QString &p)		{ m_profileNoService = p;	}
-//	QString perfilDadoDeBaja() const				{ return m_profileNoService;}
-//	bool esPerfilDadoDeBaja(const QString &s) const { return perfilDadoDeBaja() == s ; }
-
-//	void setPerfilBasico(const QString &p)			{ m_profileBasic = p;	}
-//	QString perfilBasico() const					{ return m_profileBasic;}
-
-//	QStringList perfilesInternos() const			{ return m_profilesUnusables;	}
-//	void setPerfilesInternos(const QStringList &pp)	{ m_profilesUnusables = pp;		}
-//	bool esPerfilInterno(const QString &per)		{ return perfilesInternos().contains(per);	}
 
 	QClientProfileList &perfiles()					{ return m_perfiles;	}
 	void addPerfil(const ROS::QSentence &s)			{ m_perfiles.append(s); }

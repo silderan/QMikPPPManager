@@ -32,7 +32,8 @@ SOURCES += main.cpp\
     ConnectInfo.cpp \
     ClientProfile.cpp \
     DlgLookConfig.cpp \
-    TableCellLook.cpp
+    TableCellLook.cpp \
+    MultiROSConnectorManager.cpp
 
 HEADERS  += QMikPPPManager.h \
     Comm.h \
@@ -53,7 +54,8 @@ HEADERS  += QMikPPPManager.h \
     ConnectInfo.h \
     ClientProfile.h \
     DlgLookConfig.h \
-    TableCellLook.h
+    TableCellLook.h \
+    MultiROSConnectorManager.h
 
 FORMS    += QMikPPPManager.ui \
     DlgConfiguracion.ui \

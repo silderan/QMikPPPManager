@@ -31,25 +31,30 @@
 
 QMikPPPManager::QMikPPPManager(QWidget *parent) :
 	QMainWindow(parent),
-	ui(new Ui::QMikPPPManager), dlgNuevoUsuario(Q_NULLPTR), estado(Desconectado)
+	ui(new Ui::QMikPPPManager), dlgNuevoUsuario(Q_NULLPTR), mktAPI(this), estado(Desconectado)
 {
 	ui->setupUi(this);
 
 	ui->twUsuarios->setEnabled(false);
-	// Rellenamos el diálogo con la configuración.
+
 	gGlobalConfig.loadGlobalData();
 	gGlobalConfig.loadLocalUserData();
+	gGlobalConfig.loadGlobalProtectedData();
+
 	updateConfig();
 
-	connect( &mktAPI, SIGNAL(comError(ROS::Comm::CommError,QAbstractSocket::SocketError)),
-			 this, SLOT(onComError(ROS::Comm::CommError,QAbstractSocket::SocketError)) );
+	connect( &mktAPI, SIGNAL(comError(ROS::Comm::CommError,QAbstractSocket::SocketError,QString)),
+			 this, SLOT(onComError(ROS::Comm::CommError,QAbstractSocket::SocketError,QString)) );
 
-	connect( &mktAPI, SIGNAL(comStateChanged(ROS::Comm::CommState)),
-			 this, SLOT(onStateChanged(ROS::Comm::CommState)) );
-	connect( &mktAPI, SIGNAL(loginStateChanged(ROS::Comm::LoginState)),
-			 this, SLOT(onLoginChanged(ROS::Comm::LoginState)) );
+	connect( &mktAPI, SIGNAL(comStateChanged(ROS::Comm::CommState,QString)),
+			 this, SLOT(onStateChanged(ROS::Comm::CommState,QString)) );
 
-	connect( &mktAPI, SIGNAL(comReceive(ROS::QSentence&)), this, SLOT(onReceive(ROS::QSentence&)) );
+	connect( &mktAPI, SIGNAL(loginStateChanged(ROS::Comm::LoginState,QString)),
+			 this, SLOT(onLoginChanged(ROS::Comm::LoginState,QString)) );
+
+	connect( &mktAPI, SIGNAL(comReceive(ROS::QSentence&,QString)),
+			 this, SLOT(onReceive(ROS::QSentence&,QString)) );
+
 	connect( ui->twUsuarios, SIGNAL(datoModificado(QSecretDataModel::Columnas,QString,QString,bool*)),
 			 this, SLOT(onDatoModificado(QSecretDataModel::Columnas,QString,QString,bool*)) );
 	connect( ui->twUsuarios, SIGNAL(dobleClicUsuario(QSecretData)), this, SLOT(onDobleClicUsuario(QSecretData)) );
@@ -71,7 +76,7 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 
 QMikPPPManager::~QMikPPPManager()
 {
-	mktAPI.closeCom();
+	mktAPI.disconnectHosts(true);
 
 	if( isMaximized() )
 		gGlobalConfig.setWindowMaximized();
@@ -98,122 +103,151 @@ void QMikPPPManager::updateConfig()
 		this->resize(gGlobalConfig.anchoPantalla(), gGlobalConfig.altoPantalla());
 }
 
-void QMikPPPManager::setStatusText(const QString &txt)
+void QMikPPPManager::setStatusText(const QString &routerName, const QString &txt)
 {
 	if( ui )
 	{
-		ui->statusBar->showMessage(txt);
+		if( routerName.isEmpty() )
+			ui->statusBar->showMessage(txt);
+		else
+			ui->statusBar->showMessage(QString("%1: %2").arg(routerName, txt));
 	}
 }
 
-void QMikPPPManager::onStateChanged(ROS::Comm::CommState s)
+void QMikPPPManager::onStateChanged(ROS::Comm::CommState s, const QString &routerName)
 {
 	switch( s )
 	{
 	case ROS::Comm::Unconnected:
 		ui->connectButton->setText( tr("Conectar") );
-		setStatusText( tr("Desconectado") );
+		ui->connectButton->setDisabled(false);
+		if( mktAPI.areAllDisconnected() )
+		{
+			ui->disconnectButton->setText( tr("Desconectar") );
+			ui->disconnectButton->setDisabled(true);
+		}
+		setStatusText( routerName, tr("Desconectado") );
 		break;
 	case ROS::Comm::HostLookup:
 		ui->connectButton->setText( tr("Cancelar") ) ;
-		setStatusText( tr("Resolviendo URL") );
+		ui->connectButton->setDisabled(false);
+		setStatusText( routerName, tr("Resolviendo URL") );
 		break;
 	case ROS::Comm::Connecting:
 		ui->connectButton->setText( tr("Cancelar") );
-		setStatusText( tr("Conectando al servidor") );
+		ui->connectButton->setDisabled(false);
+		setStatusText( routerName, tr("Conectando al servidor") );
 		break;
 	case ROS::Comm::Connected:
-		ui->connectButton->setText( tr("Desconectar") );
-		setStatusText( tr("Conectado") );
+		ui->disconnectButton->setText( tr("Desconectar") );
+		ui->disconnectButton->setDisabled(false);
+		setStatusText( routerName, tr("Conectado") );
+		if( mktAPI.areAllConnected() )
+		{
+			ui->connectButton->setText( tr("Reconectar") );
+			ui->connectButton->setDisabled(true);
+		}
 		break;
 	case ROS::Comm::Closing:
-		ui->connectButton->setText( tr("Forzar desconexión") );
-		setStatusText( tr("Cerrando conexión") );
+		ui->connectButton->setDisabled(true);
+		ui->disconnectButton->setText( tr("Forzar desconexión") );
+		ui->disconnectButton->setDisabled(false);
+		setStatusText( routerName, tr("Cerrando conexión") );
 		break;
 	}
 }
 
-void QMikPPPManager::onLoginChanged(ROS::Comm::LoginState s)
+void QMikPPPManager::onLoginChanged(ROS::Comm::LoginState s, const QString &routerName)
 {
 	switch( s )
 	{
 	case ROS::Comm::NoLoged:
-		setStatusText( tr("No está identificado en el servidor") );
+		setStatusText( routerName, tr("No está identificado en el servidor") );
 		ui->twUsuarios->setEnabled(false);
 		break;
 	case ROS::Comm::LoginRequested:
-		setStatusText( tr("Usuario y contraseña pedidos") );
+		setStatusText( routerName, tr("Usuario y contraseña pedidos") );
 		ui->twUsuarios->setEnabled(false);
 		break;
 	case ROS::Comm::UserPassSended:
-		setStatusText( tr("Petición de login en curso") );
+		setStatusText( routerName, tr("Petición de login en curso") );
 		ui->twUsuarios->setEnabled(false);
 		break;
 	case ROS::Comm::LogedIn:
-		setStatusText( tr("Logado al servidor") );
+		setStatusText( routerName, tr("Logado al router") );
 		logService.setUserName( gGlobalConfig.userName() );
 		ui->connectButton->setText("Desconectar");
 		ui->twUsuarios->clear();
 		ui->twUsuarios->setEnabled(true);
-		pideInfoUsuarioAPI();
-		pidePerfiles();
-		pideUsuarios();
+		pideInfoUsuarioAPI(routerName);
+		pidePerfiles(routerName);
+		pideUsuarios(routerName);
 		break;
 	}
 }
 
-void QMikPPPManager::onComError(ROS::Comm::CommError, QAbstractSocket::SocketError)
+void QMikPPPManager::onComError(ROS::Comm::CommError, QAbstractSocket::SocketError, const QString routerName)
 {
-	QString s = mktAPI.errorString();
-	setStatusText(s);
-	QMessageBox::warning(this, objectName(), tr("Error reportado por la red, router o sistema:\n%1").arg(s));
+	QString errorString = mktAPI.errorString(routerName);
+	setStatusText(routerName, errorString);
+	QMessageBox::warning(this,
+						 objectName(),
+						 tr("Error reportado por la red, router o sistema para el router %1\n\n%2").
+							 arg(routerName,
+								 errorString));
 }
 
-void QMikPPPManager::pideInfoUsuarioAPI()
+QString QMikPPPManager::routerName(const ConnectInfo &conInfo)
+{
+	// Por ahora, el nombre de los routers será su dirección y puerto.
+	return QString("%1:%2").arg(conInfo.m_hostIPv4.toString()).arg(conInfo.m_hostPort);
+}
+
+void QMikPPPManager::pideInfoUsuarioAPI(const QString &routerName)
 {
 	ROS::QSentence s("/user/getall");
 	s.setTag(gGlobalConfig.tagAPIUser);
 //	s.addQuery("name", gGlobalConfig.userName(), ROS::QQuery::EqualProp);
 	s.addQuery("#|");
-	mktAPI.sendSentence( s );
+	mktAPI.sendSentence( routerName, s );
 }
 
-void QMikPPPManager::pidePerfiles()
+void QMikPPPManager::pidePerfiles(const QString &routerName)
 {
-	mktAPI.sendSentence( "/ppp/profile/getall", gGlobalConfig.tagPerfil );
+	mktAPI.sendSentence( routerName, "/ppp/profile/getall", gGlobalConfig.tagPerfil );
 }
 
-void QMikPPPManager::pideUsuarios()
+void QMikPPPManager::pideUsuarios(const QString &routerName)
 {
 	ROS::QSentence s("/ppp/secret/getall");
 	s.setTag( gGlobalConfig.tagSecret );
 	s.addQuery("#|");
-	mktAPI.sendSentence( s );
+	mktAPI.sendSentence( routerName, s );
 
 	s.setCommand("/ppp/secret/listen");
 	s.setTag( gGlobalConfig.tagLSecret );
-	mktAPI.sendSentence( s );
+	mktAPI.sendSentence( routerName, s );
 }
 
-void QMikPPPManager::pideActivos()
+void QMikPPPManager::pideActivos(const QString &routerName)
 {
-	mktAPI.sendSentence( "/ppp/active/getall", gGlobalConfig.tagActivo );
+	mktAPI.sendSentence( routerName, "/ppp/active/getall", gGlobalConfig.tagActivo );
 }
 
-void QMikPPPManager::pideCambios()
+void QMikPPPManager::pideCambios(const QString &routerName)
 {
-	mktAPI.sendSentence( "/ppp/active/listen", gGlobalConfig.tagLActivo );
+	mktAPI.sendSentence( routerName, "/ppp/active/listen", gGlobalConfig.tagLActivo );
 }
 
-void QMikPPPManager::onReceive(ROS::QSentence &s)
+void QMikPPPManager::onReceive(ROS::QSentence &s, const QString &routerName)
 {
 	if( !s.tag().isEmpty() )
 	{
 		if( s.tag() == gGlobalConfig.tagAPIUser )
-			onAPIUserInfoRecibida(s);
+			onAPIUserInfoRecibida(routerName, s);
 		else
 		if( s.tag() == gGlobalConfig.tagSecret )
-			onUsuarioRecibido(s);
+			onUsuarioRecibido(routerName, s);
 		else
 		if( s.tag() == gGlobalConfig.tagLSecret )
 		{
@@ -232,36 +266,38 @@ void QMikPPPManager::onReceive(ROS::QSentence &s)
 		}
 		else
 		if( s.tag() == gGlobalConfig.tagPerfil )
-			onPerfilRecibido(s);
+			onPerfilRecibido(routerName, s);
 		else
 		if( s.tag() == gGlobalConfig.tagActivo )
-			onActivoRecibido(s);
+			onActivoRecibido(routerName, s);
 		else
 		if( s.tag() == gGlobalConfig.tagLActivo )
-			actualizaUsuario(s);
+			actualizaUsuario(routerName, s);
 		else
 		if( s.getResultType() != ROS::QSentence::Done )
-			setStatusText(s.toString());
+			setStatusText( routerName, s.toString() );
 		return;
 	}
 	if( s.getResultType() )
-		setStatusText(s.toString());
+		setStatusText( routerName, s.toString() );
 }
 
-void QMikPPPManager::onAPIUserInfoRecibida(const ROS::QSentence &s)
+void QMikPPPManager::onAPIUserInfoRecibida(const QString &routerName, const ROS::QSentence &s)
 {
 	switch( s.getResultType() )
 	{
 	case ROS::QSentence::None:
 		break;
 	case ROS::QSentence::Done:
-		ui->statusBar->showMessage(tr("Información del usuario API recibida."));
+		ui->statusBar->showMessage( tr("%1: Información del usuario API recibida.").arg(routerName) );
 		break;
 	case ROS::QSentence::Reply:
 	{
+		// TODO: Guardar la información por cada router por separado
+
 		QString grupo = s.attribute("group");
 		QString nombre = s.attribute("name");
-		ui->statusBar->showMessage(tr("Recibida info de %1. Grupo %2").arg(nombre, grupo));
+		ui->statusBar->showMessage( tr("%1: Recibida info de %2. Grupo %3").arg(routerName, nombre, grupo) );
 		if( (grupo.compare("full") == 0) || (grupo.compare("Supervisores") == 0) )
 			setNivelUsuario(QConfigData::Supervisor);
 		else
@@ -279,47 +315,56 @@ void QMikPPPManager::onAPIUserInfoRecibida(const ROS::QSentence &s)
 		{
 			QString info = tr("Usuario %1 pertenece al grupo %2 y no tiene permisos para hacer nada.").arg(nombre, grupo);
 			setNivelUsuario(QConfigData::SinPermisos);
-			setStatusText(info);
+			setStatusText(routerName, info);
 			QMessageBox::warning(Q_NULLPTR, tr("Información de usuario"), info);
 		}
 		this->setWindowTitle(QString("%1 - %2 [%4]").arg("Mikrotik PPP Manager", nombre, grupo));
 		break;
 	}
 	case ROS::QSentence::Trap:
-		setStatusText(s.toString());
+		setStatusText(routerName, s.toString());
 		break;
 	case ROS::QSentence::Fatal:
-		setStatusText(s.toString());
+		setStatusText(routerName, s.toString());
 		break;
 	}
 }
 
-void QMikPPPManager::onUsuarioRecibido(const ROS::QSentence &s)
+void QMikPPPManager::onUsuarioRecibido(const QString &routerName, const ROS::QSentence &s)
 {
 	switch( s.getResultType() )
 	{
 	case ROS::QSentence::None:
 		break;
 	case ROS::QSentence::Done:
-		ui->statusBar->showMessage(tr("Usuarios recibidos. Pidiendo activos y cambios en vivo"));
-		ui->twUsuarios->fillupTable();
-		pideActivos();
-		pideCambios();
+		if( checkRouterUsersIntegrity() )
+		{
+			ui->statusBar->showMessage(tr("Usuarios recibidos. Pidiendo activos y cambios en vivo"));
+			ui->twUsuarios->fillupTable();
+			pideActivos(routerName);
+			pideCambios(routerName);
+		}
+		else
+		{
+			// TODO: Warning that users doesn't match on all router and open dialog to solve it.
+			QMessageBox::warning(this, tr("Información de usuario"), tr("Los usuarios no son los mismos en todos los router. Corrígelo para poder conectar"));
+			mktAPI.disconnectHosts(false);
+		}
 		break;
 	case ROS::QSentence::Reply:
-		ui->statusBar->showMessage(QString("Recibido: %1").arg(s.getID()));
+		ui->statusBar->showMessage(QString("Recibido de %1: %2").arg(routerName, s.getID()));
 		ui->twUsuarios->addSecret(s);
 		break;
 	case ROS::QSentence::Trap:
-		setStatusText(s.toString());
+		setStatusText(routerName, s.toString());
 		break;
 	case ROS::QSentence::Fatal:
-		setStatusText(s.toString());
+		setStatusText(routerName, s.toString());
 		break;
 	}
 }
 
-void QMikPPPManager::onPerfilRecibido(const ROS::QSentence &s)
+void QMikPPPManager::onPerfilRecibido(const QString &routerName, const ROS::QSentence &s)
 {
 	switch( s.getResultType() )
 	{
@@ -338,18 +383,18 @@ void QMikPPPManager::onPerfilRecibido(const ROS::QSentence &s)
 	}
 }
 
-void QMikPPPManager::onActivoRecibido(const ROS::QSentence &s)
+void QMikPPPManager::onActivoRecibido(const QString &routerName, const ROS::QSentence &s)
 {
 	switch( s.getResultType() )
 	{
 	case ROS::QSentence::None:
 		break;
 	case ROS::QSentence::Done:
-		ui->statusBar->showMessage( tr("Activos recibidos.") );
+		ui->statusBar->showMessage( tr("%1: Activos recibidos.").arg(routerName) );
 		ui->twUsuarios->resizeColumnsToContents();
 		break;
 	case ROS::QSentence::Reply:
-		actualizaUsuario(s);
+//		actualizaUsuario(s);
 		break;
 	case ROS::QSentence::Trap:
 		break;
@@ -358,11 +403,11 @@ void QMikPPPManager::onActivoRecibido(const ROS::QSentence &s)
 	}
 }
 
-void QMikPPPManager::actualizaUsuario(const ROS::QSentence &s)
+void QMikPPPManager::actualizaUsuario(const QString &routerName, const ROS::QSentence &s)
 {
 	if( s.attribute(".dead").isEmpty() )
 	{
-		setStatusText(tr("Conexión %1 (%2) recuperada con IP %3").arg(s.attribute("name"), s.getID(), s.attribute("address")));
+		setStatusText( routerName, tr("Conexión %1 (%2) recuperada con IP %3").arg(s.attribute("name"), s.getID(), s.attribute("address")));
 		if( dlgNuevoUsuario != Q_NULLPTR )
 			dlgNuevoUsuario->onActivoConectado(s);
 	}
@@ -372,12 +417,12 @@ void QMikPPPManager::actualizaUsuario(const ROS::QSentence &s)
 		if( sc != Q_NULLPTR )
 		{
 			if( sc->IPActiva() == sc->IPEstatica() )
-				setStatusText(tr("Conexión %1 (%2) cerrada. IP %3 reservada").arg(sc->usuario(), s.getID(), sc->IPActiva()));
+				setStatusText(routerName, tr("Conexión %1 (%2) cerrada. IP %3 reservada").arg(sc->usuario(), s.getID(), sc->IPActiva()));
 			else
-				setStatusText(tr("Conexión %1 (%2) cerrada. IP %3 liberada").arg(sc->usuario(), s.getID(), sc->IPActiva()));
+				setStatusText(routerName, tr("Conexión %1 (%2) cerrada. IP %3 liberada").arg(sc->usuario(), s.getID(), sc->IPActiva()));
 		}
 		else
-			setStatusText(tr("Conexión %1 cerrada").arg(s.attribute("name"), s.getID()));
+			setStatusText(routerName, tr("Conexión %1 cerrada").arg(s.attribute("name"), s.getID()));
 		if( dlgNuevoUsuario != Q_NULLPTR )
 			dlgNuevoUsuario->onActivoDesconectado(s);
 	}
@@ -386,45 +431,49 @@ void QMikPPPManager::actualizaUsuario(const ROS::QSentence &s)
 
 void QMikPPPManager::reiniciaConexionRemota(QSecretData *sd)
 {
-	if( !sd->sesionID().isEmpty() )
-	{
-		ROS::QSentence s("/ppp/active/remove");
-		s.setID(sd->sesionID());
-		s.setTag("ReconnectClient");
-		mktAPI.sendSentence(s);
-	}
+	// TODO: To do so, need to know the router where the pppoe user is loged.
+//	if( !sd->sesionID().isEmpty() )
+//	{
+//		ROS::QSentence s("/ppp/active/remove");
+//		s.setID(sd->sesionID());
+//		s.setTag("ReconnectClient");
+//		mktAPI.sendSentence(s);
+//	}
 }
 
 void QMikPPPManager::actualizaComentariosRemoto(QSecretData *sd)
 {
-	ROS::QSentence s("/ppp/secret/set");
-	s.setID(sd->secretID());
-	s.addAttribute("comment", sd->comment());
-	s.setTag("UpdateComment");
-	mktAPI.sendSentence(s);
+	// TODO: To do so, need to know the router where the pppoe user is loged.
+//	ROS::QSentence s("/ppp/secret/set");
+//	s.setID(sd->secretID());
+//	s.addAttribute("comment", sd->comment());
+//	s.setTag("UpdateComment");
+//	mktAPI.sendSentence(s);
 }
 
 void QMikPPPManager::actualizaPerfilRemoto(QSecretData *sd)
 {
-	ROS::QSentence s;
-	s.setCommand("/ppp/secret/set");
-	s.setID(sd->secretID());
-	s.addAttribute("profile", sd->perfilReal());
-	s.setTag("UpdateProfile");
-	mktAPI.sendSentence(s);
+	// TODO: To do so, need to know the router where the pppoe user is loged.
+//	ROS::QSentence s;
+//	s.setCommand("/ppp/secret/set");
+//	s.setID(sd->secretID());
+//	s.addAttribute("profile", sd->perfilReal());
+//	s.setTag("UpdateProfile");
+//	mktAPI.sendSentence(s);
 }
 
 void QMikPPPManager::actualizaIPRemota(QSecretData *sd)
 {
-	ROS::QSentence s;
-	s.setCommand("/ppp/secret/set");
-	s.setID(sd->secretID());
-	if( sd->IPEstatica().isEmpty() )
-		s.addAttribute("!remote-address", "");
-	else
-		s.addAttribute("remote-address", sd->IPEstatica());
-	s.setTag("UpdateProfile");
-	mktAPI.sendSentence(s);
+	// TODO: To do so, need to know the router where the pppoe user is loged.
+//	ROS::QSentence s;
+//	s.setCommand("/ppp/secret/set");
+//	s.setID(sd->secretID());
+//	if( sd->IPEstatica().isEmpty() )
+//		s.addAttribute("!remote-address", "");
+//	else
+//		s.addAttribute("remote-address", sd->IPEstatica());
+//	s.setTag("UpdateProfile");
+//	mktAPI.sendSentence(s);
 }
 
 void QMikPPPManager::setNivelUsuario(QConfigData::NivelUsuario lvl)
@@ -554,13 +603,14 @@ void QMikPPPManager::onDatoModificado(QSecretDataModel::Columnas col, const QStr
 
 void QMikPPPManager::onDobleClicUsuario(const QSecretData &sd)
 {
-	if( dlgNuevoUsuario )
-		return;
+	// TODO: To do so, need to know the router where the pppoe user is loged.
+//	if( dlgNuevoUsuario )
+//		return;
 
-	dlgNuevoUsuario = new DlgNuevoUsuario(&mktAPI, sd, ui->twUsuarios->secrets(), this);
-	dlgNuevoUsuario->exec();
-	dlgNuevoUsuario->deleteLater();
-	dlgNuevoUsuario = Q_NULLPTR;
+//	dlgNuevoUsuario = new DlgNuevoUsuario(&mktAPI, sd, ui->twUsuarios->secrets(), this);
+//	dlgNuevoUsuario->exec();
+//	dlgNuevoUsuario->deleteLater();
+//	dlgNuevoUsuario = Q_NULLPTR;
 }
 
 void QMikPPPManager::onClicUsuario(const QSecretData &sd)
@@ -614,6 +664,12 @@ bool QMikPPPManager::codigoClienteValido(const QString &code, const QSecretData 
 	return true;
 }
 
+bool QMikPPPManager::checkRouterUsersIntegrity() const
+{
+	// TODO Comprobar que todos los usuarios que pueden logarse al router están en todos los routers por igual.
+	return true;
+}
+
 void QMikPPPManager::on_leFiltro_textChanged(const QString &)
 {
 	filtraFilas();
@@ -640,28 +696,30 @@ void QMikPPPManager::on_connectButton_clicked()
 	{
 		QMessageBox::information( this, objectName(), tr("No hay ninguna conexión configurada. Configurala para poderte conectar.") );
 		dlgCnfgConnect.show();
-		return;
+		if( gGlobalConfig.connectInfoList().isEmpty() )
+			return;
 	}
-	/* TODO
-	if( mktAPI.isClosing() )
-		mktAPI.closeCom(true);
-	else
-	if( mktAPI.isLoged() )
-		mktAPI.closeCom();
-	else
-	if( mktAPI.isConnected() || mktAPI.isConnecting() )
-		mktAPI.closeCom();
+	if( !mktAPI.areAllDisconnected() )	// This should be the "connecting state" so that is a "cancel"
+		mktAPI.disconnectHosts(false);
 	else
 	{
-		gGlobalConfig.setUserName(ui->leUser->text());
-		gGlobalConfig.setUserPass(ui->lePass->text());
-		gGlobalConfig.setRemoteHost(ui->leIP->text());
-		gGlobalConfig.setRemotePort(ui->sbPort->value());
-		mktAPI.setRemoteHost(gGlobalConfig.remoteHost(), gGlobalConfig.remotePort());
-		mktAPI.setUserNamePass(gGlobalConfig.userName(), gGlobalConfig.userPass());
-		mktAPI.connectToROS();
+		mktAPI.clear();
+		foreach( const ConnectInfo &c, gGlobalConfig.connectInfoList() )
+		{
+			mktAPI.addROSConnection( routerName(c),
+									 c.m_hostIPv4.toString(),
+									 c.m_hostPort,
+									 gGlobalConfig.userName(),
+									 gGlobalConfig.userPass());
+		}
+		mktAPI.connectHosts();
 	}
-	*/
+}
+
+void QMikPPPManager::on_disconnectButton_clicked()
+{
+	// TODO:
+	mktAPI.disconnectHosts(false);
 }
 
 void QMikPPPManager::on_exportButton_clicked()
@@ -729,8 +787,9 @@ void QMikPPPManager::on_addUserButton_clicked()
 	s.setInstalador("Aaron");
 	s.setTelefonos("123456789,123456789");
 #endif
-	dlgNuevoUsuario = new DlgNuevoUsuario(&mktAPI, s, ui->twUsuarios->secrets(), this);
-	dlgNuevoUsuario->exec();
-	dlgNuevoUsuario->deleteLater();
-	dlgNuevoUsuario = Q_NULLPTR;
+// TODO!
+//	dlgNuevoUsuario = new DlgNuevoUsuario(&mktAPI, s, ui->twUsuarios->secrets(), this);
+//	dlgNuevoUsuario->exec();
+//	dlgNuevoUsuario->deleteLater();
+//	dlgNuevoUsuario = Q_NULLPTR;
 }

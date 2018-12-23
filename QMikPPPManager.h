@@ -2,7 +2,8 @@
 #define QMIKPPPMANAGER_H
 
 #include <QMainWindow>
-#include "Comm.h"
+
+#include "MultiROSConnectorManager.h"
 #include "QSecretData.h"
 #include "QConfigData.h"
 #include <QTreeWidgetItem>
@@ -18,7 +19,7 @@
 
 namespace Ui
 {
-class QMikPPPManager;
+	class QMikPPPManager;
 }
 
 class QMikPPPManager : public QMainWindow
@@ -28,7 +29,8 @@ class QMikPPPManager : public QMainWindow
 	DlgNuevoUsuario *dlgNuevoUsuario;
 	DlgCnfgConnect dlgCnfgConnect;
 
-	ROS::Comm mktAPI;
+	ROS::MultiConnectManager mktAPI;
+
 	QStringList perfiles;
 
 	enum Estado
@@ -37,21 +39,22 @@ class QMikPPPManager : public QMainWindow
 		ReciviendoUsuarios,
 		UsuariosRecividos
 	}estado;
+	QString routerName(const ConnectInfo &conInfo);
 
-	void pideInfoUsuarioAPI();
-	void pidePerfiles();
-	void pideUsuarios();
-	void pideCambios();
-	void pideActivos();
-	void setStatusText(const QString &txt);
+	void pideInfoUsuarioAPI(const QString &routerName);
+	void pidePerfiles(const QString &routerName);
+	void pideUsuarios(const QString &routerName);
+	void pideCambios(const QString &routerName);
+	void pideActivos(const QString &routerName);
+	void setStatusText(const QString &routerName, const QString &txt);
 	void addSecret(const ROS::QSentence &s);
 	void addSecretToTable(const QSecretData &s, int row);
-	void onAPIUserInfoRecibida(const ROS::QSentence &s);
-	void onUsuarioRecibido(const ROS::QSentence &s);
-	void onPerfilRecibido(const ROS::QSentence &s);
-	void onActivoRecibido(const ROS::QSentence &s);
+	void onAPIUserInfoRecibida(const QString &routerName, const ROS::QSentence &s);
+	void onUsuarioRecibido(const QString &routerName, const ROS::QSentence &s);
+	void onPerfilRecibido(const QString &routerName, const ROS::QSentence &s);
+	void onActivoRecibido(const QString &routerName, const ROS::QSentence &s);
 
-	void actualizaUsuario(const ROS::QSentence &s);
+	void actualizaUsuario(const QString &routerName, const ROS::QSentence &s);
 
 	void reiniciaConexionRemota(QSecretData *sd);
 	void actualizaComentariosRemoto(QSecretData *sd);
@@ -63,11 +66,13 @@ class QMikPPPManager : public QMainWindow
 
 	bool codigoClienteValido(const QString &code, const QSecretData *sdOri);
 
+	bool checkRouterUsersIntegrity()const;
+
 private slots:
-	void onComError(ROS::Comm::CommError, QAbstractSocket::SocketError);
-	void onReceive(ROS::QSentence &s);
-	void onStateChanged(ROS::Comm::CommState s);
-	void onLoginChanged(ROS::Comm::LoginState s);
+	void onComError(ROS::Comm::CommError, QAbstractSocket::SocketError, const QString routerName);
+	void onReceive(ROS::QSentence &s, const QString &routerName);
+	void onStateChanged(ROS::Comm::CommState s, const QString &routerName);
+	void onLoginChanged(ROS::Comm::LoginState s, const QString &routerName);
 
 	void onDatoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &id, bool *isValid);
 	void onDobleClicUsuario(const QSecretData &sd);
@@ -85,6 +90,8 @@ private slots:
 	void on_connectionConfigButton_clicked();
 	void on_advancedConfigButton_clicked();
 	void on_addUserButton_clicked();
+
+	void on_disconnectButton_clicked();
 
 public slots:
 	void updateConfig();
