@@ -16,6 +16,7 @@
 
 #include "DlgNuevoUsuario.h"
 #include "DlgCnfgConnect.h"
+#include "ROSAPIUser.h"
 
 namespace Ui
 {
@@ -31,26 +32,17 @@ class QMikPPPManager : public QMainWindow
 
 	ROS::MultiConnectManager mktAPI;
 
-	QStringList perfiles;
+	QString createRouterName(const ConnectInfo &conInfo)const;
 
-	enum Estado
-	{
-		Desconectado,
-		ReciviendoUsuarios,
-		UsuariosRecividos
-	}estado;
-	QString routerName(const ConnectInfo &conInfo);
-
-	void pideInfoUsuarioAPI(const QString &routerName);
+	void requestROSAPIUsers(const QString &routerName);
 	void pidePerfiles(const QString &routerName);
 	void pideUsuarios(const QString &routerName);
 	void pideCambios(const QString &routerName);
 	void pideActivos(const QString &routerName);
-	void setStatusText(const QString &routerName, const QString &txt);
 	void addSecret(const ROS::QSentence &s);
 	void addSecretToTable(const QSecretData &s, int row);
 	void onAPIUserInfoRecibida(const QString &routerName, const ROS::QSentence &s);
-	void onUsuarioRecibido(const QString &routerName, const ROS::QSentence &s);
+	void onPPPoEUsersReceived(const QString &routerName, const ROS::QSentence &s);
 	void onPerfilRecibido(const QString &routerName, const ROS::QSentence &s);
 	void onActivoRecibido(const QString &routerName, const ROS::QSentence &s);
 
@@ -67,12 +59,17 @@ class QMikPPPManager : public QMainWindow
 	bool codigoClienteValido(const QString &code, const QSecretData *sdOri);
 
 	bool checkRouterUsersIntegrity()const;
+	void onAllROSAPIUsersReceived();
 
 private slots:
-	void onComError(ROS::Comm::CommError, QAbstractSocket::SocketError, const QString routerName);
-	void onReceive(ROS::QSentence &s, const QString &routerName);
-	void onStateChanged(ROS::Comm::CommState s, const QString &routerName);
-	void onLoginChanged(ROS::Comm::LoginState s, const QString &routerName);
+	void setStatusText(QString errorString, QString routerName = QString());
+
+	void onComError(QString errorString, QString routerName);
+
+	void onAllRoutersConnected();
+	void onAllRoutersDisconnected();
+	void onLogued(QString routerName);
+
 
 	void onDatoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &id, bool *isValid);
 	void onDobleClicUsuario(const QSecretData &sd);
@@ -80,8 +77,6 @@ private slots:
 
 	void on_leFiltro_textChanged(const QString &);
 	void on_cbFiltro_currentIndexChanged(int);
-
-	void onGlobalConfigChanged();
 
 	void on_connectButton_clicked();
 	void on_exportButton_clicked();

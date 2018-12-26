@@ -1,8 +1,5 @@
 #include "MultiROSConnectorManager.h"
 
-#define ROUTER_NAME_PROPERTY	("RouterName")
-#define GET_ROUTER_NAME			(sender() ? sender()->property(ROUTER_NAME_PROPERTY).toString() : "")
-
 namespace ROS
 {
 
@@ -33,7 +30,7 @@ void MultiConnectManager::addROSConnection(const QString &routerName, const QStr
 {
 	Comm *mktAPI = new Comm(parent());
 
-	mktAPI->setProperty( ROUTER_NAME_PROPERTY, routerName );
+	mktAPI->setRouterName( routerName );
 	mktAPI->setUserNamePass( uname, upass );
 	mktAPI->setRemoteHost( hostAddr, hostPort );
 
@@ -69,7 +66,7 @@ QString MultiConnectManager::errorString(const QString &routerName) const
 	while( it.hasNext() )
 	{
 		it.next();
-		if( routerName.isEmpty() || (GET_ROUTER_NAME == routerName) )
+		if( routerName.isEmpty() || (static_cast<ROS::Comm*>(sender())->routerName() == routerName) )
 			return it.value()->errorString();
 	}
 	return QString();
@@ -99,39 +96,15 @@ bool MultiConnectManager::areAllConnected() const
 	return true;
 }
 
-void MultiConnectManager::disconnectHosts(bool force, const QString &routerName)
+void MultiConnectManager::sendCancel(const QString &tag, const QString &routerName)
 {
 	ROSCommMapIterator it(m_rosCommMap);
 	while( it.hasNext() )
 	{
 		it.next();
-		if( routerName.isEmpty() || (GET_ROUTER_NAME == routerName) )
-			it.value()->closeCom(force);
+		if( routerName.isEmpty() || (static_cast<ROS::Comm*>(sender())->routerName() == routerName) )
+			it.value()->sendCancel(tag);
 	}
-}
-
-QString MultiConnectManager::sendSentence(const QString &routerName, const QSentence &s)
-{
-	ROSCommMapIterator it(m_rosCommMap);
-	while( it.hasNext() )
-	{
-		it.next();
-		if( GET_ROUTER_NAME == routerName )
-			return it.value()->sendSentence(s);
-	}
-	return "";
-}
-
-QString MultiConnectManager::sendSentence(const QString &routerName, const QString &cmd, const QString &tag, const QStringList attrib)
-{
-	ROSCommMapIterator it(m_rosCommMap);
-	while( it.hasNext() )
-	{
-		it.next();
-		if( GET_ROUTER_NAME == routerName )
-			return it.value()->sendSentence(cmd, tag, attrib);
-	}
-	return "";
 }
 
 void MultiConnectManager::connectHosts(const QString &routerName)
@@ -140,29 +113,101 @@ void MultiConnectManager::connectHosts(const QString &routerName)
 	while( it.hasNext() )
 	{
 		it.next();
-		if( routerName.isEmpty() || (GET_ROUTER_NAME == routerName) )
+		if( routerName.isEmpty() || (it.value()->routerName() == routerName) )
 			it.value()->connectToROS();
 	}
 }
 
-void MultiConnectManager::onComError(Comm::CommError commError, QAbstractSocket::SocketError socketError)
+void MultiConnectManager::disconnectHosts(bool force, const QString &routerName)
 {
-	emit comError(commError, socketError, GET_ROUTER_NAME);
+	ROSCommMapIterator it(m_rosCommMap);
+	while( it.hasNext() )
+	{
+		it.next();
+		if( routerName.isEmpty() || (it.value()->routerName() == routerName) )
+			it.value()->closeCom(force);
+	}
+}
+
+void MultiConnectManager::sendSentence(const QString &routerName, const QSentence &s)
+{
+	ROSCommMapIterator it(m_rosCommMap);
+	while( it.hasNext() )
+	{
+		it.next();
+		if( routerName.isEmpty() || (it.value()->routerName() == routerName) )
+			it.value()->sendSentence(s);
+	}
+}
+
+void MultiConnectManager::sendSentence(const QString &routerName, const QString &cmd, const QString &tag, const QStringList attrib)
+{
+	sendSentence( routerName, QSentence(cmd, tag, attrib) );
+}
+
+void MultiConnectManager::onComError(Comm::CommError /*commError*/, QAbstractSocket::SocketError /*socketError*/)
+{
+	QString routerName = static_cast<Comm*>(sender())->routerName();
+	QString errorString = this->errorString( routerName );
+
+	emit statusInfo( errorString, routerName );
+	emit comError( errorString, routerName );
 }
 
 void MultiConnectManager::onReceive(QSentence &s)
 {
-	emit comReceive(s, GET_ROUTER_NAME);
+	QString routerName = static_cast<Comm*>(sender())->routerName();
 }
 
 void MultiConnectManager::onCommStateChanged(Comm::CommState s)
 {
-	emit comStateChanged(s, GET_ROUTER_NAME);
+	QString routerName = static_cast<Comm*>(sender())->routerName();
+
+	switch( s )
+	{
+	case ROS::Comm::Unconnected:
+		emit statusInfo( tr("Desconectado"), routerName );
+		emit disconnected( routerName );
+		if( areAllDisconnected() )
+			emit allDisconnected();
+		break;
+	case ROS::Comm::HostLookup:
+		emit statusInfo( tr("resolviendo URL"), routerName );
+		break;
+	case ROS::Comm::Connecting:
+		emit statusInfo( tr("conectando al router"), routerName );
+		break;
+	case ROS::Comm::Connected:
+		emit statusInfo( tr("Conectado al router"), routerName );
+		if( areAllConnected() )
+			emit allConected();
+		break;
+	case ROS::Comm::Closing:
+		emit statusInfo( tr("Cerrado conexión"), routerName );
+		break;
+	}
 }
 
 void MultiConnectManager::onLoginChanged(Comm::LoginState s)
 {
-	emit loginStateChanged(s, GET_ROUTER_NAME);
+	QString routerName = static_cast<Comm*>(sender())->routerName();
+
+	switch( s )
+	{
+	case ROS::Comm::NoLoged:
+		emit statusInfo( tr("No está identificado en el servidor"), routerName );
+		break;
+	case ROS::Comm::LoginRequested:
+		emit statusInfo( tr("Usuario y contraseña pedidos"), routerName );
+		break;
+	case ROS::Comm::UserPassSended:
+		emit statusInfo( tr("Petición de login en curso"), routerName );
+		break;
+	case ROS::Comm::LogedIn:
+		emit statusInfo( tr("Logado al router"), routerName );
+		emit logued(routerName);
+		break;
+	}
 }
 
 } // End namespace ROS

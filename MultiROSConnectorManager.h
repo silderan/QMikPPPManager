@@ -2,10 +2,10 @@
 #define MULTIROSCONNECTORMANAGER_H
 
 #include <QObject>
+#include <QMap>
 
 #include "Comm.h"
-
-#include <QMap>
+#include "ROSAPIUser.h"
 
 namespace ROS
 {
@@ -18,6 +18,7 @@ class MultiConnectManager : public QObject
 Q_OBJECT
 
 	ROSCommMap m_rosCommMap;
+	QMultiROSAPIUserManager m_rosAPIUser;
 
 private slots:
 	void onComError(ROS::Comm::CommError, QAbstractSocket::SocketError);
@@ -38,17 +39,28 @@ public:
 	bool areAllConnected()const;
 
 public slots:
+	void sendCancel(const QString &tag, const QString &routerName = QString());
 	void connectHosts(const QString &routerName = QString());
 	void disconnectHosts(bool force, const QString &routerName = QString());
 
-	QString sendSentence(const QString &routerName , const QSentence &s);
-	QString sendSentence(const QString &routerName , const QString &s, const QString &tag, const QStringList attrib = QStringList());
+	void sendSentence(const QString &routerName, const QSentence &s);
+	void sendSentence(const QString &routerName, const QString &s, const QString &tag, const QStringList attrib = QStringList());
+
+public:
+	void requestAPIUsers(Comm *mktAPI)				{ m_rosAPIUser.requestAPIUsers(mktAPI);		}
+	void requestAPIUsers(const QString &routerName)	{ requestAPIUsers(m_rosCommMap[routerName]);}
+
+	void requestAPIUserGroups(Comm *mktAPI)					{ m_rosAPIUser.requestAPIUserGroups(mktAPI);	}
+	void requestAPIUserGroups(const QString &routerName)	{ requestAPIUserGroups(m_rosCommMap[routerName]);}
 
 signals:
-	void comError(ROS::Comm::CommError ce, QAbstractSocket::SocketError se, const QString &routerName);
-	void comReceive(ROS::QSentence &s, const QString &routerName);
-	void comStateChanged(ROS::Comm::CommState s, const QString &routerName);
-	void loginStateChanged(ROS::Comm::LoginState s, const QString &routerName);
+	void statusInfo(QString info, QString routerName = QString());
+	void disconnected(QString routerName);
+	void connected(QString routerName);
+	void allConected();
+	void allDisconnected();
+	void logued(QString routerName);
+	void comError(QString errorString, QString routerName);
 };
 }
 #endif // MULTIROSCONNECTORMANAGER_H

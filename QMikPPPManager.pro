@@ -33,7 +33,9 @@ SOURCES += main.cpp\
     ClientProfile.cpp \
     DlgLookConfig.cpp \
     TableCellLook.cpp \
-    MultiROSConnectorManager.cpp
+    MultiROSConnectorManager.cpp \
+    DlgRouterUsers.cpp \
+    ROSAPIUser.cpp
 
 HEADERS  += QMikPPPManager.h \
     Comm.h \
@@ -55,7 +57,9 @@ HEADERS  += QMikPPPManager.h \
     ClientProfile.h \
     DlgLookConfig.h \
     TableCellLook.h \
-    MultiROSConnectorManager.h
+    MultiROSConnectorManager.h \
+    DlgRouterUsers.h \
+    ROSAPIUser.h
 
 FORMS    += QMikPPPManager.ui \
     DlgConfiguracion.ui \
@@ -63,7 +67,8 @@ FORMS    += QMikPPPManager.ui \
 	DlgExportar.ui \
 	DlgPortScan.ui \
     DlgCnfgConnect.ui \
-    DlgLookConfig.ui
+    DlgLookConfig.ui \
+    DlgRouterUsers.ui
 
 DISTFILES += \
     ToDo.txt

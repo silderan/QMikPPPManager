@@ -71,6 +71,7 @@ public:
 
 private:
 	QTcpSocket m_sock;
+	QString m_routerName;
 	QString m_addr;
 	quint16 m_port;
 	QString m_Username;
@@ -177,8 +178,10 @@ public:
 
 	inline const QString &hostAddr() const	{ return m_addr;	}
 	inline quint16 hostPort() const			{ return m_port;	}
+	inline QString routerName() const		{ return m_routerName; }
 
 public slots:
+	void setRouterName(const QString &routerName)	{ m_routerName = routerName;	}
 	void setRemoteHost(const QString &addr, quint16 port) { m_addr = addr; m_port = port; }
 	void setUserNamePass(const QString &uname, const QString &upass) { m_Username = uname; m_Password = upass; }
 	void connectToROS();
