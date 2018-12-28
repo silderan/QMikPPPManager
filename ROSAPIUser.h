@@ -6,29 +6,9 @@
 #include <QStringList>
 #include <QMap>
 
-#include "Comm.h"
+#include "ROSDataBasics.h"
 
-struct ROSAPIUserGroup
-{
-	QString m_name;
-	QStringList m_policies;
-	ROSAPIUserGroup()
-	{	}
-	ROSAPIUserGroup(const QString &name, const QString &policies) :
-		m_name(name), m_policies(policies.split(','))
-	{
-	}
-	ROSAPIUserGroup(const QString &name, const QStringList &policies) :
-		m_name(name), m_policies(policies)
-	{
-	}
-};
-
-typedef QList<ROSAPIUserGroup> QROSAPIUserGroupList;
-//typedef QMap<QString, QROSAPIUserGroupList> QROSAPIUserGroupListMap;
-//typedef QMapIterator<QString, QROSAPIUserGroupList> QROSAPIUserGroupListMapIterator;
-
-struct ROSAPIUser
+struct ROSAPIUser : public ROSDataBase
 {
 	// Position is important becouse in some places there is a value compartion.
 	enum Level
@@ -45,8 +25,7 @@ struct ROSAPIUser
 
 	static QStringList levelNames(bool plural = false);
 	static QString levelName(Level level, bool plural = false)	{ return levelNames(plural)[level];	}
-
-	QString levelName(bool plural = false) const	{ return levelNames(plural)[m_level];	}
+	QString levelName(bool plural = false) const				{ return levelNames(plural)[m_level];	}
 
 	ROSAPIUser() :
 		m_level(NoRights)
@@ -60,36 +39,30 @@ struct ROSAPIUser
 		if( m_level < NoRights )
 			m_level = NoRights;
 	}
+	ROSAPIUser(const ROS::QSentence &sentence)
+	{
+		fromSentence(sentence);
+	}
+
+	// ROSDataBase interface
+public:
+	void fromSentence(const ROS::QSentence &s);
 };
 
 typedef QList<ROSAPIUser> QROSAPIUserList;
 //typedef QMap<QString, QROSAPIUserList> QROSAPIUserListMap;
 //typedef QMapIterator<QString, QROSAPIUserList> QROSAPIUserListMapIterator;
 
-class QMultiROSAPIUserManager : public QObject
+class QROSAPIUserManager : public QROSDataManager
 {
-	Q_OBJECT
-
-	QROSAPIUserList m_userList;
-	QROSAPIUserGroupList m_userGroupList;
-
-private slots:
-	void onUserReceive(const ROS::QSentence &sentence);
-	void onUserGroupReceive(const ROS::QSentence &sentence);
+	QROSAPIUserList m_list;
 
 public:
-	QMultiROSAPIUserManager(QObject *papi = Q_NULLPTR) : QObject(papi)
-	{	}
+	QROSAPIUserManager(ROS::Comm *papi);
 
-	void requestAPIUsers(ROS::Comm *mktAPI);
-	void requestAPIUserGroups(ROS::Comm *mktAPI);
-
-	virtual void requestData(ROS::Comm *m_mktAPI);
-
-signals:
-	void reply(const QString &info);
-	void done();
-	void error();
+	QROSAPIUserList &list() { return m_list;	}
+	virtual ROSDataBase *fromSentence(ROS::QSentence &sentence)const;
+	virtual ROS::QSentence getallSentence()const;
 };
 
 #endif // ROSAPIUSER_H

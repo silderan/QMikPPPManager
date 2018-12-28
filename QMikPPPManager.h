@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 
-#include "MultiROSConnectorManager.h"
+#include "ROSMultiConnectorManager.h"
 #include "QSecretData.h"
 #include "QConfigData.h"
 #include <QTreeWidgetItem>
@@ -34,7 +34,8 @@ class QMikPPPManager : public QMainWindow
 
 	QString createRouterName(const ConnectInfo &conInfo)const;
 
-	void requestROSAPIUsers(const QString &routerName);
+	void requestROSAPIUsers(ROS::ROSPPPoEManager *pppoeManager);
+	void requestROSAPIUserGroups(ROS::ROSPPPoEManager *pppoeManager);
 	void pidePerfiles(const QString &routerName);
 	void pideUsuarios(const QString &routerName);
 	void pideCambios(const QString &routerName);
@@ -62,13 +63,15 @@ class QMikPPPManager : public QMainWindow
 	void onAllROSAPIUsersReceived();
 
 private slots:
-	void setStatusText(QString errorString, QString routerName = QString());
+	void setStatusText(QString errorString, ROS::Comm *pppoeManager = Q_NULLPTR);
 
-	void onComError(QString errorString, QString routerName);
+	void onComError(QString errorString, ROS::Comm *pppoeManager);
 
+	void onRouterConnected(ROS::ROSPPPoEManager *);
 	void onAllRoutersConnected();
+	void onRouterDisconnected(ROS::ROSPPPoEManager *);
 	void onAllRoutersDisconnected();
-	void onLogued(QString routerName);
+	void onLogued(ROS::ROSPPPoEManager *pppoeManager);
 
 
 	void onDatoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &id, bool *isValid);
@@ -89,10 +92,18 @@ private slots:
 	void on_disconnectButton_clicked();
 
 public slots:
+	void onOneAPIUsersReceived(ROS::ROSPPPoEManager* pppoeManager, ROSAPIUser *apiUser);
+	void onAllAPIUsersReceived(ROS::ROSPPPoEManager* pppoeManager);
+	void onAPIUsersErrorReceived(QString errorString, ROS::ROSPPPoEManager* pppoeManager);
+
+	void onOneAPIUserGroupsReceived(ROSDataBase &rosData, ROS::Comm *rosAPI);
+	void onAllAPIUserGroupsReceived(ROS::Comm *rosAPI);
+	void onAPIUserGroupsErrorReceived(QString errorString, ROS::Comm *rosAPI);
+
 	void updateConfig();
 
 public:
-	explicit QMikPPPManager(QWidget *parent = 0);
+	explicit QMikPPPManager(QWidget *parent = Q_NULLPTR);
 	~QMikPPPManager();
 };
 

@@ -43,14 +43,19 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 
 	updateConfig();
 
-	connect( &mktAPI, SIGNAL(comError(ROS::Comm::CommError,QAbstractSocket::SocketError,QString)),
-			 this, SLOT(onComError(ROS::Comm::CommError,QAbstractSocket::SocketError,QString)) );
+	connect( &mktAPI, SIGNAL(comError(QString,ROS::Comm*)),
+			 this,    SLOT(onComError(QString,ROS::Comm*)) );
 
-	connect( &mktAPI, SIGNAL(statusInfo(QString,QString)), this, SLOT(setStatusText(QString,QString)) );
+	connect( &mktAPI, SIGNAL(statusInfo(QString,ROS::Comm*)),
+			 this,   SLOT(setStatusText(QString,ROS::Comm*)) );
 
+	connect( &mktAPI, SIGNAL(routerConnected(ROS::ROSPPPoEManager *)), this, SLOT(onRouterConnected(ROS::ROSPPPoEManager *)) );
 	connect( &mktAPI, SIGNAL(allConected()), this, SLOT(onAllRoutersConnected()) );
+
+	connect( &mktAPI, SIGNAL(routerDisconnected(ROS::ROSPPPoEManager *)), this, SLOT(onRouterDisconnected(ROS::ROSPPPoEManager *)) );
 	connect( &mktAPI, SIGNAL(allDisconnected()), this, SLOT(onAllRoutersDisconnected()) );
-	connect( &mktAPI, SIGNAL(logued(QString)), this, SLOT(onLogued(QString)));
+
+	connect( &mktAPI, SIGNAL(logued(ROS::ROSPPPoEManager*)), this, SLOT(onLogued(ROS::ROSPPPoEManager*)));
 
 	connect( ui->twUsuarios, SIGNAL(datoModificado(QSecretDataModel::Columnas,QString,QString,bool*)),
 			 this, SLOT(onDatoModificado(QSecretDataModel::Columnas,QString,QString,bool*)) );
@@ -69,6 +74,7 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 	ui->cbFiltro->addItem( "CCliente", FILTRO_CCLIENTE );
 	ui->cbFiltro->addItem( "Alta", FILTRO_ALTA );
 	ui->cbFiltro->addItem( "Baja", FILTRO_BAJA );
+	onAllRoutersDisconnected();
 }
 
 QMikPPPManager::~QMikPPPManager()
@@ -100,46 +106,58 @@ void QMikPPPManager::updateConfig()
 		this->resize(gGlobalConfig.anchoPantalla(), gGlobalConfig.altoPantalla());
 }
 
-void QMikPPPManager::setStatusText(QString errorString, QString routerName)
+void QMikPPPManager::setStatusText(QString errorString, ROS::Comm *pppoeManager)
 {
 	if( ui )
 	{
-		if( routerName.isEmpty() )
-			ui->statusBar->showMessage(errorString);
+		if( pppoeManager == Q_NULLPTR )
+			ui->statusBar->showMessage( errorString );
 		else
-			ui->statusBar->showMessage(QString("%1: %2").arg(routerName, errorString));
+			ui->statusBar->showMessage( QString("%1: %2").arg(pppoeManager->routerName(), errorString) );
 	}
 }
 
+void QMikPPPManager::onRouterConnected(ROS::ROSPPPoEManager *)
+{
+	ui->disconnectButton->setEnabled(true);
+}
 void QMikPPPManager::onAllRoutersConnected()
 {
-	ui->connectButton->setText( tr("Reconectar") );
 	ui->connectButton->setDisabled(true);
 }
 
+void QMikPPPManager::onRouterDisconnected(ROS::ROSPPPoEManager *)
+{
+	ui->connectButton->setEnabled(true);
+}
 void QMikPPPManager::onAllRoutersDisconnected()
 {
-	ui->disconnectButton->setText( tr("Desconectar") );
 	ui->disconnectButton->setDisabled(true);
 }
 
-void QMikPPPManager::onLogued(QString routerName)
+void QMikPPPManager::onLogued(ROS::ROSPPPoEManager *pppoeManager)
 {
 	logService.setUserName( gGlobalConfig.userName() );
-	ui->connectButton->setText("Desconectar");
 	ui->twUsuarios->clear();
 	ui->twUsuarios->setEnabled(true);
-	requestROSAPIUsers(routerName);
-	pidePerfiles(routerName);
-	pideUsuarios(routerName);
+	// request api users, grous and so on.
+	ROS::QSentence s("/user/getall");
+	s.setTag("TAG_ROS_API_USER");
+	s.addQuery("#|");
+	pppoeManager->requestAPIUsers(s, this,
+								  SLOT(onOneAPIUsersReceived(ROS::ROSPPPoEManager*,ROSAPIUser*)),
+								  SLOT(onAllAPIUsersReceived(ROS::ROSPPPoEManager*)),
+								  SLOT(onAPIUsersErrorReceived(QString,ROS::ROSPPPoEManager*,ROSAPIUser*)) );
+//	requestROSAPIUsers(pppoeManager);
+//	requestROSAPIUserGroups(pppoeManager);
 }
 
-void QMikPPPManager::onComError(QString errorString, QString routerName)
+void QMikPPPManager::onComError(QString errorString, ROS::Comm *pppoeManager)
 {
 	QMessageBox::warning(this,
 						 objectName(),
 						 tr("Error reportado por la red, router o sistema para el router %1\n\n%2").
-							 arg(routerName,
+							 arg(pppoeManager->routerName(),
 								 errorString));
 }
 
@@ -149,14 +167,58 @@ QString QMikPPPManager::createRouterName(const ConnectInfo &conInfo) const
 	return QString("%1:%2").arg(conInfo.m_hostIPv4.toString()).arg(conInfo.m_hostPort);
 }
 
-void QMikPPPManager::requestROSAPIUsers(const QString &routerName)
+void QMikPPPManager::requestROSAPIUsers(ROS::ROSPPPoEManager *pppoeManager)
 {
-//	m_multiROSAPIUserListMap.clear();
-	ROS::QSentence s("/user/getall");
-	s.setTag(gGlobalConfig.tagAPIUser);
-//	s.addQuery("name", gGlobalConfig.userName(), ROS::QQuery::EqualProp);
-	s.addQuery("#|");
-	mktAPI.sendSentence( routerName, s );
+	pppoeManager->apiUserManager().requestData( this,
+												SLOT(onOneAPIUsersReceived(ROSDataBase&,ROS::Comm*)),
+												SLOT(onAllAPIUsersReceived(ROS::Comm*)),
+												SLOT(onAPIUsersErrorReceived(QString, ROS::Comm*)) );
+}
+void QMikPPPManager::onOneAPIUsersReceived(ROS::ROSPPPoEManager* pppoeManager, ROSAPIUser *apiUser)
+{
+	setStatusText( tr("Recibido usuario %1. Tipo acceso: %2").arg(apiUser->m_uname, apiUser->levelName()), pppoeManager );
+}
+void QMikPPPManager::onAllAPIUsersReceived(ROS::ROSPPPoEManager *pppoeManager)
+{
+//	int i = dynamic_cast<ROS::ROSPPPoEManager*>(apiUser)->apiUserGroupManager().list().count();
+	setStatusText( tr("%1 usuarios API recibidos").arg(1), pppoeManager );
+}
+void QMikPPPManager::onAPIUsersErrorReceived(QString errorString, ROS::ROSPPPoEManager *pppoeManager)
+{
+	QMessageBox::warning(this,
+						 objectName(),
+						 tr("Error al recibir los usuarios API\n\n%1: %2").
+							 arg(pppoeManager == Q_NULLPTR ? "Todos los routers" : pppoeManager->routerName(),
+								 errorString));
+	setStatusText( tr("Error al recibir los usuarios API"), pppoeManager );
+}
+
+void QMikPPPManager::requestROSAPIUserGroups(ROS::ROSPPPoEManager *pppoeManager)
+{
+	pppoeManager->apiUserGroupManager().requestData( this,
+													 SLOT(onOneAPIUserGroupsReceived(ROSDataBase&,ROS::Comm*)),
+													 SLOT(onAllAPIUserGroupsReceived(ROS::Comm*)),
+													 SLOT(onAPIUserGroupsErrorReceived(QString, ROS::Comm*)) );
+}
+void QMikPPPManager::onOneAPIUserGroupsReceived(ROSDataBase &rosData, ROS::Comm *rosAPI)
+{
+	ROSAPIUserGroup &apiGroup = dynamic_cast<ROSAPIUserGroup &>(rosData);
+	dynamic_cast<ROS::ROSPPPoEManager*>(rosAPI)->apiUserGroupManager().list().append(apiGroup);
+	setStatusText( tr("Recibido grupo %1. Tipo acceso: %2").arg(apiGroup.m_name, apiGroup.m_policies.join(',')), rosAPI );
+}
+void QMikPPPManager::onAllAPIUserGroupsReceived(ROS::Comm *rosAPI)
+{
+	int i = dynamic_cast<ROS::ROSPPPoEManager*>(rosAPI)->apiUserGroupManager().list().count();
+	setStatusText( tr("%1 grupos de usuarios API recibidos").arg(i), rosAPI );
+}
+void QMikPPPManager::onAPIUserGroupsErrorReceived(QString errorString, ROS::Comm *rosAPI)
+{
+	QMessageBox::warning(this,
+						 objectName(),
+						 tr("Error al recibir los grupos de usuario API\n\n%1: %2").
+							 arg(rosAPI == Q_NULLPTR ? "Todos los routers" : rosAPI->routerName(),
+								 errorString));
+	setStatusText( tr("Error al recibir los grupos de usuario API"), rosAPI );
 }
 
 void QMikPPPManager::pidePerfiles(const QString &routerName)
@@ -582,7 +644,7 @@ bool QMikPPPManager::codigoClienteValido(const QString &code, const QSecretData 
 		return false;
 	}
 
-	if( ((sd = ui->twUsuarios->secrets().findDataByClientCode(code, sdOri)) != NULL) &&
+	if( ((sd = ui->twUsuarios->secrets().findDataByClientCode(code, sdOri)) != Q_NULLPTR) &&
 		(QMessageBox::question(this, tr("Código de cliente"), tr("El código de cliente %1 corresponde a %2 y quieres asociarlo a %3.\n¿Es correcto?")
 							  .arg(code)
 							  .arg(sd->usuario())
