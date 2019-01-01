@@ -1,115 +1,12 @@
 #ifndef MULTIROSCONNECTORMANAGER_H
 #define MULTIROSCONNECTORMANAGER_H
 
-#include <QMetaMethod>
 #include <QObject>
 #include <QMap>
 
-#include "Comm.h"
-#include "ROSAPIUser.h"
-#include "ROSAPIUserGroup.h"
+#include "ROSPPPoEManager.h"
 
-namespace ROS
-{
-
-class ROSPPPoEManager : public Comm
-{
-Q_OBJECT
-
-	QROSAPIUserManager		m_rosAPIUser;
-	QROSAPIUserGroupManager m_rosAPIUserGroup;
-
-	struct ReceiverInfo
-	{
-		QObject *ob;
-		QString sentenceTag;
-		int doneSlot;
-		int replySlot;
-		int errorSlot;
-	};
-	struct APIUser : public ReceiverInfo, public ROSAPIUser
-	{
-
-	};
-	APIUser m_APIUserManager;
-
-
-public:
-	ROSPPPoEManager(QObject *papi) : Comm(papi),
-	  m_rosAPIUser(this), m_rosAPIUserGroup(this)
-	{
-		connect(this, SIGNAL(comReceive(ROS::QSentence&)), this, SLOT(onDataReceived(ROS::QSentence&)));
-	}
-	virtual ~ROSPPPoEManager() {	}
-
-public slots:
-	void onDataReceived(ROS::QSentence &sentence)
-	{
-		switch( sentence.getResultType() )
-		{
-		case ROS::QSentence::None:
-			break;
-		case ROS::QSentence::Done:
-			if( m_APIUserManager.ob && (m_APIUserManager.doneSlot != -1) && (m_APIUserManager.sentenceTag == sentence.tag()) )
-			{
-				ROSAPIUser *rosUser = dynamic_cast<ROSAPIUser*>(&m_APIUserManager);
-				emit done(this);
-//				m_APIUserManager.ob->metaObject()->method(m_APIUserManager.doneSlot).invoke(m_APIUserManager.ob, Q_ARG(ROS::ROSPPPoEManager*,this), Q_ARG(ROSAPIUser*,rosUser));
-			}
-			break;
-		case ROS::QSentence::Trap:
-			break;
-		case ROS::QSentence::Fatal:
-			break;
-		case ROS::QSentence::Reply:
-		  {
-			if( m_APIUserManager.ob && m_APIUserManager.sentenceTag == sentence.tag() )
-			{
-				ROSAPIUser *rosUser = dynamic_cast<ROSAPIUser*>(&m_APIUserManager);
-				rosUser->fromSentence(sentence);
-				m_APIUserManager.ob->metaObject()->method(m_APIUserManager.doneSlot).invoke(m_APIUserManager.ob, Q_ARG(ROS::ROSPPPoEManager*,this), Q_ARG(ROSAPIUser*,rosUser));
-			}
-			break;
-		  }
-		}
-	}
-
-public:
-	void requestAPIUsers(const QSentence &sentence, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
-	{
-		requestData(m_APIUserManager, sentence, receiverOb, replySlot, doneSlot, errorSlot);
-	}
-	void requestData(ReceiverInfo &rInfo, const QSentence &sentence, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
-	{
-		QByteArray tmp;
-		rInfo.ob = receiverOb;
-
-//		receiverOb->metaObject()->invokeMethod(receiverOb, "onAllAPIUsersReceived", Q_ARG(ROS::ROSPPPoEManager*, this) );
-
-		QByteArray _doneSlot = QMetaObject::normalizedSignature("onAllAPIUsersReceived(ROS::ROSPPPoEManager*)");
-		int a = receiverOb->metaObject()->indexOfMethod(_doneSlot);
-		int b = receiverOb->metaObject()->indexOfMethod(doneSlot);
-
-		Q_ASSERT(rInfo.doneSlot != -1);
-
-		rInfo.replySlot = receiverOb->metaObject()->indexOfMethod(replySlot);
-		rInfo.errorSlot = receiverOb->metaObject()->indexOfMethod(errorSlot);
-		rInfo.sentenceTag = sentence.tag();
-
-		sendSentence(sentence);
-	}
-
-	QROSAPIUserGroupManager &apiUserGroupManager()	{ return m_rosAPIUserGroup;	}
-	QROSAPIUserManager &apiUserManager()			{ return m_rosAPIUser;		}
-signals:
-	void done();
-	void done(ROS::ROSPPPoEManager*);
-};
-
-typedef QMap<QString, ROSPPPoEManager*> ROSPPPoEManagerMap;
-typedef QMapIterator<QString, ROSPPPoEManager*> ROSPPPoEManagerIterator;
-
-class MultiConnectManager : public QObject
+class ROSMultiConnectManager : public QObject
 {
 Q_OBJECT
 
@@ -121,9 +18,11 @@ private slots:
 	void onLoginChanged(ROS::Comm::LoginState s);
 
 public:
-	MultiConnectManager(QObject *papi = Q_NULLPTR);
-	~MultiConnectManager();
+	ROSMultiConnectManager(QObject *papi = Q_NULLPTR);
+	~ROSMultiConnectManager();
 
+	const ROSPPPoEManagerMap &rosPPPoEManagerMap() const	{ return m_rosPppoeManagerMap;	}
+	ROSPPPoEManagerMap &rosPPPoEManagerMap()				{ return m_rosPppoeManagerMap;	}
 	ROSPPPoEManager *rosPppoeManager(const QString &routerName)	{ return m_rosPppoeManagerMap[routerName];	}
 
 	void clear();
@@ -132,22 +31,54 @@ public:
 	bool areAllDisconnected()const;
 	bool areAllConnected()const;
 
+	QStringList rosAPIUsersGrupList()const;
+
 public slots:
 	void sendCancel(const QString &tag, const QString &routerName = QString());
 	void connectHosts(const QString &routerName = QString());
 	void disconnectHosts(bool force, const QString &routerName = QString());
 
-	void sendSentence(const QString &routerName, const QSentence &s);
+	void sendSentence(const QString &routerName, const ROS::QSentence &s);
 	void sendSentence(const QString &routerName, const QString &s, const QString &tag, const QStringList attrib = QStringList());
 
+	void setROSAPIUserData(ROSAPIUser rosAPIUser, const QRouterIDMap &routerIDMap);
+
 signals:
-	void statusInfo(QString info, ROS::ROSPPPoEManager *pppoeManager = Q_NULLPTR);
-	void routerDisconnected(ROS::ROSPPPoEManager *pppoeManager);
-	void routerConnected(ROS::ROSPPPoEManager *pppoeManager);
+	void statusInfo(const QString &info, const QString &routerName);
+	void routerDisconnected(const QString &routerName);
+	void routerConnected(const QString &routerName);
 	void allConected();
 	void allDisconnected();
-	void logued(ROS::ROSPPPoEManager *pppoeManager);
-	void comError(QString errorString, ROS::ROSPPPoEManager *pppoeManager);
+	void logued(const QString &routerName);
+	void comError(QString errorString, const QString &routerName);
 };
-}
+
+extern ROSMultiConnectManager mktAPI;
+
 #endif // MULTIROSCONNECTORMANAGER_H
+/*
+Entrants: Compra *Carmeta*
+```  embotits
+  olives
+  papes
+  tostadetes
+   foie
+   formatjes
+   salmó```
+Crosta (LO QUE SE TROBE!!!): Compra ?  Cuina *Patri*
+Primer (Canelons): Compra *Carmeta* Cuina *Carmeta*
+Segon (Abadejo): Compra *Lourdes* Cuina *Lourdes*
+Postre ???: *Patri sap què vol fer*
+Beguda Compra *Carmeta*
+```  3-ViBlanc
+  1-ViNegre
+  2-Cava
+  3l-Cerveza (En litrones, quintos o tercios)
+  1-Cerveza Light (Radler, Mixta, etc)
+  2l-Coca-Cola Zero Zero
+  2l-Fanta LLima
+  2l-Fanta Taronja
+  4l-d'aigua
+  1-Licor d'arròs```
+*/
+

@@ -19,26 +19,40 @@ QStringList ROSAPIUser::levelNames(bool plural)
 	return plural ? plurales : singulares;
 }
 
-void ROSAPIUser::fromSentence(const ROS::QSentence &s)
+ROSAPIUser::Level ROSAPIUser::level(const QString &levelName)
 {
-	ROSDataBase::fromSentence(s);
-	m_uname = s.attribute("name");
-	m_level = static_cast<Level>(ROSAPIUser::levelNames().indexOf(s.attribute("comment").toLower()));
+	return static_cast<ROSAPIUser::Level>(levelNames(false).indexOf(levelName.toLower()));
+}
+
+void ROSAPIUser::fromSentence(const QString &routerName, const ROS::QSentence &sentence)
+{
+	ROSDataBase::fromSentence(routerName, sentence);
+	m_uname = sentence.attribute("name");
+	m_group = sentence.attribute("group");
+	m_level = static_cast<Level>(ROSAPIUser::levelNames().indexOf(sentence.attribute("comment").toLower()));
 	if( m_level < NoRights )
 		m_level = NoRights;
 }
-QROSAPIUserManager::QROSAPIUserManager(ROS::Comm *papi) : QROSDataManager(papi, TAG_ROS_API_USER)
-{
 
-}
-ROSDataBase *QROSAPIUserManager::fromSentence(ROS::QSentence &sentence) const
+ROS::QSentence &ROSAPIUser::toSentence(ROS::QSentence &sentence) const
 {
-	return new ROSAPIUser(sentence);
+	sentence.addAttribute( "name", m_uname );
+	sentence.addAttribute( "group", m_group );
+	sentence.addAttribute( "comment", levelName() );
+	return ROSDataBase::toSentence(sentence);
 }
-ROS::QSentence QROSAPIUserManager::getallSentence() const
+
+bool ROSAPIUser::hasSameData(const ROSAPIUser &rosAPIUser)
 {
-	ROS::QSentence s("/user/getall");
-	s.setTag(TAG_ROS_API_USER);
-	s.addQuery("#|");
-	return s;
+	return	ROSDataBase::hasSameData(rosAPIUser) &&
+			(m_uname == rosAPIUser.m_uname) &&
+			(m_group == rosAPIUser.m_group) &&
+			(m_level == rosAPIUser.m_level);
+}
+
+void ROSAPIUser::copyData(const ROSAPIUser &rosAPIUser)
+{
+	m_uname = rosAPIUser.m_uname;
+	m_group = rosAPIUser.m_group;
+	m_level = rosAPIUser.m_level;
 }

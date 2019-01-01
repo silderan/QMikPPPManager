@@ -37,7 +37,15 @@ SOURCES += main.cpp\
     ROSAPIUser.cpp \
     ROSAPIUserGroup.cpp \
     ROSDataBasics.cpp \
-    ROSMultiConnectorManager.cpp
+    ROSMultiConnectorManager.cpp \
+    ROSPPPoEManager.cpp \
+    DlgROSAPIUsers.cpp \
+    Widgets/QROSAPIUserTableWidget.cpp \
+    Widgets/QROSAPIUserLevelComboBox.cpp \
+    Widgets/QROSAPIUsersGroupTableWidget.cpp \
+    Widgets/QRoutersLineEdit.cpp \
+    Widgets/QROSAPIUsersGroupComboBox.cpp \
+    Widgets/QTableWidgetBase.cpp
 
 HEADERS  += QMikPPPManager.h \
     Comm.h \
@@ -63,7 +71,15 @@ HEADERS  += QMikPPPManager.h \
     ROSAPIUser.h \
     ROSAPIUserGroup.h \
     ROSDataBasics.h \
-    ROSMultiConnectorManager.h
+    ROSMultiConnectorManager.h \
+    ROSPPPoEManager.h \
+    DlgROSAPIUsers.h \
+    Widgets/QROSAPIUserTableWidget.h \
+    Widgets/QROSAPIUserLevelComboBox.h \
+    Widgets/QROSAPIUsersGroupTableWidget.h \
+    Widgets/QRoutersLineEdit.h \
+    Widgets/QROSAPIUsersGroupComboBox.h \
+    Widgets/QTableWidgetBase.h
 
 FORMS    += QMikPPPManager.ui \
     DlgConfiguracion.ui \
@@ -72,7 +88,8 @@ FORMS    += QMikPPPManager.ui \
 	DlgPortScan.ui \
     DlgCnfgConnect.ui \
     DlgLookConfig.ui \
-    DlgRouterUsers.ui
+    DlgRouterUsers.ui \
+    DlgROSAPIUsers.ui
 
 DISTFILES += \
     ToDo.txt

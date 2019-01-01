@@ -1,20 +1,17 @@
 #include "ROSMultiConnectorManager.h"
 
-namespace ROS
-{
-
-MultiConnectManager::MultiConnectManager(QObject *papi) :
+ROSMultiConnectManager::ROSMultiConnectManager(QObject *papi) :
 	QObject(papi)
 {
 
 }
 
-MultiConnectManager::~MultiConnectManager()
+ROSMultiConnectManager::~ROSMultiConnectManager()
 {
 
 }
 
-void MultiConnectManager::clear()
+void ROSMultiConnectManager::clear()
 {
 	Q_ASSERT(areAllDisconnected());
 	ROSPPPoEManagerIterator it(m_rosPppoeManagerMap);
@@ -26,7 +23,7 @@ void MultiConnectManager::clear()
 	m_rosPppoeManagerMap.clear();
 }
 
-void MultiConnectManager::addROSConnection(const QString &routerName, const QString &hostAddr, quint16 hostPort, const QString &uname, const QString &upass)
+void ROSMultiConnectManager::addROSConnection(const QString &routerName, const QString &hostAddr, quint16 hostPort, const QString &uname, const QString &upass)
 {
 	ROSPPPoEManager *mktAPI = new ROSPPPoEManager(parent());
 
@@ -46,7 +43,7 @@ void MultiConnectManager::addROSConnection(const QString &routerName, const QStr
 			 this, SLOT(onLoginChanged(ROS::Comm::LoginState)) );
 }
 
-bool MultiConnectManager::areAllDisconnected() const
+bool ROSMultiConnectManager::areAllDisconnected() const
 {
 	ROSPPPoEManagerIterator it(m_rosPppoeManagerMap);
 	while( it.hasNext() )
@@ -58,7 +55,7 @@ bool MultiConnectManager::areAllDisconnected() const
 	return true;
 }
 
-bool MultiConnectManager::areAllConnected() const
+bool ROSMultiConnectManager::areAllConnected() const
 {
 	ROSPPPoEManagerIterator it(m_rosPppoeManagerMap);
 	while( it.hasNext() )
@@ -70,7 +67,21 @@ bool MultiConnectManager::areAllConnected() const
 	return true;
 }
 
-void MultiConnectManager::sendCancel(const QString &tag, const QString &routerName)
+QStringList ROSMultiConnectManager::rosAPIUsersGrupList() const
+{
+	QStringList rtn;
+	ROSPPPoEManagerIterator it(m_rosPppoeManagerMap);
+	while( it.hasNext() )
+	{
+		it.next();
+		for( int i = 0; i < it.value()->rosApiUsersGroupManager().list().count(); ++i )
+			if( !rtn.contains(it.value()->rosApiUsersGroupManager().list().at(i).groupName()) )
+				rtn.append(it.value()->rosApiUsersGroupManager().list().at(i).groupName());
+	}
+	return rtn;
+}
+
+void ROSMultiConnectManager::sendCancel(const QString &tag, const QString &routerName)
 {
 	ROSPPPoEManagerIterator it(m_rosPppoeManagerMap);
 	while( it.hasNext() )
@@ -81,7 +92,7 @@ void MultiConnectManager::sendCancel(const QString &tag, const QString &routerNa
 	}
 }
 
-void MultiConnectManager::connectHosts(const QString &routerName)
+void ROSMultiConnectManager::connectHosts(const QString &routerName)
 {
 	ROSPPPoEManagerIterator it(m_rosPppoeManagerMap);
 	while( it.hasNext() )
@@ -92,7 +103,7 @@ void MultiConnectManager::connectHosts(const QString &routerName)
 	}
 }
 
-void MultiConnectManager::disconnectHosts(bool force, const QString &routerName)
+void ROSMultiConnectManager::disconnectHosts(bool force, const QString &routerName)
 {
 	ROSPPPoEManagerIterator it(m_rosPppoeManagerMap);
 	while( it.hasNext() )
@@ -103,7 +114,7 @@ void MultiConnectManager::disconnectHosts(bool force, const QString &routerName)
 	}
 }
 
-void MultiConnectManager::sendSentence(const QString &routerName, const QSentence &s)
+void ROSMultiConnectManager::sendSentence(const QString &routerName, const ROS::QSentence &s)
 {
 	ROSPPPoEManagerIterator it(m_rosPppoeManagerMap);
 	while( it.hasNext() )
@@ -114,72 +125,83 @@ void MultiConnectManager::sendSentence(const QString &routerName, const QSentenc
 	}
 }
 
-void MultiConnectManager::sendSentence(const QString &routerName, const QString &cmd, const QString &tag, const QStringList attrib)
+void ROSMultiConnectManager::sendSentence(const QString &routerName, const QString &cmd, const QString &tag, const QStringList attrib)
 {
-	sendSentence( routerName, QSentence(cmd, tag, attrib) );
+	sendSentence( routerName, ROS::QSentence(cmd, tag, attrib) );
 }
 
-void MultiConnectManager::onComError(Comm::CommError /*commError*/, QAbstractSocket::SocketError /*socketError*/)
+void ROSMultiConnectManager::onComError(ROS::Comm::CommError /*commError*/, QAbstractSocket::SocketError /*socketError*/)
 {
-	ROSPPPoEManager *rosManager = static_cast<ROSPPPoEManager*>(sender());
-	QString errorString = rosManager->errorString();
+	QString routerName = static_cast<ROSPPPoEManager*>(sender())->routerName();
+	QString errorString = static_cast<ROSPPPoEManager*>(sender())->errorString();
 
-	emit statusInfo( errorString, rosManager );
-	emit comError( errorString, rosManager );
+	emit statusInfo( errorString, routerName );
+	emit comError( errorString, routerName );
 }
 
-void MultiConnectManager::onCommStateChanged(Comm::CommState s)
+void ROSMultiConnectManager::onCommStateChanged(ROS::Comm::CommState s)
 {
 	switch( s )
 	{
 	case ROS::Comm::Unconnected:
-		emit statusInfo( tr("Desconectado"), static_cast<ROSPPPoEManager*>(sender()) );
-		emit routerDisconnected( static_cast<ROSPPPoEManager*>(sender()) );
+		emit statusInfo( tr("Desconectado"), static_cast<ROSPPPoEManager*>(sender())->routerName() );
+		emit routerDisconnected( static_cast<ROSPPPoEManager*>(sender())->routerName() );
 		if( areAllDisconnected() )
 		{
-			emit statusInfo( tr("Desconectado de todos los routers"), Q_NULLPTR );
+			emit statusInfo( tr("Desconectado de todos los routers"), QString() );
 			emit allDisconnected();
 		}
 		break;
 	case ROS::Comm::HostLookup:
-		emit statusInfo( tr("resolviendo URL"), static_cast<ROSPPPoEManager*>(sender()) );
+		emit statusInfo( tr("resolviendo URL"), static_cast<ROSPPPoEManager*>(sender())->routerName() );
 		break;
 	case ROS::Comm::Connecting:
-		emit statusInfo( tr("conectando al router"), static_cast<ROSPPPoEManager*>(sender()) );
+		emit statusInfo( tr("conectando al router"), static_cast<ROSPPPoEManager*>(sender())->routerName() );
 		break;
 	case ROS::Comm::Connected:
-		emit statusInfo( tr("Conectado al router"), static_cast<ROSPPPoEManager*>(sender()) );
-		emit routerConnected( static_cast<ROSPPPoEManager*>(sender()) );
+		emit statusInfo( tr("Conectado al router"), static_cast<ROSPPPoEManager*>(sender())->routerName() );
+		emit routerConnected( static_cast<ROSPPPoEManager*>(sender())->routerName() );
 		if( areAllConnected() )
 		{
-			emit statusInfo( tr("Conectado a todos los routers"), Q_NULLPTR );
+			emit statusInfo( tr("Conectado a todos los routers"), QString() );
 			emit allConected();
 		}
 		break;
 	case ROS::Comm::Closing:
-		emit statusInfo( tr("Cerrado conexión"), static_cast<ROSPPPoEManager*>(sender()) );
+		emit statusInfo( tr("Cerrado conexión"), static_cast<ROSPPPoEManager*>(sender())->routerName() );
 		break;
 	}
 }
 
-void MultiConnectManager::onLoginChanged(Comm::LoginState s)
+void ROSMultiConnectManager::onLoginChanged(ROS::Comm::LoginState s)
 {
 	switch( s )
 	{
 	case ROS::Comm::NoLoged:
-		emit statusInfo( tr("No está identificado en el servidor"), static_cast<ROSPPPoEManager*>(sender()) );
+		emit statusInfo( tr("No está identificado en el servidor"), static_cast<ROSPPPoEManager*>(sender())->routerName() );
 		break;
 	case ROS::Comm::LoginRequested:
-		emit statusInfo( tr("Usuario y contraseña pedidos"), static_cast<ROSPPPoEManager*>(sender()) );
+		emit statusInfo( tr("Usuario y contraseña pedidos"), static_cast<ROSPPPoEManager*>(sender())->routerName() );
 		break;
 	case ROS::Comm::UserPassSended:
-		emit statusInfo( tr("Petición de login en curso"), static_cast<ROSPPPoEManager*>(sender()) );
+		emit statusInfo( tr("Petición de login en curso"), static_cast<ROSPPPoEManager*>(sender())->routerName() );
 		break;
 	case ROS::Comm::LogedIn:
-		emit statusInfo( tr("Logado al router"), static_cast<ROSPPPoEManager*>(sender()) );
-		emit logued( static_cast<ROSPPPoEManager*>(sender()) );
+		emit statusInfo( tr("Logado al router"), static_cast<ROSPPPoEManager*>(sender())->routerName() );
+		emit logued( static_cast<ROSPPPoEManager*>(sender())->routerName() );
 		break;
 	}
 }
 
-} // End namespace ROS
+void ROSMultiConnectManager::setROSAPIUserData(ROSAPIUser rosAPIUser, const QRouterIDMap &routerIDMap)
+{
+	ROSPPPoEManagerIterator it(m_rosPppoeManagerMap);
+	while( it.hasNext() )
+	{
+		it.next();
+		rosAPIUser.setDataID( routerIDMap.dataID(it.key()) );
+		it.value()->updateROSAPIUser(rosAPIUser);
+	}
+}
+
+ROSMultiConnectManager mktAPI;

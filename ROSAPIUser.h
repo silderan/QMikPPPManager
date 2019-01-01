@@ -4,12 +4,12 @@
 #include <QList>
 #include <QString>
 #include <QStringList>
-#include <QMap>
 
 #include "ROSDataBasics.h"
 
-struct ROSAPIUser : public ROSDataBase
+class ROSAPIUser : public ROSDataBase
 {
+public:
 	// Position is important becouse in some places there is a value compartion.
 	enum Level
 	{
@@ -20,49 +20,53 @@ struct ROSAPIUser : public ROSDataBase
 		Supervisor		// Can do everything.
 	};
 
+private:
 	QString m_uname;
+	QString m_group;
 	Level m_level;
 
+public:
 	static QStringList levelNames(bool plural = false);
-	static QString levelName(Level level, bool plural = false)	{ return levelNames(plural)[level];	}
+	static QString levelName(Level level, bool plural = false)	{ return levelNames(plural)[level];		}
 	QString levelName(bool plural = false) const				{ return levelNames(plural)[m_level];	}
+	static ROSAPIUser::Level level(const QString &levelName);
 
-	ROSAPIUser() :
+	ROSAPIUser(const QString &routerName) : ROSDataBase(routerName, QString()),
 		m_level(NoRights)
 	{	}
-	ROSAPIUser(const QString &name, Level level = NoRights) :
+	ROSAPIUser(const QString &routerName, const QString &name, Level level = NoRights) : ROSDataBase(routerName, QString()),
 		m_uname(name), m_level(level)
 	{	}
-	ROSAPIUser(const QString &name, const QString &levelName) :
-		m_uname(name), m_level(static_cast<Level>(ROSAPIUser::levelNames().indexOf(levelName.toLower())))
+	ROSAPIUser(const QString &routerName, const QString &name, const QString &groupName, const QString &levelName) : ROSDataBase(routerName, QString()),
+		m_uname(name),
+		m_group(groupName),
+		m_level(static_cast<Level>(ROSAPIUser::levelNames().indexOf(levelName.toLower())))
 	{
 		if( m_level < NoRights )
 			m_level = NoRights;
 	}
-	ROSAPIUser(const ROS::QSentence &sentence)
+	ROSAPIUser(const QString &routerName, const ROS::QSentence &sentence) : ROSDataBase(routerName, QString())
 	{
-		fromSentence(sentence);
+		fromSentence(routerName, sentence);
 	}
+
+	inline const QString &userName()const			{ return m_uname;	}
+	inline void setUserName(const QString &uname)	{ m_uname = uname;	}
+
+	inline const QString &groupName()const			{ return m_group;	}
+	inline void setGroupName(const QString group)	{ m_group = group;	}
+
+	inline Level userLevel()const					{ return m_level;	}
+	inline void setUserLevel(Level level)			{ m_level = level;	}
 
 	// ROSDataBase interface
 public:
-	void fromSentence(const ROS::QSentence &s);
+	virtual void fromSentence(const QString &routerName, const ROS::QSentence &sentence);
+	virtual ROS::QSentence &toSentence(ROS::QSentence &sentence) const;
+	virtual bool hasSameData(const ROSAPIUser &rosAPIUser);
+	virtual void copyData(const ROSAPIUser &rosAPIUser);
 };
 
 typedef QList<ROSAPIUser> QROSAPIUserList;
-//typedef QMap<QString, QROSAPIUserList> QROSAPIUserListMap;
-//typedef QMapIterator<QString, QROSAPIUserList> QROSAPIUserListMapIterator;
-
-class QROSAPIUserManager : public QROSDataManager
-{
-	QROSAPIUserList m_list;
-
-public:
-	QROSAPIUserManager(ROS::Comm *papi);
-
-	QROSAPIUserList &list() { return m_list;	}
-	virtual ROSDataBase *fromSentence(ROS::QSentence &sentence)const;
-	virtual ROS::QSentence getallSentence()const;
-};
 
 #endif // ROSAPIUSER_H

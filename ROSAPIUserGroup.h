@@ -5,39 +5,32 @@
 
 #include "ROSDataBasics.h"
 
-class ROSAPIUserGroup : public ROSDataBase
+class ROSAPIUsersGroup : public ROSDataBase
 {
-public:
 	QString m_name;
-	QStringList m_policies;
-
-	ROSAPIUserGroup()
-	{	}
-	ROSAPIUserGroup(const QString &name, const QString &policies) :
-		m_name(name), m_policies(policies.split(','))
-	{	}
-	ROSAPIUserGroup(const QString &name, const QStringList &policies) :
-		m_name(name), m_policies(policies)
-	{	}
-	ROSAPIUserGroup(const ROS::QSentence &s)
-	{
-		fromSentence(s);
-	}
-	virtual void fromSentence(const ROS::QSentence &s);
-};
-typedef QList<ROSAPIUserGroup> QROSAPIUserGroupList;
-
-class QROSAPIUserGroupManager : public QROSDataManager
-{
-	QROSAPIUserGroupList m_grouplist;
+	QStringList m_policy;
 
 public:
-	QROSAPIUserGroupManager(ROS::Comm *papi);
+	ROSAPIUsersGroup(const QString &routerName) : ROSDataBase(routerName)
+	{	}
+	ROSAPIUsersGroup(const QString &routerName, const QString &name, const QString &policies) : ROSDataBase(routerName),
+		m_name(name), m_policy(policies.split(','))
+	{	}
+	ROSAPIUsersGroup(const QString &routerName, const QString &name, const QStringList &policies) : ROSDataBase(routerName),
+		m_name(name), m_policy(policies)
+	{	}
+	ROSAPIUsersGroup(const QString &routerName, const ROS::QSentence &sentence) : ROSDataBase(routerName)
+	{
+		fromSentence(routerName, sentence);
+	}
+	virtual void fromSentence(const QString &routerName, const ROS::QSentence &s);
 
-	QROSAPIUserGroupList &list()	{ return m_grouplist;	}
+	inline const QString &groupName()const			{ return m_name;	}
+	inline void setGroupName(const QString &group)	{ m_name = group;	}
 
-	virtual ROSDataBase *fromSentence(ROS::QSentence &sentence)const;
-	virtual ROS::QSentence getallSentence()const;
+	inline const QStringList &policy() const			{ return m_policy;		}
+	inline void setPolicy(const QStringList &policy)	{ m_policy = policy;	}
 };
+typedef QList<ROSAPIUsersGroup> QROSAPIUsersGroupList;
 
 #endif // ROSAPIUSERGROUP_H

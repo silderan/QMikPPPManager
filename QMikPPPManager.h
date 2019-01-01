@@ -16,6 +16,8 @@
 
 #include "DlgNuevoUsuario.h"
 #include "DlgCnfgConnect.h"
+#include "DlgROSAPIUsers.h"
+
 #include "ROSAPIUser.h"
 
 namespace Ui
@@ -29,13 +31,12 @@ class QMikPPPManager : public QMainWindow
 	Ui::QMikPPPManager *ui;
 	DlgNuevoUsuario *dlgNuevoUsuario;
 	DlgCnfgConnect dlgCnfgConnect;
-
-	ROS::MultiConnectManager mktAPI;
+	DlgROSAPIUsers dlgROSAPIUsers;
 
 	QString createRouterName(const ConnectInfo &conInfo)const;
 
-	void requestROSAPIUsers(ROS::ROSPPPoEManager *pppoeManager);
-	void requestROSAPIUserGroups(ROS::ROSPPPoEManager *pppoeManager);
+	void requestROSAPIUsers(const QString &routerName);
+	void requestROSAPIUserGroups(const QString &routerName);
 	void pidePerfiles(const QString &routerName);
 	void pideUsuarios(const QString &routerName);
 	void pideCambios(const QString &routerName);
@@ -63,15 +64,14 @@ class QMikPPPManager : public QMainWindow
 	void onAllROSAPIUsersReceived();
 
 private slots:
-	void setStatusText(QString errorString, ROS::Comm *pppoeManager = Q_NULLPTR);
+	void setStatusText(QString errorString, const QString routerName = QString());
+	void onComError(const QString &errorString, const QString &routerName);
 
-	void onComError(QString errorString, ROS::Comm *pppoeManager);
-
-	void onRouterConnected(ROS::ROSPPPoEManager *);
+	void onRouterConnected(const QString &routerName);
 	void onAllRoutersConnected();
-	void onRouterDisconnected(ROS::ROSPPPoEManager *);
+	void onRouterDisconnected(const QString &routerName);
 	void onAllRoutersDisconnected();
-	void onLogued(ROS::ROSPPPoEManager *pppoeManager);
+	void onLogued(const QString &routerName);
 
 
 	void onDatoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &id, bool *isValid);
@@ -91,14 +91,16 @@ private slots:
 
 	void on_disconnectButton_clicked();
 
-public slots:
-	void onOneAPIUsersReceived(ROS::ROSPPPoEManager* pppoeManager, ROSAPIUser *apiUser);
-	void onAllAPIUsersReceived(ROS::ROSPPPoEManager* pppoeManager);
-	void onAPIUsersErrorReceived(QString errorString, ROS::ROSPPPoEManager* pppoeManager);
+	void on_apiUsersButton_clicked();
 
-	void onOneAPIUserGroupsReceived(ROSDataBase &rosData, ROS::Comm *rosAPI);
-	void onAllAPIUserGroupsReceived(ROS::Comm *rosAPI);
-	void onAPIUserGroupsErrorReceived(QString errorString, ROS::Comm *rosAPI);
+public slots:
+	void onOneAPIUsersReceived(const QString &routerName, ROSAPIUser *apiUser);
+	void onAllAPIUsersReceived(const QString &routerName, QROSAPIUserList *apiUsersList);
+	void onAPIUsersErrorReceived(const QString &routerName, const QString &errorString);
+
+	void onOneAPIUsersGroupReceived(const QString &routerName, ROSAPIUsersGroup *apiUsersGroup);
+	void onAllAPIUsersGroupsReceived(const QString &routerName, QROSAPIUsersGroupList *apiUsersGroupList);
+	void onAPIUsersGroupsErrorReceived(const QString &routerName, const QString &errorString);
 
 	void updateConfig();
 

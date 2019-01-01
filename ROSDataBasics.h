@@ -1,51 +1,59 @@
 #ifndef QROSDATABASICS_H
 #define QROSDATABASICS_H
 
+#include <QMetaMethod>
 #include <QObject>
 #include <QString>
+
+#include <QMap>
+#include <QMapIterator>
 
 #include "Comm.h"
 
 class ROSDataBase
 {
+	QString m_routerName;
+	QString m_dataID;
+	bool m_delete;
+
 public:
-	QString m_id;
-
-	virtual void fromSentence(const ROS::QSentence &s);
-
+	ROSDataBase(const QString &routerName, const QString &dataID = QString()) :
+		m_routerName(routerName),
+		m_dataID(dataID),
+		m_delete(false)
+	{	}
 	virtual ~ROSDataBase()
 	{	}
+
+
+	inline const QString &dataID()	const		{ return m_dataID;	}
+	inline void setDataID(const QString &id)	{ m_dataID = id;	}
+
+	inline const QString &routerName() const				{ return m_routerName;		}
+	inline void setRouterName(const QString &routerName)	{ m_routerName = routerName;}
+
+	inline bool deleting()const					{ return m_delete;	}
+	inline void setDeleting(bool d)				{ m_delete = d;		}
+
+	virtual void fromSentence(const QString &routerName, const ROS::QSentence &s);
+	virtual ROS::QSentence &toSentence(ROS::QSentence &sentence) const;
+	virtual bool hasSameData(const ROSDataBase &)	{ return true;		}
+	virtual void copyData(const ROSDataBase &)		{ }
 };
 
-class ROSPPPoEManager;
-
-class QROSDataManager : public QObject
+class QRouterIDMap : public QMap<QString, QString>
 {
-	Q_OBJECT
-	QString m_sentenceTag;
-	QObject *m_receiverOb;
-
-protected:
-	virtual ROSDataBase *fromSentence(ROS::QSentence &sentence)const = 0;
-	virtual ROS::QSentence getallSentence()const = 0;
-
-private slots:
-	void onDataReceived(ROS::QSentence &sentence);
 
 public:
-	QROSDataManager(ROS::Comm *papi, const QString &sentenceTag) : QObject(papi), m_sentenceTag(sentenceTag), m_receiverOb(Q_NULLPTR)
-	{	}
-
-	ROS::Comm *rosAPI() { return dynamic_cast<ROS::Comm *>(parent());	}
-	const QString &sentenceTag() const { return m_sentenceTag;	}
-
-	void requestData(QObject *receiverOb = Q_NULLPTR, const char *receivedOneSlot = Q_NULLPTR, const char *receivedAllSlot = Q_NULLPTR, const char *errorSlot = Q_NULLPTR);
-
-signals:
-	void reply( ROSDataBase &userData, ROS::Comm *rosAPI );
-	void done( ROS::Comm *rosAPI );
-	void error( QString errorString, ROS::Comm *rosAPI );
+	QString dataID(const QString &routerName) const	{ return value(routerName);	}
 };
 
+class QRouterIDMapIterator : public QMapIterator<QString, QString>
+{
+
+public:
+	QString dataID() const		{ return value();	}
+	QString routerName() const	{ return key();		}
+};
 
 #endif // QROSDATABASICS_H
