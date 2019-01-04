@@ -95,11 +95,11 @@ private slots:
 
 public slots:
 	void onOneAPIUsersReceived(const QString &routerName, ROSAPIUser *apiUser);
-	void onAllAPIUsersReceived(const QString &routerName, QROSAPIUserList *apiUsersList);
+	void onAllAPIUsersReceived(const QString &routerName);
 	void onAPIUsersErrorReceived(const QString &routerName, const QString &errorString);
 
 	void onOneAPIUsersGroupReceived(const QString &routerName, ROSAPIUsersGroup *apiUsersGroup);
-	void onAllAPIUsersGroupsReceived(const QString &routerName, QROSAPIUsersGroupList *apiUsersGroupList);
+	void onAllAPIUsersGroupsReceived(const QString &routerName);
 	void onAPIUsersGroupsErrorReceived(const QString &routerName, const QString &errorString);
 
 	void updateConfig();

@@ -6,6 +6,7 @@ QROSAPIUsersGroupComboBox::QROSAPIUsersGroupComboBox(QWidget *parent, const QStr
 {
 	if( !groupsList.isEmpty() )
 		setup(groupsList, groupName);
+	addItems( mktAPI.rosAPIUsersGrupList() );
 	connect( this, SIGNAL(currentIndexChanged(int)), this, SLOT(onCurrentIndexChanged(int)) );
 }
 
@@ -91,7 +92,6 @@ QWidget *QROSAPIUsersGroupComboBoxDelegate::createEditor(QWidget *parent, const 
 
 	QROSAPIUsersGroupComboBox *cb = new QROSAPIUsersGroupComboBox(parent);
 	cb->setFrame(false);
-	cb->addItems(mktAPI.rosAPIUsersGrupList());
 	return cb;
 }
 

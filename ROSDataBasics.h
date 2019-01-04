@@ -52,6 +52,9 @@ class QRouterIDMapIterator : public QMapIterator<QString, QString>
 {
 
 public:
+	QRouterIDMapIterator(const QRouterIDMap &routerIDMap) : QMapIterator(routerIDMap)
+	{	}
+
 	QString dataID() const		{ return value();	}
 	QString routerName() const	{ return key();		}
 };

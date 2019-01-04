@@ -14,7 +14,7 @@ class ROSReceiverInfo
 	int m_doneSlot;
 	int m_replySlot;
 	int m_errorSlot;
-	QList<T> m_list;
+	QMap<QString, T> m_idDataMap;
 	bool m_saveOnLocalList;
 	bool m_clearOnDone;
 
@@ -42,14 +42,17 @@ public:
 
 	QString sentenceTag() { return m_sentenceTag;	}
 
-	const QList<T> list() const { return m_list;	}
+	inline T rosData(const QString &dataID)			{ return m_idDataMap.value(dataID, T(QString("InvalidROSData")));	}
+	inline const QList<T> rosDataList()				{ return m_idDataMap.values();		}
+	inline const QMap<QString, T> &rosDataMap()		{ return m_idDataMap;				}
 
 	void onDone(const ROS::QSentence &sentence)
 	{
 		Q_ASSERT( !m_routerName.isEmpty() );
+
 		if( m_ob && (m_doneSlot != -1) && sentence.tag() == m_sentenceTag )
 		{
-			m_ob->metaObject()->method(m_doneSlot).invoke(m_ob, Q_ARG(QString, m_routerName), Q_ARG(QList<T>*, &m_list));
+			m_ob->metaObject()->method(m_doneSlot).invoke(m_ob, Q_ARG(QString, m_routerName) );
 			if( m_clearOnDone )
 				m_ob = Q_NULLPTR;
 		}
@@ -57,11 +60,18 @@ public:
 	void onReply(const ROS::QSentence &sentence)
 	{
 		Q_ASSERT( !m_routerName.isEmpty() );
-		if( m_ob && (m_replySlot != -1) && sentence.tag() == m_sentenceTag )
+		Q_ASSERT( !sentence.getID().isEmpty() );
+
+		if( m_ob && (m_replySlot != -1) && (sentence.tag() == m_sentenceTag) )
 		{
 			T t(m_routerName, sentence);
 			if( m_saveOnLocalList )
-				m_list.append(t);
+			{
+				if( t.deleting() )
+					m_idDataMap.remove(t.dataID());
+				else
+					m_idDataMap.insert(sentence.getID(), t);
+			}
 			m_ob->metaObject()->method(m_replySlot).invoke(m_ob, Q_ARG(QString, m_routerName), Q_ARG(T*, &t));
 		}
 	}

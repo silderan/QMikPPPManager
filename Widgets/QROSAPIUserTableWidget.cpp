@@ -1,14 +1,15 @@
 #include "QROSAPIUserTableWidget.h"
 #include "QROSAPIUserLevelComboBox.h"
 #include "QROSAPIUsersGroupComboBox.h"
+#include "../ROSMultiConnectorManager.h"
 
 QROSAPIUserTableWidget::QROSAPIUserTableWidget(QWidget *papi) : QTableWidgetBase(papi)
 {
 	setColumnCount(TotalColumns);
 	setHorizontalHeaderLabels( QStringList() << "Usuario" << "Grupo" << "Nivel/Tipo" << "Routers" );
+	setRouterIDColumn(Routers);
 	setItemDelegateForColumn(GroupName, new QROSAPIUsersGroupComboBoxDelegate());
 	setItemDelegateForColumn(UserLevel, new QROSAPIUserLevelComboBoxDelegate());
-	connect( this, SIGNAL(cellChanged(int,int)), this, SLOT(onCellChanged(int,int)) );
 }
 
 QROSAPIUserTableWidget::~QROSAPIUserTableWidget()
@@ -16,51 +17,36 @@ QROSAPIUserTableWidget::~QROSAPIUserTableWidget()
 
 }
 
-int QROSAPIUserTableWidget::rowByName(const QString &groupName)const
+#include "Dialogs/DlgROSAPIUser.h"
+void QROSAPIUserTableWidget::addEmptyData()
 {
-	for( int row = 0; row < rowCount(); ++row )
-	{
-		if( item(row, UserName)->text() == groupName )
-			return row;
-	}
-	return -1;
+	emit dataModified( DlgROSAPIUser::getRosAPIUser(this), QRouterIDMap() );
 }
 
-int QROSAPIUserTableWidget::addUser(const ROSAPIUser &userData)
+ROSDataBase *QROSAPIUserTableWidget::getRosData(int row)
 {
-	blockSignals(true);
-	int row = rowOf( userData.userName(), UserName );
-
-	if( (row >= rowCount()) || (row < 0) )
-		insertRow( row = rowCount() );
-
-	setCellText( row, UserName, userData.userName() );
-	setCellText( row, GroupName, userData.groupName() );
-	setCellText( row, UserLevel, userData.levelName() );
-	addCellRoutersID( row, Routers, userData.routerName(), userData.dataID() );
-	blockSignals(false);
-	return row;
+	ROSAPIUser *rosAPIUserData = new ROSAPIUser("");
+	rosAPIUserData->setUserName( userName(row) );
+	rosAPIUserData->setUserLevel( userLevel(row) );
+	rosAPIUserData->setGroupName( userGroup(row) );
+	return rosAPIUserData;
 }
 
-void QROSAPIUserTableWidget::removeUser(const ROSAPIUser &userData)
+void QROSAPIUserTableWidget::setupRow(int row, const ROSDataBase &rosData)
 {
-	int row = rowByName( userData.userName() );
-	if( row != -1 )
-	{
-		delCellRoutersID(row, Routers, userData.routerName());
-		if( routersCount(row, Routers) == 0 )
-			removeRow(row);
-	}
+	const ROSAPIUser &userData = static_cast<const ROSAPIUser&>(rosData);
+
+	Q_ASSERT( !userData.userName().isEmpty() );
+
+	QTableWidgetBase::setupRow(row, rosData);
+	setCellText( row, UserName, userData.userName(), userData.dataID().isEmpty() ? Qt::ItemIsEditable : Qt::NoItemFlags );
+	setCellText( row, GroupName, userData.groupName(), Qt::ItemIsEditable );
+	setCellText( row, UserLevel, userData.levelName(), Qt::ItemIsEditable );
 }
 
-void QROSAPIUserTableWidget::onCellChanged(int row, int col)
+
+int QROSAPIUserTableWidget::rowOf(const ROSDataBase &rosData)
 {
-	if( (col == UserLevel) || (col == GroupName) )
-	{
-		ROSAPIUser rosAPIUserData( "" );
-		rosAPIUserData.setUserName( userName(row) );
-		rosAPIUserData.setUserLevel( userLevel(row) );
-		rosAPIUserData.setGroupName( userGroup(row) );
-		emit userModified( rosAPIUserData, routerIDMap(row, Routers) );
-	}
+	const ROSAPIUser &userData = static_cast<const ROSAPIUser&>(rosData);
+	return QTableWidgetBase::rowOf(UserName, userData.userName());
 }

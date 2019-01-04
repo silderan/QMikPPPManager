@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>693</width>
-    <height>464</height>
+    <width>728</width>
+    <height>501</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Usuarios y grupos ROS API</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -95,7 +95,7 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>OjO: Los cambios que se hagan aquí, se harán directamente sobre todos los routers.</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;OjO:&lt;/span&gt;&lt;br/&gt;- Los cambios que se hagan aquí, se harán directamente sobre todos los routers.&lt;br/&gt;- El nombre de los usuarios no se pueden cambiar; una vez se ha añadido el usuario (colocando el grupo correctamente) no podrá cambiarse.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </item>

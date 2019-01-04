@@ -20,14 +20,21 @@ class DlgROSAPIUsers : public QDialog
 	Ui::DlgROSAPIUsers *ui;
 
 public:
-	explicit DlgROSAPIUsers(QWidget *parent = 0);
+	explicit DlgROSAPIUsers(QWidget *parent = Q_NULLPTR);
 	~DlgROSAPIUsers();
 
 	void onUserDataReceived(const ROSAPIUser &user);
 	void onUsersGroupDataReceived(const ROSAPIUsersGroup &group);
 
 signals:
-	void userModified(const ROSAPIUser &rosAPIUser, const QRouterIDMap routerIDMap);
+	void userModified(const ROSDataBase &rosAPIUser, const QRouterIDMap routerIDMap);
+	void groupModified(const ROSDataBase &rosAPIUsersGroup, const QRouterIDMap routerIDMap);
+
+public slots:
+	void clear();
+
+private slots:
+	void on_addUserButton_clicked();
 };
 
 #endif // DLGROSAPIUSERS_H

@@ -17,15 +17,16 @@ class QROSAPIUsersGroupTableWidget : public QTableWidgetBase
 	};
 
 public:
-	explicit QROSAPIUsersGroupTableWidget(QWidget *parent = 0);
-	~QROSAPIUsersGroupTableWidget();
-
-	int addGroup(const ROSAPIUsersGroup &groupData);
+	explicit QROSAPIUsersGroupTableWidget(QWidget *parent = Q_NULLPTR);
+	~QROSAPIUsersGroupTableWidget()override;
 
 	QStringList groupNames()const;
 
-private slots:
-	void onUserLevelChanged(int index);
+	// QTableWidgetBase interface
+protected:
+	void setupRow(int row, const ROSDataBase &rosData) override;
+	int rowOf(const ROSDataBase &rosData) override;
+	ROSDataBase *getRosData(int row) override;
 };
 
 #endif // QROSAPIUSERSGROUPTABLEWIDGET_H

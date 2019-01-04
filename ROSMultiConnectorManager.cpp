@@ -70,13 +70,18 @@ bool ROSMultiConnectManager::areAllConnected() const
 QStringList ROSMultiConnectManager::rosAPIUsersGrupList() const
 {
 	QStringList rtn;
-	ROSPPPoEManagerIterator it(m_rosPppoeManagerMap);
-	while( it.hasNext() )
+	ROSPPPoEManagerIterator pppoeManagerIterator(m_rosPppoeManagerMap);
+	while( pppoeManagerIterator.hasNext() )
 	{
-		it.next();
-		for( int i = 0; i < it.value()->rosApiUsersGroupManager().list().count(); ++i )
-			if( !rtn.contains(it.value()->rosApiUsersGroupManager().list().at(i).groupName()) )
-				rtn.append(it.value()->rosApiUsersGroupManager().list().at(i).groupName());
+		pppoeManagerIterator.next();
+
+		QMapIterator<QString, ROSAPIUsersGroup> rosAPIUsersGroupIterator(pppoeManagerIterator.value()->rosApiUsersGroupManager().rosDataMap());
+		while( rosAPIUsersGroupIterator.hasNext() )
+		{
+			rosAPIUsersGroupIterator.next();
+			if( !rtn.contains(rosAPIUsersGroupIterator.value().groupName()) )
+				rtn.append( rosAPIUsersGroupIterator.value().groupName() );
+		}
 	}
 	return rtn;
 }
@@ -193,9 +198,10 @@ void ROSMultiConnectManager::onLoginChanged(ROS::Comm::LoginState s)
 	}
 }
 
-void ROSMultiConnectManager::setROSAPIUserData(ROSAPIUser rosAPIUser, const QRouterIDMap &routerIDMap)
+void ROSMultiConnectManager::setROSAPIUserData(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap)
 {
 	ROSPPPoEManagerIterator it(m_rosPppoeManagerMap);
+	ROSAPIUser rosAPIUser = static_cast<const ROSAPIUser&>(rosData);
 	while( it.hasNext() )
 	{
 		it.next();

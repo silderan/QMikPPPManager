@@ -39,6 +39,7 @@ ROS::QSentence &ROSAPIUser::toSentence(ROS::QSentence &sentence) const
 	sentence.addAttribute( "name", m_uname );
 	sentence.addAttribute( "group", m_group );
 	sentence.addAttribute( "comment", levelName() );
+	sentence.addAttribute( "password", m_upass );
 	return ROSDataBase::toSentence(sentence);
 }
 

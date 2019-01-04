@@ -4,7 +4,8 @@
 
 QRoutersLineEdit::QRoutersLineEdit(QWidget *parent) : QLineEdit(parent)
 {
-
+	setFrame(false);
+	setReadOnly(true);
 }
 
 QRoutersLineEdit::~QRoutersLineEdit()
@@ -29,8 +30,11 @@ void QRoutersLineEdit::updateText()
 
 void QRoutersLineEdit::addRouterID(const QString &routerName, const QString &id)
 {
-	m_routerIDMap[routerName] = id;
-	updateText();
+	if( routerName.count() && id.count() )
+	{
+		m_routerIDMap[routerName] = id;
+		updateText();
+	}
 }
 
 void QRoutersLineEdit::delRouter(const QString &routerName)

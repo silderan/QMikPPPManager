@@ -20,23 +20,26 @@ class QROSAPIUserTableWidget : public QTableWidgetBase
 		TotalColumns
 	};
 
+	void _onUserModified(const ROSAPIUser &userData);
+	void _onUserRemoved(const ROSAPIUser &userData);
+
 public:
 	explicit QROSAPIUserTableWidget(QWidget *papi = Q_NULLPTR);
-	~QROSAPIUserTableWidget();
+	virtual ~QROSAPIUserTableWidget()override;
 
+	ROSAPIUser rosAPIUser(int row);
 	int rowByName(const QString &groupName)const;
-	int addUser(const ROSAPIUser &userData);
-	void removeUser(const ROSAPIUser &userData);
 
 	inline QString userName(int row) const				{ return cellText(row, UserName);	}
 	inline QString userGroup(int row) const				{ return cellText(row, GroupName);	}
 	inline ROSAPIUser::Level userLevel(int row) const	{ return ROSAPIUser::level(cellText(row, UserLevel));	}
 
-private slots:
-	void onCellChanged(int row, int col);
-
-signals:
-	void userModified(const ROSAPIUser &rosAPIUser, const QRouterIDMap &routerIDMap);
+	void addEmptyData();
+protected:
+	ROSDataBase *getRosData(int row)override;
+	void setupRow(int row, const ROSDataBase &rosData)override;
+	int rowOf(const ROSDataBase &rosData) override;
 };
+
 
 #endif // QROSAPIUSERTABLEWIDGET_H

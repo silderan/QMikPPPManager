@@ -22,6 +22,7 @@ public:
 
 private:
 	QString m_uname;
+	QString m_upass;
 	QString m_group;
 	Level m_level;
 
@@ -52,6 +53,9 @@ public:
 
 	inline const QString &userName()const			{ return m_uname;	}
 	inline void setUserName(const QString &uname)	{ m_uname = uname;	}
+
+	inline const QString &userPass()const			{ return m_upass;	}
+	inline void setUserPass(const QString &upass)	{ m_upass = upass;	}
 
 	inline const QString &groupName()const			{ return m_group;	}
 	inline void setGroupName(const QString group)	{ m_group = group;	}

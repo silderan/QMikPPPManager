@@ -61,7 +61,7 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 	connect( ui->twUsuarios, SIGNAL(dobleClicUsuario(QSecretData)), this, SLOT(onDobleClicUsuario(QSecretData)) );
 	connect( ui->twUsuarios, SIGNAL(clicUsuario(QSecretData)), this, SLOT(onClicUsuario(QSecretData)) );
 
-	connect( &dlgROSAPIUsers, SIGNAL(userModified(ROSAPIUser,QRouterIDMap)), &mktAPI, SLOT(setROSAPIUserData(ROSAPIUser,QRouterIDMap)) );
+	connect( &dlgROSAPIUsers, SIGNAL(userModified(ROSDataBase,QRouterIDMap)), &mktAPI, SLOT(setROSAPIUserData(ROSDataBase,QRouterIDMap)) );
 
 	setNivelUsuario(QConfigData::SinPermisos);
 	ui->cbFiltro->addItem( "Cualquiera", 0 );
@@ -137,6 +137,8 @@ void QMikPPPManager::onRouterDisconnected(const QString &routerName)
 void QMikPPPManager::onAllRoutersDisconnected()
 {
 	ui->disconnectButton->setDisabled(true);
+	dlgROSAPIUsers.clear();
+	mktAPI.clear();
 }
 
 void QMikPPPManager::onLogued(const QString &routerName)
@@ -166,7 +168,7 @@ void QMikPPPManager::requestROSAPIUsers(const QString &routerName)
 {
 	mktAPI.rosPppoeManager(routerName)->requestAllAPIUsers( this,
 									  SLOT(onOneAPIUsersReceived(QString,ROSAPIUser*)),
-									  SLOT(onAllAPIUsersReceived(QString,QROSAPIUserList*)),
+									  SLOT(onAllAPIUsersReceived(QString)),
 									  SLOT(onAPIUsersErrorReceived(QString,QString)) );
 }
 void QMikPPPManager::onOneAPIUsersReceived(const QString &routerName, ROSAPIUser *apiUser)
@@ -174,9 +176,9 @@ void QMikPPPManager::onOneAPIUsersReceived(const QString &routerName, ROSAPIUser
 	dlgROSAPIUsers.onUserDataReceived( *apiUser );
 	setStatusText( tr("Recibido usuario %1. Tipo acceso: %2").arg(apiUser->userName(), apiUser->levelName()), routerName );
 }
-void QMikPPPManager::onAllAPIUsersReceived(const QString &routerName, QROSAPIUserList *apiUsersList)
+void QMikPPPManager::onAllAPIUsersReceived(const QString &routerName)
 {
-	setStatusText( tr("%1 usuarios API recibidos").arg(apiUsersList->count()), routerName );
+	setStatusText( tr("%1 usuarios API recibidos"), routerName );
 }
 void QMikPPPManager::onAPIUsersErrorReceived(const QString &routerName, const QString &errorString)
 {
@@ -188,7 +190,7 @@ void QMikPPPManager::requestROSAPIUserGroups(const QString &routerName)
 {
 	mktAPI.rosPppoeManager(routerName)->requestAllAPIUsersGroup( this,
 										  SLOT(onOneAPIUsersGroupReceived(QString,ROSAPIUsersGroup*)),
-										  SLOT(onAllAPIUsersGroupsReceived(QString,QROSAPIUsersGroupList*)),
+										  SLOT(onAllAPIUsersGroupsReceived(QString)),
 										  SLOT(onAPIUsersGroupsErrorReceived(QString,QString)) );
 }
 void QMikPPPManager::onOneAPIUsersGroupReceived(const QString &routerName, ROSAPIUsersGroup *apiUsersGroup)
@@ -196,9 +198,9 @@ void QMikPPPManager::onOneAPIUsersGroupReceived(const QString &routerName, ROSAP
 	dlgROSAPIUsers.onUsersGroupDataReceived( *apiUsersGroup );
 	setStatusText( tr("Recibido grupo %1. Tipo acceso: %2").arg(apiUsersGroup->groupName(), apiUsersGroup->policy().join(',')), routerName );
 }
-void QMikPPPManager::onAllAPIUsersGroupsReceived(const QString &routerName, QROSAPIUsersGroupList *apiUsersGroupList)
+void QMikPPPManager::onAllAPIUsersGroupsReceived(const QString &routerName)
 {
-	setStatusText( tr("%1 grupos de usuarios API recibidos").arg(apiUsersGroupList->count()), routerName );
+	setStatusText( tr("Grupos de usuarios API recibidos"), routerName );
 }
 void QMikPPPManager::onAPIUsersGroupsErrorReceived(const QString &routerName, const QString &errorString)
 {
@@ -698,9 +700,8 @@ void QMikPPPManager::on_connectButton_clicked()
 		if( gGlobalConfig.connectInfoList().isEmpty() )
 			return;
 	}
-	// If all router connections are off, copy the one from config.
-	// otherwise, just reconect.
-	// That means that the router connections can be changed only when no connections is active
+	// If all router are disconnected, copy data from config. Otherwise, just reconect.
+	// That means that router config can be changed only when no connections is active.
 	if( mktAPI.areAllDisconnected() )
 	{
 		mktAPI.clear();

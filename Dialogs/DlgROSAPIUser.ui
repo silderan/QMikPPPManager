@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DlgROSAPIUser</class>
+ <widget class="QDialog" name="DlgROSAPIUser">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>269</width>
+    <height>145</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Nuevo usuario ROS API</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Nombre</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Grupo</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QROSAPIUsersGroupComboBox" name="grupNameComboBox"/>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLineEdit" name="userNameLineEdit"/>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label_3">
+     <property name="text">
+      <string>Nivel /Tipo</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QROSAPIUserLevelComboBox" name="userLevelComboBox"/>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>Contraseña</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QLineEdit" name="userPassLineEdit"/>
+   </item>
+   <item row="4" column="0">
+    <widget class="QPushButton" name="acceptButton">
+     <property name="text">
+      <string>Aceptar</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QROSAPIUsersGroupComboBox</class>
+   <extends>QComboBox</extends>
+   <header>Widgets/QROSAPIUsersGroupComboBox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QROSAPIUserLevelComboBox</class>
+   <extends>QComboBox</extends>
+   <header>Widgets/QROSAPIUserLevelComboBox.h</header>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>userNameLineEdit</tabstop>
+  <tabstop>grupNameComboBox</tabstop>
+  <tabstop>userLevelComboBox</tabstop>
+  <tabstop>userPassLineEdit</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

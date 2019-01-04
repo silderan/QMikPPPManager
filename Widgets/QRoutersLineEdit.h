@@ -14,7 +14,7 @@ class QRoutersLineEdit : public QLineEdit
 
 	void updateText();
 public:
-	explicit QRoutersLineEdit(QWidget *parent = 0);
+	explicit QRoutersLineEdit(QWidget *parent = Q_NULLPTR);
 	~QRoutersLineEdit();
 
 	void addRouterID(const QString &routerName, const QString &id);
