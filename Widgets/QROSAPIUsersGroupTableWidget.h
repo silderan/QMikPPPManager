@@ -2,7 +2,6 @@
 #define QROSAPIUSERSGROUPTABLEWIDGET_H
 
 #include "QTableWidgetBase.h"
-#include "../ROSAPIUserGroup.h"
 
 class QROSAPIUsersGroupTableWidget : public QTableWidgetBase
 {

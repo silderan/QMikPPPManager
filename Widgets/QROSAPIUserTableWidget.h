@@ -5,7 +5,7 @@
 #include <QTableWidgetItem>
 
 #include "QTableWidgetBase.h"
-#include "../ROSAPIUser.h"
+#include "../ROSData/ROSAPIUser.h"
 
 class QROSAPIUserTableWidget : public QTableWidgetBase
 {

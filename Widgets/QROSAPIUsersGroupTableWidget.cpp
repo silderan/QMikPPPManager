@@ -2,6 +2,8 @@
 
 #include "QRoutersLineEdit.h"
 
+#include "../ROSData/ROSAPIUserGroup.h"
+
 QROSAPIUsersGroupTableWidget::QROSAPIUsersGroupTableWidget(QWidget *parent) : QTableWidgetBase(parent)
 {
 	setColumnCount(TotalColumns);

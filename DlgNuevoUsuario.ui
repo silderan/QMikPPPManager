@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1014</width>
-    <height>333</height>
+    <width>1019</width>
+    <height>328</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -535,7 +535,7 @@
   <customwidget>
    <class>QIPv4RangeComboBox</class>
    <extends>QComboBox</extends>
-   <header>QIPv4RangeComboBox.h</header>
+   <header>Widgets/QIPv4RangeComboBox.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

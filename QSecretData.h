@@ -1,13 +1,13 @@
 #ifndef QSECRETDATA_H
 #define QSECRETDATA_H
 
-#include "QSentences.h"
-#include "QConfigData.h"
-
 #include <QDateTime>
 #include <QTableView>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
+
+#include "ROSAPI/QSentences.h"
+#include "ConfigData/QConfigData.h"
 
 class QSecretItem : public QStandardItem
 {

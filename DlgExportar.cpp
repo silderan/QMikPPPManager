@@ -4,8 +4,6 @@
 #include <QMessageBox>
 #include <QTextStream>
 
-#include "QConfigData.h"
-
 DlgExportar::DlgExportar(QWidget *parent, const QSecretDataTable *secrets) :
 	QDialog(parent),
 	ui(new Ui::DlgExportar)

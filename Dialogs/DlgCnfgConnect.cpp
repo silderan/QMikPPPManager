@@ -6,9 +6,9 @@
 #include <QMessageBox>
 #include <QRegExp>
 
+#include "Utils/IPv4Range.h"
 #include "QTableWidgetItem"
-#include "QConfigData.h"
-#include "IPv4Range.h"
+#include "ConfigData/QConfigData.h"
 
 #define WARNING(_t)	(QMessageBox::warning(this, objectName(), _t) )
 

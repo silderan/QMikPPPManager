@@ -4,6 +4,9 @@
 #include <QTableWidgetItem>
 #include <QLineEdit>
 
+#include "Utils/IPv4Range.h"
+#include "ConfigData/QConfigData.h"
+
 DlgConfiguracion::DlgConfiguracion(QWidget *parent) :
 	QDialog(parent),
 	ui(new Ui::DlgConfiguracion)

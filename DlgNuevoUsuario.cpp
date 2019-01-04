@@ -1,8 +1,7 @@
 #include "DlgNuevoUsuario.h"
 #include "ui_DlgNuevoUsuario.h"
 
-#include "QConfigData.h"
-#include "QRegistro.h"
+#include "Utils/QRegistro.h"
 
 DlgNuevoUsuario::DlgNuevoUsuario(ROS::Comm *api, const QSecretData &sd, QSecretDataModel &secrets, QWidget *parent) :
 	QDialog(parent),

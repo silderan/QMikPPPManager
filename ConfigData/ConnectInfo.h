@@ -3,7 +3,7 @@
 
 #include <QStringList>
 
-#include "IPv4Range.h"
+#include "Utils/IPv4Range.h"
 
 struct ConnectInfo
 {

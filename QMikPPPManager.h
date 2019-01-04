@@ -5,7 +5,7 @@
 
 #include "ROSMultiConnectorManager.h"
 #include "QSecretData.h"
-#include "QConfigData.h"
+#include "ConfigData/QConfigData.h"
 #include <QTreeWidgetItem>
 #include <QTableWidgetItem>
 #include <QComboBox>
@@ -15,10 +15,10 @@
 #include <QInputEvent>
 
 #include "DlgNuevoUsuario.h"
-#include "DlgCnfgConnect.h"
-#include "DlgROSAPIUsers.h"
+#include "Dialogs/DlgCnfgConnect.h"
+#include "Dialogs/DlgROSAPIUsers.h"
 
-#include "ROSAPIUser.h"
+#include "ROSData/ROSAPIUser.h"
 
 namespace Ui
 {

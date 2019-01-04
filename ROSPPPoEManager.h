@@ -1,9 +1,9 @@
 #ifndef ROSPPPOEMANAGER_H
 #define ROSPPPOEMANAGER_H
 
-#include "Comm.h"
-#include "ROSAPIUser.h"
-#include "ROSAPIUserGroup.h"
+#include "ROSAPI/Comm.h"
+#include "ROSData/ROSAPIUser.h"
+#include "ROSData/ROSAPIUserGroup.h"
 
 template <typename T>
 class ROSReceiverInfo

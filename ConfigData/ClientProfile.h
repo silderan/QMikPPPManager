@@ -3,8 +3,8 @@
 
 #include <QStringList>
 
-#include "QSentences.h"
-#include "QIniFile.h"
+#include "Utils/QIniFile.h"
+#include "ROSAPI/QSentences.h"
 
 struct ClientProfileData
 {

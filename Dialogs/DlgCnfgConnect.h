@@ -3,8 +3,6 @@
 
 #include <QDialog>
 
-#include "QConfigData.h"
-
 namespace Ui
 {
 	class DlgCnfgConnect;

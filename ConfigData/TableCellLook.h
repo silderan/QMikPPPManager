@@ -5,7 +5,7 @@
 #include <QString>
 #include <QFont>
 
-#include "QIniFile.h"
+#include "Utils/QIniFile.h"
 
 struct CellLook
 {

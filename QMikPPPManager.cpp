@@ -22,12 +22,12 @@
 #include "ui_QMikPPPManager.h"
 
 #include <QMessageBox>
-#include "QRegistro.h"
+#include "Utils/QRegistro.h"
 
-#include "DlgConfiguracion.h"
+#include "Dialogs/DlgConfiguracion.h"
+#include "Dialogs/DlgLookConfig.h"
 #include "DlgExportar.h"
 #include "DlgPortScan.h"
-#include "DlgLookConfig.h"
 
 QMikPPPManager::QMikPPPManager(QWidget *parent) :
 	QMainWindow(parent),

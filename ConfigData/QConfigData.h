@@ -6,10 +6,10 @@
 #include <QDir>
 #include <QColor>
 
-#include "QIniFile.h"
-#include "QSentences.h"
+#include "../Utils/IPv4Range.h"
+#include "../Utils/QIniFile.h"
+#include "../ROSAPI/QSentences.h"
 #include "ConnectInfo.h"
-#include "IPv4Range.h"
 #include "ClientProfile.h"
 #include "TableCellLook.h"
 

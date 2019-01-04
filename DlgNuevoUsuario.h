@@ -2,7 +2,8 @@
 #define DLGNUEVOUSUARIO_H
 
 #include <QDialog>
-#include "Comm.h"
+
+#include "ROSAPI/Comm.h"
 #include "QSecretData.h"
 
 namespace Ui
@@ -34,7 +35,7 @@ class DlgNuevoUsuario : public QDialog
 	void updateDialog();
 	QString contactInfo();
 public:
-	explicit DlgNuevoUsuario(ROS::Comm *api, const QSecretData &sd, QSecretDataModel &secrets, QWidget *parent = 0);
+	explicit DlgNuevoUsuario(ROS::Comm *api, const QSecretData &sd, QSecretDataModel &secrets, QWidget *parent = Q_NULLPTR);
 	~DlgNuevoUsuario();
 
 	static bool checkValidUsername(QWidget *papi, const QString &user);

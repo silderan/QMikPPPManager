@@ -3,7 +3,7 @@
 
 #include <QComboBox>
 
-#include "IPv4Range.h"
+#include "Utils/IPv4Range.h"
 
 class QIPv4RangeComboBox : public QComboBox
 {

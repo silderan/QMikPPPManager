@@ -4,6 +4,8 @@
 #include <QFontDialog>
 #include <QColorDialog>
 
+#include <ConfigData/QConfigData.h>
+
 DlgLookConfig::DlgLookConfig(QWidget *parent) :
 	QDialog(parent),
 	ui(new Ui::DlgLookConfig)

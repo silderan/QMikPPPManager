@@ -3,8 +3,7 @@
 
 #include <QDialog>
 
-#include "QConfigData.h"
-#include "ClientProfile.h"
+#include "ConfigData/ClientProfile.h"
 
 namespace Ui
 {

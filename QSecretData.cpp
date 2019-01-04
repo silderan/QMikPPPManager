@@ -1,6 +1,6 @@
 #include "QSecretData.h"
 
-#include "QStaticIPComboBox.h"
+#include "Widgets/QStaticIPComboBox.h"
 
 void QSecretData::parseComment(const QString &comment)
 {

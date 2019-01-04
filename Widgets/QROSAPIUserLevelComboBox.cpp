@@ -1,6 +1,6 @@
 #include "QROSAPIUserLevelComboBox.h"
 
-#include "../ROSAPIUser.h"
+#include "../ROSData/ROSAPIUser.h"
 
 QROSAPIUserLevelComboBox::QROSAPIUserLevelComboBox(QWidget *papi) : QComboBox(papi)
 {

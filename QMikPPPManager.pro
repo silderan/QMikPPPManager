@@ -13,82 +13,82 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        QMikPPPManager.cpp \
-    Comm.cpp \
-    QIniFile.cpp \
-    QMD5.cpp \
-    QSentences.cpp \
-    QSecretData.cpp \
-    QConfigData.cpp \
-    DlgConfiguracion.cpp \
-    DlgNuevoUsuario.cpp \
-    QRegistro.cpp \
-	DlgExportar.cpp \
-	DlgPortScan.cpp \
-    DlgCnfgConnect.cpp \
-    IPv4Range.cpp \
-    QIPv4RangeComboBox.cpp \
-    QStaticIPComboBox.cpp \
-    ConnectInfo.cpp \
-    ClientProfile.cpp \
-    DlgLookConfig.cpp \
-    TableCellLook.cpp \
-    ROSAPIUser.cpp \
-    ROSAPIUserGroup.cpp \
-    ROSDataBasics.cpp \
-    ROSMultiConnectorManager.cpp \
-    ROSPPPoEManager.cpp \
-    DlgROSAPIUsers.cpp \
+    Utils/IPv4Range.cpp \
+    Utils/QIniFile.cpp \
+    Utils/QRegistro.cpp \
+    QMikPPPManager.cpp \
+    ROSAPI/QMD5.cpp \
+    ROSAPI/QSentences.cpp \
+    ROSAPI/Comm.cpp \
+    ROSData/ROSAPIUser.cpp \
+    ROSData/ROSAPIUserGroup.cpp \
+    ROSData/ROSDataBasics.cpp \
+    Widgets/QIPv4RangeComboBox.cpp \
+    Widgets/QStaticIPComboBox.cpp \
     Widgets/QROSAPIUserTableWidget.cpp \
     Widgets/QROSAPIUserLevelComboBox.cpp \
     Widgets/QROSAPIUsersGroupTableWidget.cpp \
     Widgets/QRoutersLineEdit.cpp \
     Widgets/QROSAPIUsersGroupComboBox.cpp \
     Widgets/QTableWidgetBase.cpp \
+    ConfigData/ConnectInfo.cpp \
+    ConfigData/TableCellLook.cpp \
+    ConfigData/ClientProfile.cpp \
+    ConfigData/QConfigData.cpp \
+    QSecretData.cpp \
+    DlgNuevoUsuario.cpp \
+	DlgExportar.cpp \
+	DlgPortScan.cpp \
+    ROSMultiConnectorManager.cpp \
+    ROSPPPoEManager.cpp \
+    Dialogs/DlgCnfgConnect.cpp \
+    Dialogs/DlgConfiguracion.cpp \
+    Dialogs/DlgLookConfig.cpp \
+    Dialogs/DlgROSAPIUsers.cpp \
     Dialogs/DlgROSAPIUser.cpp
 
 HEADERS  += QMikPPPManager.h \
-    Comm.h \
-    QIniFile.h \
-    QMD5.h \
-    QSentences.h \
-    QSecretData.h \
-    QConfigData.h \
-    DlgConfiguracion.h \
-    DlgNuevoUsuario.h \
-    QRegistro.h \
-	DlgExportar.h \
-	DlgPortScan.h \
-    DlgCnfgConnect.h \
-    IPv4Range.h \
-    QIPv4RangeComboBox.h \
-    QStaticIPComboBox.h \
-    ConnectInfo.h \
-    ClientProfile.h \
-    DlgLookConfig.h \
-    TableCellLook.h \
-    ROSAPIUser.h \
-    ROSAPIUserGroup.h \
-    ROSDataBasics.h \
-    ROSMultiConnectorManager.h \
-    ROSPPPoEManager.h \
-    DlgROSAPIUsers.h \
+    Utils/IPv4Range.h \
+    Utils/QIniFile.h \
+    Utils/QRegistro.h \
+    ROSAPI/QMD5.h \
+    ROSAPI/QSentences.h \
+    ROSAPI/Comm.h \
+    ROSData/ROSAPIUser.h \
+    ROSData/ROSAPIUserGroup.h \
+    ROSData/ROSDataBasics.h \
+    ConfigData/ConnectInfo.h \
+    ConfigData/TableCellLook.h \
+    ConfigData/ClientProfile.h \
+    ConfigData/QConfigData.h \
+    Widgets/QIPv4RangeComboBox.h \
+    Widgets/QStaticIPComboBox.h \
     Widgets/QROSAPIUserTableWidget.h \
     Widgets/QROSAPIUserLevelComboBox.h \
     Widgets/QROSAPIUsersGroupTableWidget.h \
     Widgets/QRoutersLineEdit.h \
     Widgets/QROSAPIUsersGroupComboBox.h \
     Widgets/QTableWidgetBase.h \
+    QSecretData.h \
+    DlgNuevoUsuario.h \
+	DlgExportar.h \
+	DlgPortScan.h \
+    ROSMultiConnectorManager.h \
+    ROSPPPoEManager.h \
+    Dialogs/DlgConfiguracion.h \
+    Dialogs/DlgLookConfig.h \
+    Dialogs/DlgCnfgConnect.h \
+    Dialogs/DlgROSAPIUsers.h \
     Dialogs/DlgROSAPIUser.h
 
 FORMS    += QMikPPPManager.ui \
-    DlgConfiguracion.ui \
 	DlgNuevoUsuario.ui \
 	DlgExportar.ui \
 	DlgPortScan.ui \
-    DlgCnfgConnect.ui \
-    DlgLookConfig.ui \
-    DlgROSAPIUsers.ui \
+    Dialogs/DlgConfiguracion.ui \
+    Dialogs/DlgCnfgConnect.ui \
+    Dialogs/DlgLookConfig.ui \
+    Dialogs/DlgROSAPIUsers.ui \
     Dialogs/DlgROSAPIUser.ui
 
 DISTFILES += \

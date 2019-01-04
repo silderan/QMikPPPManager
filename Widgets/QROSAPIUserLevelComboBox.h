@@ -4,7 +4,7 @@
 #include <QComboBox>
 #include <QStyledItemDelegate>
 
-#include "../ROSAPIUser.h"
+#include "../ROSData/ROSAPIUser.h"
 
 class QROSAPIUserLevelComboBox : public QComboBox
 {

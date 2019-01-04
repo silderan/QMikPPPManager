@@ -1,7 +1,7 @@
 #ifndef QSTATICIPCOMBOBOX_H
 #define QSTATICIPCOMBOBOX_H
 
-#include <QIPv4RangeComboBox.h>
+#include "QIPv4RangeComboBox.h"
 
 class QStaticIPComboBox : public QIPv4RangeComboBox
 {

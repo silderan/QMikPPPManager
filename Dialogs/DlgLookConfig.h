@@ -6,8 +6,7 @@
 #include <QColorDialog>
 #include <QTableWidgetItem>
 
-#include "TableCellLook.h"
-#include "QConfigData.h"
+#include "ConfigData/TableCellLook.h"
 
 namespace Ui
 {
