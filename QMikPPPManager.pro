@@ -14,7 +14,9 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
     Utils/IPv4Range.cpp \
-    Utils/QIniFile.cpp \
+	Utils/ROSSpeed.cpp \
+	Utils/ROSRateLimit.cpp \
+	Utils/QIniFile.cpp \
     Utils/QRegistro.cpp \
     QMikPPPManager.cpp \
     ROSAPI/QMD5.cpp \
@@ -23,7 +25,8 @@ SOURCES += main.cpp\
     ROSData/ROSAPIUser.cpp \
     ROSData/ROSAPIUserGroup.cpp \
     ROSData/ROSDataBasics.cpp \
-    Widgets/QIPv4RangeComboBox.cpp \
+	ROSData/ROSPPPProfile.cpp \
+	Widgets/QIPv4RangeComboBox.cpp \
     Widgets/QStaticIPComboBox.cpp \
     Widgets/QROSAPIUserTableWidget.cpp \
     Widgets/QROSAPIUserLevelComboBox.cpp \
@@ -45,11 +48,14 @@ SOURCES += main.cpp\
     Dialogs/DlgConfiguracion.cpp \
     Dialogs/DlgLookConfig.cpp \
     Dialogs/DlgROSAPIUsers.cpp \
-    Dialogs/DlgROSAPIUser.cpp
+	Dialogs/DlgROSAPIUser.cpp \
+    Dialogs/DlgPPPProfiles.cpp
 
 HEADERS  += QMikPPPManager.h \
     Utils/IPv4Range.h \
-    Utils/QIniFile.h \
+	Utils/ROSSpeed.h \
+	Utils/ROSRateLimit.h \
+	Utils/QIniFile.h \
     Utils/QRegistro.h \
     ROSAPI/QMD5.h \
     ROSAPI/QSentences.h \
@@ -57,7 +63,8 @@ HEADERS  += QMikPPPManager.h \
     ROSData/ROSAPIUser.h \
     ROSData/ROSAPIUserGroup.h \
     ROSData/ROSDataBasics.h \
-    ConfigData/ConnectInfo.h \
+	ROSData/ROSPPPProfile.h \
+	ConfigData/ConnectInfo.h \
     ConfigData/TableCellLook.h \
     ConfigData/ClientProfile.h \
     ConfigData/QConfigData.h \
@@ -79,7 +86,8 @@ HEADERS  += QMikPPPManager.h \
     Dialogs/DlgLookConfig.h \
     Dialogs/DlgCnfgConnect.h \
     Dialogs/DlgROSAPIUsers.h \
-    Dialogs/DlgROSAPIUser.h
+	Dialogs/DlgROSAPIUser.h \
+    Dialogs/DlgPPPProfiles.h
 
 FORMS    += QMikPPPManager.ui \
 	DlgNuevoUsuario.ui \
@@ -89,7 +97,8 @@ FORMS    += QMikPPPManager.ui \
     Dialogs/DlgCnfgConnect.ui \
     Dialogs/DlgLookConfig.ui \
     Dialogs/DlgROSAPIUsers.ui \
-    Dialogs/DlgROSAPIUser.ui
+    Dialogs/DlgROSAPIUser.ui \
+    Dialogs/DlgPPPProfiles.ui
 
 DISTFILES += \
     ToDo.txt

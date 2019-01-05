@@ -30,6 +30,10 @@ public:
 
 	inline const QStringList &policy() const			{ return m_policy;		}
 	inline void setPolicy(const QStringList &policy)	{ m_policy = policy;	}
+
+	virtual ROS::QSentence &toSentence(ROS::QSentence &sentence) const;
+	virtual bool hasSameData(const ROSDataBase &rosAPIUsersGrup) const;
+	virtual void copyData(const ROSDataBase &rosAPIUsersGrup);
 };
 typedef QList<ROSAPIUsersGroup> QROSAPIUsersGroupList;
 

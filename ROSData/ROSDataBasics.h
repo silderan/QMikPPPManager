@@ -37,7 +37,7 @@ public:
 
 	virtual void fromSentence(const QString &routerName, const ROS::QSentence &s);
 	virtual ROS::QSentence &toSentence(ROS::QSentence &sentence) const;
-	virtual bool hasSameData(const ROSDataBase &)	{ return true;		}
+	virtual bool hasSameData(const ROSDataBase &)const = 0;
 	virtual void copyData(const ROSDataBase &)		{ }
 };
 

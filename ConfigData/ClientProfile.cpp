@@ -8,18 +8,18 @@ void QClientProfileList::append(const ClientProfileData &s)
 	int i;
 
 	// Ensures that only one profile is for disabled users.
-	if( s.isDisabled() )
+	if( s.isDisabledProfile() )
 	{
-		i = indexOfDisabled();
+		i = indexOfDisabledProfile();
 		if( i != -1 )
-			(*this)[i].setDisabled(false);
+			(*this)[i].setDisabledProfile(false);
 	}
 	// Ensures that only one profile is the default one.
-	if( s.isDefault() )
+	if( s.isDefaultProfile() )
 	{
-		i = indexOfDefault();
+		i = indexOfDefaultProfile();
 		if( i != -1 )
-			(*this)[i].setDefault(false);
+			(*this)[i].setDefaultProfile(false);
 	}
 
 	i = indexOf(s);
@@ -29,22 +29,20 @@ void QClientProfileList::append(const ClientProfileData &s)
 		(*this)[i] = s;
 }
 
-bool QClientProfileList::contains(const QString &s) const
+bool QClientProfileList::contains(const QString &profileName) const
 {
 	for( int i = 0; i < count(); i++ )
-		if( at(i) == s )
+		if( at(i) == profileName )
 			return true;
 	return false;
 }
 
 QString ClientProfileData::saveString() const
 {
-	return QString("%1,%2,%3,%4,%5,%6,%7,%8").
+	return QString("%1,%2,%3,%4,%5,%6").
 			arg("1",	// Version
-				m_name,
+				profileName(),
 				m_group,
-				QString::number(m_rxKbps),
-				QString::number(m_txKbps),
 				m_internal ? "internalProfile" : "usable",
 				m_disabled ? "disabledUser" : "regularUser",
 				m_default ? "defaultProfile" : "regularProfile" );
@@ -58,15 +56,13 @@ void ClientProfileData::fromSaveString(const QString &saveString)
 		switch( data[0].toUInt() )
 		{
 		case 1:
-			if( data.count() == 7 )
+			if( data.count() == 6 )
 			{
-				m_name		= data[1];
+				setProfileName(data[1]);
 				m_group		= data[2];
-				m_rxKbps	= data[3].toUInt();
-				m_txKbps	= data[4].toUInt();
-				m_internal	= data[5] == "internalProfile";
-				m_disabled	= data[6] == "disabledUser";
-				m_disabled	= data[6] == "disabledUser";
+				m_internal	= data[3] == "internalProfile";
+				m_disabled	= data[4] == "disabledUser";
+				m_default	= data[5] == "defaultProfile";
 			}
 			break;
 		default:
@@ -88,66 +84,66 @@ void QClientProfileList::load(const QIniData &cnfgData)
 		append(ClientProfileData(saveString));
 }
 
-int QClientProfileList::indexOfDisabled() const
+int QClientProfileList::indexOfDisabledProfile() const
 {
 	for( int i = 0; i < count(); ++i )
-		if( at(i).isDisabled() )
+		if( at(i).isDisabledProfile() )
 			return i;
 	return -1;
 }
 
 ClientProfileData QClientProfileList::disabledProfile() const
 {
-	int i = indexOfDisabled();
+	int i = indexOfDisabledProfile();
 	if( i != -1 )
 		return at(i);
-	return ClientProfileData();
+	return ClientProfileData("FakeDisabledProfile");
 }
 
 bool QClientProfileList::isDisabledProfile(const QString &profileName) const
 {
-	return disabledProfile().name() == profileName;
+	return disabledProfile().profileName() == profileName;
 }
 
-int QClientProfileList::indexOfDefault() const
+int QClientProfileList::indexOfDefaultProfile() const
 {
 	for( int i = 0; i < count(); ++i )
-		if( at(i).isDefault() )
+		if( at(i).isDefaultProfile() )
 			return i;
 	return -1;
 }
 
 ClientProfileData QClientProfileList::defaultProfile() const
 {
-	int i = indexOfDefault();
+	int i = indexOfDefaultProfile();
 	if( i != -1 )
 		return at(i);
-	return ClientProfileData();
+	return ClientProfileData("FakeDefaultProfile");
 }
 
 bool QClientProfileList::isDefaultProfile(const QString &profileName) const
 {
-	return defaultProfile().name() == profileName;
+	return defaultProfile().profileName() == profileName;
 }
 
 int QClientProfileList::isInternalProfile(const QString &profileName) const
 {
 	for( int i = 0; i < count(); ++i )
-		if( at(i).name() == profileName )
-			return at(i).isInternal();
+		if( at(i).profileName() == profileName )
+			return at(i).isInternalProfile();
 	return false;
 }
 
 void QClientProfileList::setDisabledProfile(int index)
 {
 	for( int i = 0; i < count(); ++i )
-		(*this)[i].setDisabled(i == index);
+		(*this)[i].setDisabledProfile(i == index);
 }
 
 void QClientProfileList::setDefaultProfile(int index)
 {
 	for( int i = 0; i < count(); ++i )
-		(*this)[i].setDefault(i == index);
+		(*this)[i].setDefaultProfile(i == index);
 }
 
 void QClientProfileList::setProfileGroupName(int index, const QString &name)
@@ -160,7 +156,7 @@ QStringList QClientProfileList::profileNames() const
 {
 	QStringList rtn;
 	for( int i = 0; i < count(); ++i )
-		rtn.append( at(i).name() );
+		rtn.append( at(i).profileName() );
 
 	return rtn;
 }
@@ -170,8 +166,8 @@ QStringList QClientProfileList::regularProfileNames() const
 	QStringList rtn;
 
 	for( int i = 0; i < count(); ++i )
-		if( !at(i).isDisabled() && !at(i).isInternal() )
-			rtn.append( at(i).name() );
+		if( !at(i).isDisabledProfile() && !at(i).isInternalProfile() )
+			rtn.append( at(i).profileName() );
 
 	return rtn;
 }

@@ -67,8 +67,8 @@ public:
 public:
 	virtual void fromSentence(const QString &routerName, const ROS::QSentence &sentence);
 	virtual ROS::QSentence &toSentence(ROS::QSentence &sentence) const;
-	virtual bool hasSameData(const ROSAPIUser &rosAPIUser);
-	virtual void copyData(const ROSAPIUser &rosAPIUser);
+	virtual bool hasSameData(const ROSDataBase &rosAPIUser) const;
+	virtual void copyData(const ROSDataBase &rosAPIUser);
 };
 
 typedef QList<ROSAPIUser> QROSAPIUserList;

@@ -94,7 +94,7 @@ void DlgConfiguracion::addProfileTableRow(const ClientProfileData &clientProfile
 	int row = ui->profilesTable->rowCount();
 
 	ui->profilesTable->insertRow(row);
-	gGlobalConfig.perfiles()[row].name();
+	gGlobalConfig.perfiles()[row].profileName();
 
 	QComboBox *profileCB = new QComboBox();
 	profileCB->addItem( tr("[Básico]"), "defaultProfile" );
@@ -104,7 +104,7 @@ void DlgConfiguracion::addProfileTableRow(const ClientProfileData &clientProfile
 	profileCB->addItems(m_profilesGroupNameList);
 	connect( profileCB->lineEdit(), SIGNAL(editingFinished()), this, SLOT(on_cbEditingFinished()) );
 
-	ui->profilesTable->setItem(row, 0, new QTableWidgetItem(clientProfileData.name()) );
+	ui->profilesTable->setItem(row, 0, new QTableWidgetItem(clientProfileData.profileName()) );
 	ui->profilesTable->setCellWidget(row, 1, profileCB );
 }
 

@@ -14,11 +14,14 @@
 #include <QUrl>
 #include <QInputEvent>
 
+#include "ROSData/ROSAPIUser.h"
+#include "ROSData/ROSAPIUserGroup.h"
+#include "ROSData/ROSPPPProfile.h"
+
 #include "DlgNuevoUsuario.h"
 #include "Dialogs/DlgCnfgConnect.h"
 #include "Dialogs/DlgROSAPIUsers.h"
-
-#include "ROSData/ROSAPIUser.h"
+#include "Dialogs/DlgPPPProfiles.h"
 
 namespace Ui
 {
@@ -31,13 +34,15 @@ class QMikPPPManager : public QMainWindow
 	Ui::QMikPPPManager *ui;
 	DlgNuevoUsuario *dlgNuevoUsuario;
 	DlgCnfgConnect dlgCnfgConnect;
-	DlgROSAPIUsers dlgROSAPIUsers;
+	DlgROSAPIUsers *dlgROSAPIUsers;
+	DlgPPPProfiles *dlgPPPProfiles;
 
 	QString createRouterName(const ConnectInfo &conInfo)const;
 
 	void requestROSAPIUsers(const QString &routerName);
 	void requestROSAPIUserGroups(const QString &routerName);
-	void pidePerfiles(const QString &routerName);
+	void requestPPPProfiles(const QString &routerName);
+
 	void pideUsuarios(const QString &routerName);
 	void pideCambios(const QString &routerName);
 	void pideActivos(const QString &routerName);
@@ -90,8 +95,9 @@ private slots:
 	void on_addUserButton_clicked();
 
 	void on_disconnectButton_clicked();
-
 	void on_apiUsersButton_clicked();
+
+	void on_pppProfilesButton_clicked();
 
 public slots:
 	void onOneAPIUsersReceived(const QString &routerName, ROSAPIUser *apiUser);
@@ -101,6 +107,10 @@ public slots:
 	void onOneAPIUsersGroupReceived(const QString &routerName, ROSAPIUsersGroup *apiUsersGroup);
 	void onAllAPIUsersGroupsReceived(const QString &routerName);
 	void onAPIUsersGroupsErrorReceived(const QString &routerName, const QString &errorString);
+
+	void onOnePPPProfileReceived(const QString &routerName, ROSPPPProfile *rosPPPProfile);
+	void onAllPPPProfilesReceived(const QString &routerName);
+	void onPPPProfilesErrorReceived(const QString &routerName, const QString &errorString);
 
 	void updateConfig();
 

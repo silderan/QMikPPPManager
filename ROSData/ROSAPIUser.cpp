@@ -43,17 +43,16 @@ ROS::QSentence &ROSAPIUser::toSentence(ROS::QSentence &sentence) const
 	return ROSDataBase::toSentence(sentence);
 }
 
-bool ROSAPIUser::hasSameData(const ROSAPIUser &rosAPIUser)
+bool ROSAPIUser::hasSameData(const ROSDataBase &rosAPIUser) const
 {
-	return	ROSDataBase::hasSameData(rosAPIUser) &&
-			(m_uname == rosAPIUser.m_uname) &&
-			(m_group == rosAPIUser.m_group) &&
-			(m_level == rosAPIUser.m_level);
+	return	(m_uname == static_cast<const ROSAPIUser&>(rosAPIUser).m_uname) &&
+			(m_group == static_cast<const ROSAPIUser&>(rosAPIUser).m_group) &&
+			(m_level == static_cast<const ROSAPIUser&>(rosAPIUser).m_level);
 }
 
-void ROSAPIUser::copyData(const ROSAPIUser &rosAPIUser)
+void ROSAPIUser::copyData(const ROSDataBase &rosAPIUser)
 {
-	m_uname = rosAPIUser.m_uname;
-	m_group = rosAPIUser.m_group;
-	m_level = rosAPIUser.m_level;
+	m_uname = static_cast<const ROSAPIUser&>(rosAPIUser).m_uname;
+	m_group = static_cast<const ROSAPIUser&>(rosAPIUser).m_group;
+	m_level = static_cast<const ROSAPIUser&>(rosAPIUser).m_level;
 }

@@ -5,63 +5,49 @@
 
 #include "Utils/QIniFile.h"
 #include "ROSAPI/QSentences.h"
+#include "ROSData/ROSPPPProfile.h"
 
-struct ClientProfileData
+struct ClientProfileData : public ROSPPPProfile
 {
 private:
-	QString m_name;
 	QString m_group;
-	quint32 m_txKbps;	// Carga
-	quint32 m_rxKbps;	// Descarga
 	bool m_disabled;	// Si este perfil es para usuarios dados de baja.
 	bool m_internal;	// Si este perfil es interno y no ha de usarse.
 	bool m_default;		// Si este perfil es el perfil por defecto.
 
 public:
-	const QString &name() const				{ return m_name;	}
-	void setName(const QString &n)			{ m_name = n;		}
+	inline const QString &group() const			{ return m_group;	}
+	inline void setGroup(const QString &group)	{ m_group = group;	}
 
-	const QString &group() const			{ return m_group;	}
-	void setGroup(const QString &group)		{ m_group = group;	}
+	inline bool isInternalProfile() const		{ return m_internal;}
+	inline void setInternalProfile(bool i)		{ m_internal = i;	}
 
-	quint32 upload() const					{ return m_txKbps;	}
-	void setUpload(quint32 upKbps)			{ m_txKbps = upKbps;}
+	inline bool isDisabledProfile() const		{ return m_disabled;}
+	inline void setDisabledProfile(bool d)		{ m_disabled = d;	}
 
-	quint32 download() const				{ return m_rxKbps;	}
-	void setDownload(quint32 dwKbps)		{ m_rxKbps = dwKbps;}
+	inline bool isDefaultProfile() const		{ return m_default;	}
+	inline void setDefaultProfile(bool d)		{ m_default = d;	}
 
-	bool isInternal() const					{ return m_internal;}
-	void setInternal(bool i)				{ m_internal = i;	}
-
-	bool isDisabled() const					{ return m_disabled;}
-	void setDisabled(bool d)				{ m_disabled = d;	}
-
-	bool isDefault() const					{ return m_default;	}
-	void setDefault(bool d)					{ m_default = d;	}
-
-	ClientProfileData()
-		: m_disabled(false),
-		  m_internal(false),
-		  m_default(false)
+	explicit ClientProfileData(const QString &routerName) : ROSPPPProfile(routerName),
+		m_disabled(false),
+		m_internal(false),
+		m_default(false)
+	{
+		fromSaveString(routerName);
+	}
+	ClientProfileData(const QString &routerName, const ROS::QSentence &s) : ROSPPPProfile(routerName, s),
+		m_disabled(false),
+		m_internal(false),
+		m_default(false)
 	{	}
-	explicit ClientProfileData(const ROS::QSentence &s)
-		: m_disabled(false),
-		  m_internal(false),
-		  m_default(false)
+
+	bool operator==(const QString &profileName) const
 	{
-		m_name = s.attribute("name");
-	}
-	explicit ClientProfileData(const QString &saveString)
-	{
-		fromSaveString(saveString);
-	}
-	bool operator==(const QString &nombre) const
-	{
-		return m_name == nombre;
+		return this->profileName() == profileName;
 	}
 	bool operator==(const ClientProfileData &clientProfileData) const
 	{
-		return m_name == clientProfileData.m_name;
+		return profileName() == clientProfileData.profileName();
 	}
 
 	QString saveString()const;
@@ -73,18 +59,18 @@ class QClientProfileList : public QList<ClientProfileData>
 	// TODO: caching current default and disabled profiles to improve lookup speed.
 public:
 	void append(const ClientProfileData &s);
-	void append(const ROS::QSentence &s)	{ append( ClientProfileData(s) ); }
+	void append(const QString &routerName, const ROS::QSentence &s)	{ append( ClientProfileData(routerName, s) ); }
 
-	bool contains(const QString &s) const;
+	bool contains(const QString &profileName) const;
 
 	void save(QIniData &cnfgData) const;
 	void load(const QIniData &cnfgData);
 
-	int indexOfDisabled()const;
+	int indexOfDisabledProfile()const;
 	ClientProfileData disabledProfile()const;
 	bool isDisabledProfile(const QString &profileName)const;
 
-	int indexOfDefault()const;
+	int indexOfDefaultProfile()const;
 	ClientProfileData defaultProfile()const;
 	bool isDefaultProfile(const QString &profileName)const;
 

@@ -1,6 +1,5 @@
 #include "ROSPPPoEManager.h"
 
-
 ROSPPPoEManager::ROSPPPoEManager(QObject *papi) : Comm(papi)
 {
 	connect(this, SIGNAL(comReceive(ROS::QSentence&)), this, SLOT(onDataReceived(ROS::QSentence&)));
@@ -15,6 +14,7 @@ void ROSPPPoEManager::onDataReceived(ROS::QSentence &sentence)
 	case ROS::QSentence::Done:
 		m_rosAPIUserManager.onDone( sentence );
 		m_rosAPIUsersGroupManager.onDone( sentence );
+		m_rosPPPProfileManager.onDone( sentence );
 		break;
 	case ROS::QSentence::Trap:
 		break;
@@ -23,62 +23,92 @@ void ROSPPPoEManager::onDataReceived(ROS::QSentence &sentence)
 	case ROS::QSentence::Reply:
 		m_rosAPIUserManager.onReply( sentence );
 		m_rosAPIUsersGroupManager.onReply( sentence );
+		m_rosPPPProfileManager.onReply( sentence );
 		break;
 	}
 }
 
-void ROSPPPoEManager::requestAllAPIUsers(QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
+void ROSPPPoEManager::updateRemoteData(const char *path, const ROSDataBase &newROSData, const ROSDataBase &oldROSData)
 {
+	Q_ASSERT( strlen(path) > 2 );
+	Q_ASSERT( path[0] == '/' );
+	Q_ASSERT( path[strlen(path)-1] == '/' );
+
 	ROS::QSentence sentence;
 
-	Q_ASSERT(!routerName().isEmpty());
-	sentence.addQuery("#|");
-	sentence.setTag("ROSAPIUserManager");
-	m_rosAPIUserManager.setup(receiverOb, routerName(), sentence.tag(), replySlot, doneSlot, errorSlot, false, true);
+	sentence.setTag( QString("%1-mod" ).arg(this->metaObject()->className()) );
 
-	sentence.setCommand("/user/getall");
-	sendSentence(sentence);
-
-	sentence.setCommand("/user/listen");
-	sendSentence(sentence);
-}
-
-void ROSPPPoEManager::updateROSAPIUser(const ROSAPIUser &newROSAPIUser)
-{
-	ROS::QSentence sentence;
-
-	if( newROSAPIUser.dataID().isEmpty() )
+	if( newROSData.dataID().isEmpty() )
 	{
-		sentence.setCommand("/user/add");
-		sendSentence(newROSAPIUser.toSentence(sentence));
+		sentence.setCommand( QString("%1add").arg(path) );
+		sendSentence(newROSData.toSentence(sentence));
 	}
 	else
-	if( newROSAPIUser.deleting() )
+	if( newROSData.deleting() )
 	{
-		sentence.setCommand("/user/remove");
-		sentence.setID(newROSAPIUser.dataID());
+		sentence.setCommand( QString("%1remove").arg(path) );
+		sentence.setID(newROSData.dataID());
 		sendSentence(sentence);
 	}
 	else
-	if( !m_rosAPIUserManager.rosData(newROSAPIUser.dataID()).hasSameData(newROSAPIUser) )
+	if( !newROSData.hasSameData(oldROSData) )
 	{
-		sentence.setCommand("/user/set");
-		sendSentence(newROSAPIUser.toSentence(sentence));
+		sentence.setCommand( QString("%1set").arg(path) );
+		sendSentence(newROSData.toSentence(sentence));
 	}
+}
+
+void ROSPPPoEManager::requestRemoteData(const char *path, const QString &sentenceTag)
+{
+	Q_ASSERT( strlen(path) > 2 );
+	Q_ASSERT( path[0] == '/' );
+	Q_ASSERT( path[strlen(path)-1] == '/' );
+
+	ROS::QSentence sentence;
+	sentence.addQuery( "#|" );
+	sentence.setTag( sentenceTag );
+
+	sentence.setCommand( QString("%1getall").arg(path) );
+	sendSentence(sentence);
+
+	sentence.setCommand( QString("%1listen").arg(path) );
+	sendSentence(sentence);
+}
+
+void ROSPPPoEManager::requestAllAPIUsers(QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
+{
+	Q_ASSERT( !routerName().isEmpty() );
+
+	QString sentenceTag = "ROSAPIUser-all";
+	requestRemoteData( "/user/", sentenceTag );
+
+	m_rosAPIUserManager.setup(receiverOb, routerName(), sentenceTag, replySlot, doneSlot, errorSlot, false);
+}
+void ROSPPPoEManager::updateROSAPIUser(const ROSAPIUser &newROSAPIUser)
+{
+	updateRemoteData("/user/", newROSAPIUser, m_rosAPIUserManager.rosData(newROSAPIUser.dataID()));
+}
+
+void ROSPPPoEManager::requestAllPPPProfiles(QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
+{
+	Q_ASSERT( !routerName().isEmpty() );
+
+	QString sentenceTag = "ROSPPPProfile-all";
+	requestRemoteData( "/ppp/profile/", sentenceTag );
+
+	m_rosPPPProfileManager.setup(receiverOb, routerName(), sentenceTag, replySlot, doneSlot, errorSlot, false);
+}
+void ROSPPPoEManager::updatePPPProfile(const ROSPPPProfile &newROSPPPProfile)
+{
+	updateRemoteData("/ppp/profile/", newROSPPPProfile, m_rosAPIUserManager.rosData(newROSPPPProfile.dataID()));
 }
 
 void ROSPPPoEManager::requestAllAPIUsersGroup(QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
 {
-	ROS::QSentence sentence;
+	Q_ASSERT( !routerName().isEmpty() );
 
-	Q_ASSERT(!routerName().isEmpty());
-	sentence.addQuery("#|");
-	sentence.setTag("ROSAPIUsersGroupManager");
-	m_rosAPIUsersGroupManager.setup(receiverOb, routerName(), sentence.tag(), replySlot, doneSlot, errorSlot, false, true);
+	QString sentenceTag = "ROSAPIUsersGroup-all";
+	requestRemoteData( "/user/group/", sentenceTag );
 
-	sentence.setCommand("/user/group/getall");
-	sendSentence(sentence);
-
-	sentence.setCommand("/user/group/listen");
-	sendSentence(sentence);
+	m_rosAPIUsersGroupManager.setup(receiverOb, routerName(), sentenceTag, replySlot, doneSlot, errorSlot, false);
 }

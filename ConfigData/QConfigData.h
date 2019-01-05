@@ -107,7 +107,7 @@ public:
 	void setAltoPantalla(int a)			{ m_altoPantalla = a;	}
 
 	QClientProfileList &perfiles()					{ return m_perfiles;	}
-	void addPerfil(const ROS::QSentence &s)			{ m_perfiles.append(s); }
+	void addPerfil(const QString &routerName, const ROS::QSentence &s)			{ m_perfiles.append(routerName, s); }
 
 	void addRange(const IPv4Range &ipv4Range)		{ m_staticIPv4Map.addRange(ipv4Range);			}
 	void delRange(const QString &ipv4RangeName)		{ m_staticIPv4Map.delRange(ipv4RangeName);		}

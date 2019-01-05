@@ -53,7 +53,7 @@ void QSecretData::parseComment(const QString &comment)
 	}
 	else
 	{
-		setPerfilOriginal( (perfilReal().isEmpty() || gGlobalConfig.perfiles().isDisabledProfile(perfilReal())) ? gGlobalConfig.perfiles().defaultProfile().name() : perfilReal());
+		setPerfilOriginal( (perfilReal().isEmpty() || gGlobalConfig.perfiles().isDisabledProfile(perfilReal())) ? gGlobalConfig.perfiles().defaultProfile().profileName() : perfilReal());
 		parsePlainComment(comment);
 	}
 	if( !gGlobalConfig.perfiles().isDisabledProfile(perfilReal()) )

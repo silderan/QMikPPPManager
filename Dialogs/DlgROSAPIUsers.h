@@ -19,8 +19,10 @@ class DlgROSAPIUsers : public QDialog
 	Q_OBJECT
 	Ui::DlgROSAPIUsers *ui;
 
+	ROSMultiConnectManager *m_mktAPI;
+
 public:
-	explicit DlgROSAPIUsers(QWidget *parent = Q_NULLPTR);
+	explicit DlgROSAPIUsers(ROSMultiConnectManager *mktAPI, QWidget *parent = Q_NULLPTR);
 	~DlgROSAPIUsers();
 
 	void onUserDataReceived(const ROSAPIUser &user);
