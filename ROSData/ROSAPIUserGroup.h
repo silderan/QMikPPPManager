@@ -1,8 +1,6 @@
 #ifndef ROSAPIUSERGROUP_H
 #define ROSAPIUSERGROUP_H
 
-#include <QList>
-
 #include "ROSDataBasics.h"
 
 class ROSAPIUsersGroup : public ROSDataBase
@@ -23,7 +21,6 @@ public:
 	{
 		fromSentence(routerName, sentence);
 	}
-	virtual void fromSentence(const QString &routerName, const ROS::QSentence &s);
 
 	inline const QString &groupName()const			{ return m_name;	}
 	inline void setGroupName(const QString &group)	{ m_name = group;	}
@@ -31,10 +28,9 @@ public:
 	inline const QStringList &policy() const			{ return m_policy;		}
 	inline void setPolicy(const QStringList &policy)	{ m_policy = policy;	}
 
+	virtual void fromSentence(const QString &routerName, const ROS::QSentence &s);
 	virtual ROS::QSentence &toSentence(ROS::QSentence &sentence) const;
 	virtual bool hasSameData(const ROSDataBase &rosAPIUsersGrup) const;
-	virtual void copyData(const ROSDataBase &rosAPIUsersGrup);
 };
-typedef QList<ROSAPIUsersGroup> QROSAPIUsersGroupList;
 
 #endif // ROSAPIUSERGROUP_H

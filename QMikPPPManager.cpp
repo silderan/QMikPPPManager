@@ -45,6 +45,7 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 	updateConfig();
 
 	connect( &mktAPI, SIGNAL(comError(QString,QString)), this, SLOT(onComError(QString,QString)) );
+	connect( &mktAPI, SIGNAL(rosError(QString,QString)), this, SLOT(onROSError(QString,QString)) );
 
 	connect( &mktAPI, SIGNAL(statusInfo(QString,QString)),this,SLOT(setStatusText(QString,QString)) );
 
@@ -137,7 +138,7 @@ void QMikPPPManager::onAllRoutersDisconnected()
 	ui->disconnectButton->setDisabled(true);
 	if( dlgROSAPIUsers )
 		dlgROSAPIUsers->clear();
-	if( dlgPPPProfiles );
+	if( dlgPPPProfiles )
 		dlgPPPProfiles->clear();
 	mktAPI.clear();
 }
@@ -155,9 +156,18 @@ void QMikPPPManager::onLogued(const QString &routerName)
 
 void QMikPPPManager::onComError(const QString &errorString, const QString &routerName)
 {
+	setStatusText(errorString, routerName);
 	QMessageBox::warning(this,
 						 objectName(),
 						 tr("Error reportado por la red, router o sistema para el router %1\n\n%2").arg(routerName, errorString));
+}
+
+void QMikPPPManager::onROSError(const QString &routerName, const QString &errorString)
+{
+	setStatusText(errorString, routerName);
+	QMessageBox::warning(this,
+						 objectName(),
+						 tr("Error en el router %1:\n\n%2").arg(routerName, errorString));
 }
 
 QString QMikPPPManager::createRouterName(const ConnectInfo &conInfo) const
@@ -221,7 +231,8 @@ void QMikPPPManager::requestPPPProfiles(const QString &routerName)
 }
 void QMikPPPManager::onOnePPPProfileReceived(const QString &routerName, ROSPPPProfile *rosPPPProfile)
 {
-//	dlgPPPProfile.onUsersGroupDataReceived( *rosPPPProfile );
+	if( dlgPPPProfiles )
+		dlgPPPProfiles->onPPPProfileDataReceived(  *rosPPPProfile );
 	setStatusText( tr("Recibido perfil %1").arg(rosPPPProfile->profileName()), routerName );
 }
 void QMikPPPManager::onAllPPPProfilesReceived(const QString &routerName)
@@ -536,7 +547,7 @@ void QMikPPPManager::onDatoModificado(QSecretDataModel::Columnas col, const QStr
 
 			// TODO: Repasar esto!!!!
 			if( !sd->dadoDeBaja() )
-				sd->setPerfilReal( gGlobalConfig.perfiles().defaultProfile().profileName() );
+				sd->setPerfilReal( gGlobalConfig.clientProfileList().defaultProfile().profileName() );
 			else
 				sd->setPerfilReal( sd->perfilOriginal() );
 			actualizaPerfilRemoto( sd );
@@ -814,7 +825,24 @@ void QMikPPPManager::on_addUserButton_clicked()
 void QMikPPPManager::on_apiUsersButton_clicked()
 {
 	if( !dlgROSAPIUsers )
-		dlgROSAPIUsers = new DlgROSAPIUsers( &mktAPI, this );
+	{
+		dlgROSAPIUsers = new DlgROSAPIUsers( this );
+
+		ROSPPPoEManagerIterator it(mktAPI.rosPPPoEManagerMap());
+		while( it.hasNext() )
+		{
+			it.next();
+			foreach( const ROSAPIUser &user, it.value()->rosApiUserManager().rosDataList() )
+			{
+				dlgROSAPIUsers->onUserDataReceived(user);
+			}
+			foreach( const ROSAPIUsersGroup &group, it.value()->rosApiUsersGroupManager().rosDataList() )
+			{
+				dlgROSAPIUsers->onUsersGroupDataReceived(group);
+			}
+		}
+		connect( dlgROSAPIUsers, SIGNAL(userModified(ROSDataBase,QRouterIDMap)), &mktAPI, SLOT(updateRemoteAPIUserData(ROSDataBase,QRouterIDMap)) );
+	}
 
 	dlgROSAPIUsers->show();
 }
@@ -822,7 +850,20 @@ void QMikPPPManager::on_apiUsersButton_clicked()
 void QMikPPPManager::on_pppProfilesButton_clicked()
 {
 	if( !dlgPPPProfiles )
-		dlgPPPProfiles = new DlgPPPProfiles( &mktAPI, this );
+	{
+		dlgPPPProfiles = new DlgPPPProfiles( this );
+
+		ROSPPPoEManagerIterator it(mktAPI.rosPPPoEManagerMap());
+		while( it.hasNext() )
+		{
+			it.next();
+			foreach( const ROSPPPProfile &profileData, it.value()->rosPPPProfileManager().rosDataList() )
+			{
+				dlgPPPProfiles->onPPPProfileDataReceived(profileData);
+			}
+		}
+		connect( dlgPPPProfiles, SIGNAL(dataModified(ROSDataBase,QRouterIDMap)), &mktAPI, SLOT(updateRemotePPPProfileData(ROSDataBase,QRouterIDMap)) );
+	}
 
 	dlgPPPProfiles->show();
 }

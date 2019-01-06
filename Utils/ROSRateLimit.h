@@ -43,6 +43,7 @@ public:
 
 	inline quint32 downloadAverageSeconds() const					{ return m_rxAverageSeconds;	}
 	inline void setDownloadAverageSeconds(quint32 dwAverageSeconds)	{ m_rxAverageSeconds = dwAverageSeconds;}
+	inline bool isUnlimited() const { return (m_txKbps.toInt() == 0) || (m_rxKbps.toInt() == 0); }
 	bool operator==(const ROSRateLimit &rateLimit)const;
 	void clear();
 	void fromString(const QString &str);

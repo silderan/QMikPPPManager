@@ -1,8 +1,6 @@
 #ifndef QROSDATABASICS_H
 #define QROSDATABASICS_H
 
-#include <QMetaMethod>
-#include <QObject>
 #include <QString>
 
 #include <QMap>
@@ -37,8 +35,15 @@ public:
 
 	virtual void fromSentence(const QString &routerName, const ROS::QSentence &s);
 	virtual ROS::QSentence &toSentence(ROS::QSentence &sentence) const;
-	virtual bool hasSameData(const ROSDataBase &)const = 0;
-	virtual void copyData(const ROSDataBase &)		{ }
+	/**
+	 * @brief hasSameData
+	 * Called to determine if rosData must be send to ROS.
+	 * So, derived classes MUST override and check if any of their data is not identical
+	 * and return false.
+	 * Also dataID() shouldn't be checked. For this reason, this function is pure virtual.
+	 * @return false if any data is different.
+	 */
+	virtual bool hasSameData(const ROSDataBase &rosData)const = 0;
 };
 
 class QRouterIDMap : public QMap<QString, QString>

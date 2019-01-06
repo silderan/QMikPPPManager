@@ -41,7 +41,8 @@ public slots:
 	void sendSentence(const QString &routerName, const ROS::QSentence &s);
 	void sendSentence(const QString &routerName, const QString &s, const QString &tag, const QStringList attrib = QStringList());
 
-	void setROSAPIUserData(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap);
+	void updateRemoteAPIUserData(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap);
+	void updateRemotePPPProfileData(const ROSDataBase &profileData, const QRouterIDMap &routerIDMap);
 
 signals:
 	void statusInfo(const QString &info, const QString &routerName);
@@ -51,6 +52,7 @@ signals:
 	void allDisconnected();
 	void logued(const QString &routerName);
 	void comError(QString errorString, const QString &routerName);
+	void rosError(const QString &routerName, QString errorString);
 };
 
 extern ROSMultiConnectManager mktAPI;

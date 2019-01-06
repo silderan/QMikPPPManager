@@ -12,15 +12,15 @@ QConfigData gGlobalConfig;
 
 QComboBox *QConfigData::setupCBPerfiles(QComboBox *cb, const QString &select)
 {
-	return QConfigData::setupComboBox(cb, false, select, perfiles().profileNames());
+	return QConfigData::setupComboBox(cb, false, select, clientProfileList().profileNames());
 }
 
 QComboBox *QConfigData::setupCBPerfilesUsables(QComboBox *cb, const QString &select)
 {
-	QStringList pp = perfiles().profileNames();
+	QStringList pp = clientProfileList().profileNames();
 	QString p;
 	foreach(p, pp)
-		if( perfiles().isInternalProfile(p) )
+		if( clientProfileList().isInternalProfile(p) )
 			pp.removeOne(p);
 	return QConfigData::setupComboBox(cb, false, select, pp);
 }
@@ -93,7 +93,7 @@ void QConfigData::loadGlobalProtectedData()
 
 	m_comerciales		= cnfgData[GPKEY_COMERCIALES].split(',', QString::SkipEmptyParts);
 
-	m_perfiles.load(cnfgData);
+	m_clientProfileList.load(cnfgData);
 	m_staticIPv4Map.load(cnfgData);
 }
 
@@ -130,7 +130,7 @@ void QConfigData::saveGlobalProtectedData() const
 		cnfgData[GPKEY_COMERCIALES]	= m_comerciales.join(',');
 		cnfgData[GPKEY_INSTALADORES]= m_instaladores.join(',');
 
-		m_perfiles.save(cnfgData);
+		m_clientProfileList.save(cnfgData);
 		m_staticIPv4Map.save(cnfgData);
 
 		QIniFile::save(m_rosProtectedFName, cnfgData);

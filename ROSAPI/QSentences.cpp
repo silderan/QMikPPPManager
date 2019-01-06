@@ -83,28 +83,20 @@ QStringList QBasicAttrib::toWords() const
  * attributes)
  * @param name The name of the word to create the ROS-word.
  * @return The ROS-word created. If name doesn't exist into
- * mapping, empty string is returned.
- * Be carefull because if you use what this function returns
- * without ensuring that "name" is into mapping, the empty
- * word returned shall invalidate all sentence as empty word
- * means "sentence end" to ROS.
+ * mapping, an emtpy attribute is created that has to meanings:
+ * 1: delete remote data (for attributes that needs data).
+ * 2: use attribute (for attributes that does'nt use data)
  */
 QString QBasicAttrib::toWord(const QString &name) const
 {
-	QString val = value(name);
-	if( !val.isEmpty() )
-		return QString("%1%2=%3").arg(firstCh).arg(name,val);
-	if( name.startsWith('!') )
-		return QString("%1%2").arg(firstCh).arg(name);
-	return QString();
+	return QString("%1%2=%3").arg(firstCh).arg(name, value(name));
 }
 
 /**
  * @brief QBasicAttrib::addWord
  * Inserts a new par name-value into internal mapping.
- * Note that internal mapping doesn't allow duplicate names. Si
- * inserting a name that already exists, will replace value instead
- * of append a new one.
+ * Note: internal mapping doesn't allow duplicate names (keys) So, inserting
+ * an already existing name, will replace value instead of appending a new one.
  * @param name The name of the attribute.
  * @param value The value of attribute. Can be empty.
  * @see addWords
@@ -112,7 +104,7 @@ QString QBasicAttrib::toWord(const QString &name) const
  */
 void QBasicAttrib::addWord(const QString &name, const QString &value)
 {
-	insert(name, value);
+	insert( name, value );
 }
 
 /**
@@ -139,7 +131,7 @@ void QBasicAttrib::addWords(const QStringList &words)
  * char in word parameter, it will be ignored.
  * For example. If first char in class is '='
  * and word parameter is "=xxxx=yyyyy"
- * the firs '=' character is ignored, attribute name
+ * the first '=' character is ignored, attribute name
  * will be "xxxx" and attribute value "yyyyy"
  * @param word The word to be analized to get attribute
  * name-value pair.
@@ -223,7 +215,7 @@ QQuery &QQuery::fromWord(const QString &word)
 		type = LessThanProp;
 		break;
 	case '#':
-		name = word.right(from);
+		name = word.mid(from);
 		type = Operation;
 		break;
 	}

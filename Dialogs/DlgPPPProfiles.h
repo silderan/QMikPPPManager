@@ -2,8 +2,7 @@
 #define DLGPPPPROFILES_H
 
 #include <QDialog>
-
-#include "../ROSMultiConnectorManager.h"
+#include "../ROSData/ROSPPPProfile.h"
 
 namespace Ui
 {
@@ -16,10 +15,8 @@ class DlgPPPProfiles : public QDialog
 
 	Ui::DlgPPPProfiles *ui;
 
-	ROSMultiConnectManager *m_mktAPI;
-
 public:
-	explicit DlgPPPProfiles(ROSMultiConnectManager *mktAPI, QWidget *parent);
+	explicit DlgPPPProfiles(QWidget *parent);
 	~DlgPPPProfiles();
 
 private slots:
@@ -27,6 +24,10 @@ private slots:
 
 public slots:
 	void clear();
+	void onPPPProfileDataReceived(const ROSPPPProfile &profileData);
+
+signals:
+	void dataModified(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap);
 };
 
 #endif // DLGPPPPROFILES_H

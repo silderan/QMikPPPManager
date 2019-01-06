@@ -25,13 +25,13 @@ void ROSPPPProfile::fromSentence(const QString &routerName, const ROS::QSentence
 
 ROS::QSentence &ROSPPPProfile::toSentence(ROS::QSentence &sentence) const
 {
-	ROSDataBase::toSentence(sentence);
 	sentence.addAttribute( "name", m_name );
-	sentence.addAttribute( "rate-limit", m_rateLimit.toString() );
+	sentence.addAttribute( "rate-limit", m_rateLimit.isUnlimited() ? "" : m_rateLimit.toString() );
 	sentence.addAttribute( "bridge", m_bridgeName );
 	sentence.addAttribute( "local-address", m_localAdress );
 	sentence.addAttribute( "remote-address", m_remoteAdress );
-	return sentence;
+
+	return ROSDataBase::toSentence(sentence);
 }
 
 bool ROSPPPProfile::hasSameData(const ROSDataBase &rosPPPProfile) const
@@ -42,13 +42,4 @@ bool ROSPPPProfile::hasSameData(const ROSDataBase &rosPPPProfile) const
 		(m_bridgeName == static_cast<const ROSPPPProfile &>(rosPPPProfile).m_bridgeName) &&
 		(m_localAdress == static_cast<const ROSPPPProfile &>(rosPPPProfile).m_localAdress) &&
 		(m_remoteAdress == static_cast<const ROSPPPProfile &>(rosPPPProfile).m_remoteAdress) ;
-}
-
-void ROSPPPProfile::copyData(const ROSDataBase &rosPPPProfile)
-{
-	m_name = static_cast<const ROSPPPProfile &>(rosPPPProfile).m_name;
-	m_rateLimit = static_cast<const ROSPPPProfile &>(rosPPPProfile).m_rateLimit;
-	m_bridgeName = static_cast<const ROSPPPProfile &>(rosPPPProfile).m_bridgeName;
-	m_localAdress = static_cast<const ROSPPPProfile &>(rosPPPProfile).m_localAdress;
-	m_remoteAdress = static_cast<const ROSPPPProfile &>(rosPPPProfile).m_remoteAdress;
 }

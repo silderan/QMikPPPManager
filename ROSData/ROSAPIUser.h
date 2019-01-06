@@ -1,10 +1,6 @@
 #ifndef ROSAPIUSER_H
 #define ROSAPIUSER_H
 
-#include <QList>
-#include <QString>
-#include <QStringList>
-
 #include "ROSDataBasics.h"
 
 class ROSAPIUser : public ROSDataBase
@@ -63,14 +59,8 @@ public:
 	inline Level userLevel()const					{ return m_level;	}
 	inline void setUserLevel(Level level)			{ m_level = level;	}
 
-	// ROSDataBase interface
-public:
 	virtual void fromSentence(const QString &routerName, const ROS::QSentence &sentence);
 	virtual ROS::QSentence &toSentence(ROS::QSentence &sentence) const;
 	virtual bool hasSameData(const ROSDataBase &rosAPIUser) const;
-	virtual void copyData(const ROSDataBase &rosAPIUser);
 };
-
-typedef QList<ROSAPIUser> QROSAPIUserList;
-
 #endif // ROSAPIUSER_H

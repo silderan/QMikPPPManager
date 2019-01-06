@@ -40,6 +40,7 @@ ROS::QSentence &ROSAPIUser::toSentence(ROS::QSentence &sentence) const
 	sentence.addAttribute( "group", m_group );
 	sentence.addAttribute( "comment", levelName() );
 	sentence.addAttribute( "password", m_upass );
+
 	return ROSDataBase::toSentence(sentence);
 }
 
@@ -48,11 +49,4 @@ bool ROSAPIUser::hasSameData(const ROSDataBase &rosAPIUser) const
 	return	(m_uname == static_cast<const ROSAPIUser&>(rosAPIUser).m_uname) &&
 			(m_group == static_cast<const ROSAPIUser&>(rosAPIUser).m_group) &&
 			(m_level == static_cast<const ROSAPIUser&>(rosAPIUser).m_level);
-}
-
-void ROSAPIUser::copyData(const ROSDataBase &rosAPIUser)
-{
-	m_uname = static_cast<const ROSAPIUser&>(rosAPIUser).m_uname;
-	m_group = static_cast<const ROSAPIUser&>(rosAPIUser).m_group;
-	m_level = static_cast<const ROSAPIUser&>(rosAPIUser).m_level;
 }

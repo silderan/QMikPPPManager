@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>499</width>
+    <height>453</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>PPP Profiles</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
@@ -21,7 +21,7 @@
      </property>
      <property name="sizeHint" stdset="0">
       <size>
-       <width>329</width>
+       <width>428</width>
        <height>20</height>
       </size>
      </property>
@@ -42,7 +42,7 @@
     </widget>
    </item>
    <item row="1" column="0" colspan="3">
-    <widget class="QTableWidget" name="profilesTable"/>
+    <widget class="QPPPProfilesTableWidget" name="profilesTable"/>
    </item>
    <item row="2" column="0">
     <widget class="QPushButton" name="acceptButton">
@@ -59,6 +59,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QPPPProfilesTableWidget</class>
+   <extends>QTableWidget</extends>
+   <header>Widgets/QPPPProfilesTableWidget.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

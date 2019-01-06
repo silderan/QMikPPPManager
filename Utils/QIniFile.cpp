@@ -42,8 +42,15 @@ bool QIniFile::load(const QString &file, QIniData *data)
 		QList<QByteArray> bits;
 		while( !f.atEnd() )
 			if( (linea = f.readLine().replace("\n", "")).count() )
-				if( (bits = linea.split('=')).count() == 2 )
-					(*data)[QString::fromLatin1(bits[0])] = QString::fromLatin1(bits[1]);
+			{
+				int splitPos = linea.indexOf( '=' );
+				if( (splitPos != -1) && linea.count() > splitPos )
+				{
+					QString key = QString::fromLatin1( linea.left(splitPos) );
+					QString value = QString::fromLatin1( linea.right(linea.count() - splitPos - 1) );
+					data->insert(key, value);
+				}
+			}
 		f.close();
 		return true;
 	}
@@ -67,6 +74,7 @@ bool QIniFile::save(const QString &file, const QIniData &data)
 		QMap<QString, QString>::const_iterator i;
 		for( i = data.constBegin(); i != data.constEnd(); i++ )
 		{
+			Q_ASSERT( !i.key().contains('=') );
 			QByteArray ba = QString("%1=%2\n").arg(i.key(), i.value()).toLatin1();
 			if( f.write(ba) != ba.count() )
 			{

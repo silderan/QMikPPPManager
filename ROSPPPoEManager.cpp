@@ -17,6 +17,7 @@ void ROSPPPoEManager::onDataReceived(ROS::QSentence &sentence)
 		m_rosPPPProfileManager.onDone( sentence );
 		break;
 	case ROS::QSentence::Trap:
+		emit rosError(routerName(), sentence.attribute("message"));
 		break;
 	case ROS::QSentence::Fatal:
 		break;

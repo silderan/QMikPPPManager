@@ -42,13 +42,13 @@ DlgConfiguracion::DlgConfiguracion(QWidget *parent) :
 	m_profilesGroupNameList.append( tr("Interno") );
 	m_profilesGroupNameList.append( tr("Baja") );
 
-	for( row = 0; row < gGlobalConfig.perfiles().count(); ++row )
+	for( row = 0; row < gGlobalConfig.clientProfileList().count(); ++row )
 	{
-		if( !m_profilesGroupNameList.contains(gGlobalConfig.perfiles().at(row).group()) )
-			m_profilesGroupNameList.append(gGlobalConfig.perfiles().at(row).group());
+		if( !m_profilesGroupNameList.contains(gGlobalConfig.clientProfileList().at(row).groupName()) )
+			m_profilesGroupNameList.append(gGlobalConfig.clientProfileList().at(row).groupName());
 	}
-	for( row = 0; row < gGlobalConfig.perfiles().count(); ++row )
-		addProfileTableRow(gGlobalConfig.perfiles().at(row));
+	for( row = 0; row < gGlobalConfig.clientProfileList().count(); ++row )
+		addProfileTableRow(gGlobalConfig.clientProfileList().at(row));
 
 	switch( gGlobalConfig.nivelUsuario() )
 	{
@@ -94,7 +94,7 @@ void DlgConfiguracion::addProfileTableRow(const ClientProfileData &clientProfile
 	int row = ui->profilesTable->rowCount();
 
 	ui->profilesTable->insertRow(row);
-	gGlobalConfig.perfiles()[row].profileName();
+	gGlobalConfig.clientProfileList()[row].profileName();
 
 	QComboBox *profileCB = new QComboBox();
 	profileCB->addItem( tr("[Básico]"), "defaultProfile" );
@@ -129,12 +129,12 @@ void DlgConfiguracion::on_btAceptar_clicked()
 		QComboBox *profileCB = static_cast<QComboBox*>(ui->profilesTable->cellWidget(row, 1));
 
 		if( profileCB->currentData().toString() == "defaultProfile" )
-			gGlobalConfig.perfiles().setDefaultProfile(row);
+			gGlobalConfig.clientProfileList().setDefaultProfile(row);
 
 		if( profileCB->currentData().toString() == "disabledProfile" )
-			gGlobalConfig.perfiles().setDisabledProfile(row);
+			gGlobalConfig.clientProfileList().setDisabledProfile(row);
 
-		gGlobalConfig.perfiles().setProfileGroupName(row, profileCB->currentText());
+		gGlobalConfig.clientProfileList().setProfileGroupName(row, profileCB->currentText());
 	}
 	accept();
 }

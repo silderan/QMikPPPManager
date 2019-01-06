@@ -3,30 +3,30 @@
 #define KEY_CLIENT_PROFILE_DATA				("client-profile-data")
 #define KEY_CLIENT_PROFILE_DATA_LIST(_i)	(QString("client-profile-data-list-%1").arg(_i))
 
-void QClientProfileList::append(const ClientProfileData &s)
+void QClientProfileList::append(const ClientProfileData &saveString)
 {
 	int i;
 
 	// Ensures that only one profile is for disabled users.
-	if( s.isDisabledProfile() )
+	if( saveString.isDisabledProfile() )
 	{
 		i = indexOfDisabledProfile();
 		if( i != -1 )
 			(*this)[i].setDisabledProfile(false);
 	}
 	// Ensures that only one profile is the default one.
-	if( s.isDefaultProfile() )
+	if( saveString.isDefaultProfile() )
 	{
 		i = indexOfDefaultProfile();
 		if( i != -1 )
 			(*this)[i].setDefaultProfile(false);
 	}
 
-	i = indexOf(s);
+	i = indexOf(saveString);
 	if( i == -1 )
-		QList::append(s);
+		QList::append(saveString);
 	else
-		(*this)[i] = s;
+		(*this)[i] = saveString;
 }
 
 bool QClientProfileList::contains(const QString &profileName) const
@@ -149,7 +149,7 @@ void QClientProfileList::setDefaultProfile(int index)
 void QClientProfileList::setProfileGroupName(int index, const QString &name)
 {
 	if( index < count() )
-		(*this)[index].setGroup(name);
+		(*this)[index].setGroupName(name);
 }
 
 QStringList QClientProfileList::profileNames() const

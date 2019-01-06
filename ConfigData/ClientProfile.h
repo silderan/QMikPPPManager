@@ -4,20 +4,22 @@
 #include <QStringList>
 
 #include "Utils/QIniFile.h"
-#include "ROSAPI/QSentences.h"
-#include "ROSData/ROSPPPProfile.h"
 
-struct ClientProfileData : public ROSPPPProfile
+struct ClientProfileData
 {
 private:
+	QString m_name;
 	QString m_group;
 	bool m_disabled;	// Si este perfil es para usuarios dados de baja.
 	bool m_internal;	// Si este perfil es interno y no ha de usarse.
 	bool m_default;		// Si este perfil es el perfil por defecto.
 
 public:
-	inline const QString &group() const			{ return m_group;	}
-	inline void setGroup(const QString &group)	{ m_group = group;	}
+	inline const QString &profileName() const				{ return m_name;		}
+	inline void setProfileName(const QString &profileName)	{ m_name = profileName;	}
+
+	inline const QString &groupName() const			{ return m_group;	}
+	inline void setGroupName(const QString &group)	{ m_group = group;	}
 
 	inline bool isInternalProfile() const		{ return m_internal;}
 	inline void setInternalProfile(bool i)		{ m_internal = i;	}
@@ -28,26 +30,26 @@ public:
 	inline bool isDefaultProfile() const		{ return m_default;	}
 	inline void setDefaultProfile(bool d)		{ m_default = d;	}
 
-	explicit ClientProfileData(const QString &routerName) : ROSPPPProfile(routerName),
+	explicit ClientProfileData(const QString &saveString) :
 		m_disabled(false),
 		m_internal(false),
 		m_default(false)
 	{
-		fromSaveString(routerName);
+		fromSaveString(saveString);
 	}
-	ClientProfileData(const QString &routerName, const ROS::QSentence &s) : ROSPPPProfile(routerName, s),
+	ClientProfileData() :
 		m_disabled(false),
 		m_internal(false),
 		m_default(false)
 	{	}
 
-	bool operator==(const QString &profileName) const
+	inline bool operator==(const QString &profileName) const
 	{
-		return this->profileName() == profileName;
+		return m_name == profileName;
 	}
-	bool operator==(const ClientProfileData &clientProfileData) const
+	inline bool operator==(const ClientProfileData &clientProfileData) const
 	{
-		return profileName() == clientProfileData.profileName();
+		return m_name == clientProfileData.profileName();
 	}
 
 	QString saveString()const;
@@ -58,8 +60,7 @@ class QClientProfileList : public QList<ClientProfileData>
 {
 	// TODO: caching current default and disabled profiles to improve lookup speed.
 public:
-	void append(const ClientProfileData &s);
-	void append(const QString &routerName, const ROS::QSentence &s)	{ append( ClientProfileData(routerName, s) ); }
+	void append(const ClientProfileData &saveString);
 
 	bool contains(const QString &profileName) const;
 

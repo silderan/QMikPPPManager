@@ -42,7 +42,13 @@ void ROSRateLimit::fromString(const QString &str)
 	case 3:	m_txBurstKbps.fromString( speeds.at(2) );
 	case 2:	m_rxKbps.fromString( speeds.at(1) );
 	case 1:	m_txKbps.fromString( speeds.at(0) );
+		// Ensures that if only one value is present, uses it in both upload and download.
+		if( !m_rxKbps )
+			m_rxKbps = m_txKbps;
+		break;
 	case 0:
+		m_txKbps = 0;
+		m_rxKbps = 0;
 		break;
 	}
 }
@@ -50,6 +56,8 @@ void ROSRateLimit::fromString(const QString &str)
 QString ROSRateLimit::toString() const
 {
 	QString rtn;
+	if( isUnlimited() )
+		return "";
 	rtn = QString("%1/%2").arg( m_txKbps.toString(), m_rxKbps.toString() );
 	if( m_rxBurstKbps && m_txBurstKbps )
 	{

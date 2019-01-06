@@ -3,7 +3,6 @@
 ROSMultiConnectManager::ROSMultiConnectManager(QObject *papi) :
 	QObject(papi)
 {
-
 }
 
 ROSMultiConnectManager::~ROSMultiConnectManager()
@@ -41,6 +40,10 @@ void ROSMultiConnectManager::addROSConnection(const QString &routerName, const Q
 
 	connect( mktAPI, SIGNAL(loginStateChanged(ROS::Comm::LoginState)),
 			 this, SLOT(onLoginChanged(ROS::Comm::LoginState)) );
+
+	// Forward error signal.
+	connect( mktAPI, SIGNAL(rosError(QString,QString)),
+			 this, SIGNAL(rosError(QString,QString)) );
 }
 
 bool ROSMultiConnectManager::areAllDisconnected() const
@@ -198,15 +201,29 @@ void ROSMultiConnectManager::onLoginChanged(ROS::Comm::LoginState s)
 	}
 }
 
-void ROSMultiConnectManager::setROSAPIUserData(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap)
+void ROSMultiConnectManager::updateRemoteAPIUserData(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap)
 {
-	ROSPPPoEManagerIterator it(m_rosPppoeManagerMap);
 	ROSAPIUser rosAPIUser = static_cast<const ROSAPIUser&>(rosData);
+
+	ROSPPPoEManagerIterator it(m_rosPppoeManagerMap);
 	while( it.hasNext() )
 	{
 		it.next();
 		rosAPIUser.setDataID( routerIDMap.dataID(it.key()) );
 		it.value()->updateROSAPIUser(rosAPIUser);
+	}
+}
+
+void ROSMultiConnectManager::updateRemotePPPProfileData(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap)
+{
+	ROSPPPProfile profileData = static_cast<const ROSPPPProfile&>(rosData);
+
+	ROSPPPoEManagerIterator it(m_rosPppoeManagerMap);
+	while( it.hasNext() )
+	{
+		it.next();
+		profileData.setDataID( routerIDMap.dataID(it.key()) );
+		it.value()->updatePPPProfile(profileData);
 	}
 }
 

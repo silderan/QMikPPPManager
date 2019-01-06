@@ -26,6 +26,7 @@ SOURCES += main.cpp\
     ROSData/ROSAPIUserGroup.cpp \
     ROSData/ROSDataBasics.cpp \
 	ROSData/ROSPPPProfile.cpp \
+	ROSData/ROSInterfaces.cpp \
 	Widgets/QIPv4RangeComboBox.cpp \
     Widgets/QStaticIPComboBox.cpp \
     Widgets/QROSAPIUserTableWidget.cpp \
@@ -34,6 +35,7 @@ SOURCES += main.cpp\
     Widgets/QRoutersLineEdit.cpp \
     Widgets/QROSAPIUsersGroupComboBox.cpp \
     Widgets/QTableWidgetBase.cpp \
+	Widgets/QPPPProfilesTableWidget.cpp \
     ConfigData/ConnectInfo.cpp \
     ConfigData/TableCellLook.cpp \
     ConfigData/ClientProfile.cpp \
@@ -49,7 +51,10 @@ SOURCES += main.cpp\
     Dialogs/DlgLookConfig.cpp \
     Dialogs/DlgROSAPIUsers.cpp \
 	Dialogs/DlgROSAPIUser.cpp \
-    Dialogs/DlgPPPProfiles.cpp
+	Dialogs/DlgPPPProfiles.cpp \
+    ROSDataManager/ROSInterfaceManager.cpp \
+    ROSData/ROSBridgePorts.cpp \
+    ROSData/ROSIPAddress.cpp
 
 HEADERS  += QMikPPPManager.h \
     Utils/IPv4Range.h \
@@ -64,6 +69,11 @@ HEADERS  += QMikPPPManager.h \
     ROSData/ROSAPIUserGroup.h \
     ROSData/ROSDataBasics.h \
 	ROSData/ROSPPPProfile.h \
+	ROSData/ROSInterfaces.h \
+	ROSDataManager/ROSDataManagerBase.h \
+	ROSDataManager/ROSAPIUserManager.h \
+	ROSDataManager/ROSAPIUsersGroupManager.h \
+	ROSDataManager/ROSPPPProfileManager.h \
 	ConfigData/ConnectInfo.h \
     ConfigData/TableCellLook.h \
     ConfigData/ClientProfile.h \
@@ -76,6 +86,7 @@ HEADERS  += QMikPPPManager.h \
     Widgets/QRoutersLineEdit.h \
     Widgets/QROSAPIUsersGroupComboBox.h \
     Widgets/QTableWidgetBase.h \
+	Widgets/QPPPProfilesTableWidget.h \
     QSecretData.h \
     DlgNuevoUsuario.h \
 	DlgExportar.h \
@@ -87,7 +98,12 @@ HEADERS  += QMikPPPManager.h \
     Dialogs/DlgCnfgConnect.h \
     Dialogs/DlgROSAPIUsers.h \
 	Dialogs/DlgROSAPIUser.h \
-    Dialogs/DlgPPPProfiles.h
+	Dialogs/DlgPPPProfiles.h \
+    ROSDataManager/ROSInterfaceManager.h \
+    ROSData/ROSBridgePorts.h \
+    ROSData/ROSIPAddress.h \
+    ROSDataManager/ROSBridgePortManager.h \
+    ROSDataManager/ROSIPAddressManager.h
 
 FORMS    += QMikPPPManager.ui \
 	DlgNuevoUsuario.ui \

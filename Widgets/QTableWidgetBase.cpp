@@ -4,7 +4,7 @@
 
 #include "QRoutersLineEdit.h"
 
-QTableWidgetBase::QTableWidgetBase(QWidget *parent) : QTableWidget(parent),
+QTableWidgetBase::QTableWidgetBase(QWidget *papi) : QTableWidget(papi),
 	m_routerIDColumn(-1)
 {
 	connect( this, SIGNAL(cellChanged(int,int)), this, SLOT(onCellChanged(int,int)) );

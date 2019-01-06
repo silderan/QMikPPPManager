@@ -71,6 +71,7 @@ class QMikPPPManager : public QMainWindow
 private slots:
 	void setStatusText(QString errorString, const QString routerName = QString());
 	void onComError(const QString &errorString, const QString &routerName);
+	void onROSError(const QString &routerName, const QString &errorString);
 
 	void onRouterConnected(const QString &routerName);
 	void onAllRoutersConnected();
@@ -95,8 +96,8 @@ private slots:
 	void on_addUserButton_clicked();
 
 	void on_disconnectButton_clicked();
-	void on_apiUsersButton_clicked();
 
+	void on_apiUsersButton_clicked();
 	void on_pppProfilesButton_clicked();
 
 public slots:

@@ -53,10 +53,10 @@ void QSecretData::parseComment(const QString &comment)
 	}
 	else
 	{
-		setPerfilOriginal( (perfilReal().isEmpty() || gGlobalConfig.perfiles().isDisabledProfile(perfilReal())) ? gGlobalConfig.perfiles().defaultProfile().profileName() : perfilReal());
+		setPerfilOriginal( (perfilReal().isEmpty() || gGlobalConfig.clientProfileList().isDisabledProfile(perfilReal())) ? gGlobalConfig.clientProfileList().defaultProfile().profileName() : perfilReal());
 		parsePlainComment(comment);
 	}
-	if( !gGlobalConfig.perfiles().isDisabledProfile(perfilReal()) )
+	if( !gGlobalConfig.clientProfileList().isDisabledProfile(perfilReal()) )
 		setPerfilOriginal(perfilReal());
 }
 
@@ -199,7 +199,7 @@ QString QSecretData::comment()
 
 bool QSecretData::dadoDeBaja() const
 {
-	return gGlobalConfig.perfiles().isDisabledProfile(perfilReal());
+	return gGlobalConfig.clientProfileList().isDisabledProfile(perfilReal());
 }
 
 void QSecretData::toSentence(ROS::QSentence *s)
@@ -665,8 +665,8 @@ void QSecretDataModel::fillupTable()
  */
 void QSecretDataModel::addSecret(const QSecretData &sd, bool addToTable)
 {
-	if( !gGlobalConfig.perfiles().isInternalProfile(sd.perfilReal()) ||
-		gGlobalConfig.perfiles().isDisabledProfile(sd.perfilReal()) )
+	if( !gGlobalConfig.clientProfileList().isInternalProfile(sd.perfilReal()) ||
+		gGlobalConfig.clientProfileList().isDisabledProfile(sd.perfilReal()) )
 	{
 		int pos;
 		int row;

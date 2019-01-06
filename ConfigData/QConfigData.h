@@ -35,7 +35,7 @@ private:
 	QString m_rosFName;
 	QString m_rosProtectedFName;
 
-	QClientProfileList m_perfiles;			// Los perfiles no se guardarán.
+	QClientProfileList m_clientProfileList;			// La configuración global de los perfiles de clientes.
 
 	QStringList m_instaladores;			// Lista de nombres instaladores.
 	QStringList m_comerciales;			// Lista de nombres de los comerciales/vendedores.
@@ -106,8 +106,7 @@ public:
 	void setAnchoPantalla(int a)		{ m_anchoPantalla = a;	}
 	void setAltoPantalla(int a)			{ m_altoPantalla = a;	}
 
-	QClientProfileList &perfiles()					{ return m_perfiles;	}
-	void addPerfil(const QString &routerName, const ROS::QSentence &s)			{ m_perfiles.append(routerName, s); }
+	QClientProfileList &clientProfileList()			{ return m_clientProfileList;	}
 
 	void addRange(const IPv4Range &ipv4Range)		{ m_staticIPv4Map.addRange(ipv4Range);			}
 	void delRange(const QString &ipv4RangeName)		{ m_staticIPv4Map.delRange(ipv4RangeName);		}

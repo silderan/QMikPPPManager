@@ -6,25 +6,10 @@
 #include "Widgets/QROSAPIUserLevelComboBox.h"
 #include "Widgets/QROSAPIUserTableWidget.h"
 
-DlgROSAPIUsers::DlgROSAPIUsers(ROSMultiConnectManager *mktAPI, QWidget *parent) :
-	QDialog(parent), ui(new Ui::DlgROSAPIUsers),
-	m_mktAPI(mktAPI)
+DlgROSAPIUsers::DlgROSAPIUsers(QWidget *parent) :
+	QDialog(parent), ui(new Ui::DlgROSAPIUsers)
 {
 	ui->setupUi(this);
-
-	ROSPPPoEManagerIterator it(mktAPI->rosPPPoEManagerMap());
-	while( it.hasNext() )
-	{
-		it.next();
-		foreach( const ROSAPIUser &user, it.value()->rosApiUserManager().rosDataList() )
-		{
-			ui->usersTable->onRemoteDataReceived(user);
-		}
-		foreach( const ROSAPIUsersGroup &group, it.value()->rosApiUsersGroupManager().rosDataList() )
-		{
-			ui->groupsTable->onRemoteDataReceived(group);
-		}
-	}
 
 	// Forward signals.
 	connect( ui->usersTable, SIGNAL(dataModified(ROSDataBase,QRouterIDMap)), this, SIGNAL(userModified(ROSDataBase,QRouterIDMap)) );
@@ -32,8 +17,6 @@ DlgROSAPIUsers::DlgROSAPIUsers(ROSMultiConnectManager *mktAPI, QWidget *parent) 
 
 	connect( ui->delUserButton, SIGNAL(clicked()), ui->usersTable, SLOT(removeCurrentData()) );
 	connect( ui->delGroupButton, SIGNAL(clicked()), ui->groupsTable, SLOT(removeCurrentData()) );
-
-	connect( this, SIGNAL(userModified(ROSDataBase,QRouterIDMap)), m_mktAPI, SLOT(setROSAPIUserData(ROSDataBase,QRouterIDMap)) );
 }
 
 DlgROSAPIUsers::~DlgROSAPIUsers()
