@@ -4,7 +4,7 @@
 #include "ROSDataManagerBase.h"
 #include "../ROSData/ROSAPIUser.h"
 
-typedef ROSDataManagerBase<ROSAPIUser> ROSAPIUserManager;
+typedef ROSDataManager<ROSAPIUser> ROSAPIUserManager;
 
 #endif // ROSAPIUSERMANAGER
 

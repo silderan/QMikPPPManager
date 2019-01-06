@@ -4,13 +4,13 @@
 
 #include "ROSDataBasics.h"
 
-class ROSBridgePorts : public ROSDataBase
+class ROSBridgePort : public ROSDataBase
 {
 	QString m_bridgeName;
 	QString m_ifaceName;
 
 public:
-	ROSBridgePorts(const QString &routerName) : ROSDataBase(routerName)
+	ROSBridgePort(const QString &routerName) : ROSDataBase(routerName)
 	{	}
 
 	const QString &bridgeName() const				{ return m_bridgeName;		}

@@ -4,6 +4,6 @@
 #include "../ROSData/ROSBridgePorts.h"
 #include "ROSDataManagerBase.h"
 
-typedef ROSDataBase<ROSBridgePort> ROSBridgePortManager;
+typedef ROSDataManager<ROSBridgePort> ROSBridgePortManager;
 
 #endif // ROSBRIDGEPORTMANAGER

@@ -1,6 +1,13 @@
 #include "ROSPPPoEManager.h"
 
-ROSPPPoEManager::ROSPPPoEManager(QObject *papi) : Comm(papi)
+ROSPPPoEManager::ROSPPPoEManager(QObject *papi) : Comm(papi),
+	m_rosAPIUserManager			("rosAPIUserManager",		"/user/"),
+	m_rosAPIUsersGroupManager	("rosAPIUsersGroupManager",	"/user/group/"),
+	m_rosPPPProfileManager		("rosPPPProfileManager",	"/ppp/profile/"),
+	m_rosInterfaceManager		("rosInterfaceManager",		"/interface/"),
+	m_rosBridgeManager			("rosBridgeManager",		"/interface/bridge/"),
+	m_rosBridgePortsManager		("rosBridgePortsManager",	"/interface/bridge/port/"),
+	m_rosIPAddressManager		("rosIPAddressManager",		"/ip/address/")
 {
 	connect(this, SIGNAL(comReceive(ROS::QSentence&)), this, SLOT(onDataReceived(ROS::QSentence&)));
 }
@@ -29,87 +36,102 @@ void ROSPPPoEManager::onDataReceived(ROS::QSentence &sentence)
 	}
 }
 
-void ROSPPPoEManager::updateRemoteData(const char *path, const ROSDataBase &newROSData, const ROSDataBase &oldROSData)
+void ROSPPPoEManager::updateRemoteData(ROSDataManagerBase &rosDataManager, const ROSDataBase &newROSData, const ROSDataBase &oldROSData)
 {
-	Q_ASSERT( strlen(path) > 2 );
-	Q_ASSERT( path[0] == '/' );
-	Q_ASSERT( path[strlen(path)-1] == '/' );
-
 	ROS::QSentence sentence;
 
-	sentence.setTag( QString("%1-mod" ).arg(this->metaObject()->className()) );
-
+	// Tag is not necessary as this program keeps "listening" for ROS changes.
 	if( newROSData.dataID().isEmpty() )
 	{
-		sentence.setCommand( QString("%1add").arg(path) );
+		sentence.setCommand( QString("%1add").arg(rosDataManager.path()) );
 		sendSentence(newROSData.toSentence(sentence));
 	}
 	else
 	if( newROSData.deleting() )
 	{
-		sentence.setCommand( QString("%1remove").arg(path) );
+		sentence.setCommand( QString("%1remove").arg(rosDataManager.path()) );
 		sentence.setID(newROSData.dataID());
 		sendSentence(sentence);
 	}
 	else
 	if( !newROSData.hasSameData(oldROSData) )
 	{
-		sentence.setCommand( QString("%1set").arg(path) );
+		sentence.setCommand( QString("%1set").arg(rosDataManager.path()) );
 		sendSentence(newROSData.toSentence(sentence));
 	}
 }
 
-void ROSPPPoEManager::requestRemoteData(const char *path, const QString &sentenceTag)
+void ROSPPPoEManager::requestRemoteData(ROSDataManagerBase &rosDataManager, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot, const QStringList &queries)
 {
-	Q_ASSERT( strlen(path) > 2 );
-	Q_ASSERT( path[0] == '/' );
-	Q_ASSERT( path[strlen(path)-1] == '/' );
+	Q_ASSERT( receiverOb != Q_NULLPTR );
+	Q_ASSERT( !routerName().isEmpty() );
 
-	ROS::QSentence sentence;
-	sentence.addQuery( "#|" );
-	sentence.setTag( sentenceTag );
+	if( rosDataManager.receiverOb() == Q_NULLPTR )
+	{
+		rosDataManager.setup( receiverOb, routerName(), replySlot, doneSlot, errorSlot );
 
-	sentence.setCommand( QString("%1getall").arg(path) );
-	sendSentence(sentence);
+		ROS::QSentence sentence;
+		foreach( const QString &query, queries )
+			sentence.addQuery(query);
 
-	sentence.setCommand( QString("%1listen").arg(path) );
-	sendSentence(sentence);
+		sentence.addQuery( "#|" );
+		sentence.setTag( rosDataManager.sentenceTag() );
+
+		sentence.setCommand( QString("%1getall").arg(rosDataManager.path()) );
+		sendSentence(sentence);
+
+		sentence.setCommand( QString("%1listen").arg(rosDataManager.path()) );
+		sendSentence(sentence);
+	}
 }
 
 void ROSPPPoEManager::requestAllAPIUsers(QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
 {
-	Q_ASSERT( !routerName().isEmpty() );
-
-	QString sentenceTag = "ROSAPIUser-all";
-	requestRemoteData( "/user/", sentenceTag );
-
-	m_rosAPIUserManager.setup(receiverOb, routerName(), sentenceTag, replySlot, doneSlot, errorSlot, false);
+	requestRemoteData( m_rosAPIUserManager, receiverOb, replySlot, doneSlot, errorSlot );
 }
 void ROSPPPoEManager::updateROSAPIUser(const ROSAPIUser &newROSAPIUser)
 {
-	updateRemoteData("/user/", newROSAPIUser, m_rosAPIUserManager.rosData(newROSAPIUser.dataID()));
+	updateRemoteData( m_rosAPIUserManager, newROSAPIUser, m_rosAPIUserManager.rosData(newROSAPIUser.dataID()) );
 }
 
 void ROSPPPoEManager::requestAllPPPProfiles(QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
 {
-	Q_ASSERT( !routerName().isEmpty() );
-
-	QString sentenceTag = "ROSPPPProfile-all";
-	requestRemoteData( "/ppp/profile/", sentenceTag );
-
-	m_rosPPPProfileManager.setup(receiverOb, routerName(), sentenceTag, replySlot, doneSlot, errorSlot, false);
+	requestRemoteData( m_rosPPPProfileManager, receiverOb, replySlot, doneSlot, errorSlot );
 }
 void ROSPPPoEManager::updatePPPProfile(const ROSPPPProfile &newROSPPPProfile)
 {
-	updateRemoteData("/ppp/profile/", newROSPPPProfile, m_rosAPIUserManager.rosData(newROSPPPProfile.dataID()));
+	updateRemoteData( m_rosPPPProfileManager, newROSPPPProfile, m_rosAPIUserManager.rosData(newROSPPPProfile.dataID()) );
 }
 
 void ROSPPPoEManager::requestAllAPIUsersGroup(QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
 {
-	Q_ASSERT( !routerName().isEmpty() );
+	requestRemoteData( m_rosAPIUsersGroupManager, receiverOb, replySlot, doneSlot, errorSlot );
+}
 
-	QString sentenceTag = "ROSAPIUsersGroup-all";
-	requestRemoteData( "/user/group/", sentenceTag );
+void ROSPPPoEManager::requestAllIPAddress(QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
+{
+	requestRemoteData( m_rosIPAddressManager, receiverOb, replySlot, doneSlot, errorSlot );
+}
 
-	m_rosAPIUsersGroupManager.setup(receiverOb, routerName(), sentenceTag, replySlot, doneSlot, errorSlot, false);
+void ROSPPPoEManager::updateIPAddress(const ROSIPAddress &newROSIPAddress)
+{
+	updateRemoteData( m_rosIPAddressManager, newROSIPAddress, m_rosIPAddressManager.rosData(newROSIPAddress.dataID()) );
+}
+
+void ROSPPPoEManager::requestAllInterfaces(QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
+{
+	requestRemoteData( m_rosInterfaceManager, receiverOb, replySlot, doneSlot, errorSlot, QStringList() << "type=ether" << "type=bridge" );
+}
+void ROSPPPoEManager::updateBridgeInterface(const ROSInterface &newBridgeIface)
+{
+	updateRemoteData( m_rosInterfaceManager, newBridgeIface, m_rosInterfaceManager.rosData(newBridgeIface.dataID()) );
+}
+
+void ROSPPPoEManager::requestAllBridgePorts(QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
+{
+	requestRemoteData( m_rosBridgePortsManager, receiverOb, replySlot, doneSlot, errorSlot );
+}
+void ROSPPPoEManager::updateBridgePort(const ROSBridgePort &newROSBridgePort)
+{
+	updateRemoteData( m_rosBridgePortsManager, newROSBridgePort, m_rosBridgePortsManager.rosData(newROSBridgePort.dataID()) );
 }

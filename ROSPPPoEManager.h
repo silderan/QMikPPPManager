@@ -24,11 +24,12 @@ Q_OBJECT
 	ROSAPIUsersGroupManager m_rosAPIUsersGroupManager;
 	ROSPPPProfileManager  m_rosPPPProfileManager;
 	ROSInterfaceManager m_rosInterfaceManager;
+	ROSInterfaceManager m_rosBridgeManager;
 	ROSBridgePortManager m_rosBridgePortsManager;
 	ROSIPAddressManager m_rosIPAddressManager;
 
-	void updateRemoteData(const char *path, const ROSDataBase &newROSData, const ROSDataBase &oldROSData);
-	void requestRemoteData(const char *path, const QString &sentenceTag);
+	void updateRemoteData(ROSDataManagerBase &rosDataManager, const ROSDataBase &newROSData, const ROSDataBase &oldROSData);
+	void requestRemoteData(ROSDataManagerBase &rosDataManager, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot, const QStringList &queries = QStringList());
 
 public:
 	ROSPPPoEManager(QObject *papi);
@@ -46,8 +47,14 @@ public:
 
 	void requestAllAPIUsersGroup(QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
 
+	void requestAllIPAddress(QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
+	void updateIPAddress(const ROSIPAddress &newROSIPAddress);
+
 	void requestAllInterfaces(QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
-	void requestAllBridges(QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
+	void updateBridgeInterface(const ROSInterface &newBridgeIface);
+
+	void requestAllBridgePorts(QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
+	void updateBridgePort(const ROSBridgePort &newROSBridgePort);
 
 public slots:
 	void onDataReceived(ROS::QSentence &sentence);

@@ -4,7 +4,7 @@
 #include "ROSDataManagerBase.h"
 #include "../ROSData/ROSPPPProfile.h"
 
-typedef ROSDataManagerBase<ROSPPPProfile> ROSPPPProfileManager;
+typedef ROSDataManager<ROSPPPProfile> ROSPPPProfileManager;
 
 #endif // ROSPPPPROFILEMANAGER
 

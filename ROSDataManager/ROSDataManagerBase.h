@@ -9,18 +9,18 @@
 
 #include "../ROSAPI/QSentences.h"
 
-template <typename T>
-class ROSDataManagerBase
+struct ROSDataManagerBase
 {
+protected:
 	QObject *m_ob;
 	QString m_routerName;
 	QString m_sentenceTag;
+	QString m_path;
 	int m_doneSlot;
 	int m_replySlot;
 	int m_errorSlot;
-	QMap<QString, T> m_idDataMap;
-	bool m_clearOnDone;
 
+private:
 	int setupSlot(const char *slotFunction)
 	{
 		Q_ASSERT( m_ob != Q_NULLPTR );
@@ -40,10 +40,37 @@ class ROSDataManagerBase
 	}
 
 public:
-	ROSDataManagerBase() : m_clearOnDone(true)
-	{	}
+	ROSDataManagerBase(const QString &sentenceTag, const QString &path) : m_ob(Q_NULLPTR), m_sentenceTag(sentenceTag), m_path(path)
+	{
+		Q_ASSERT( path.count() > 2 );
+		Q_ASSERT( path[0] == '/' );
+		Q_ASSERT( path.endsWith('/') );
+	}
 
-	inline const QString &sentenceTag() { return m_sentenceTag;	}
+	inline const QString &sentenceTag() const	{ return m_sentenceTag;	}
+	inline const QObject *receiverOb() const	{ return m_ob;			}
+	inline const QString &routerName() const	{ return m_routerName;	}
+	inline const QString &path() const			{ return m_path;		}
+
+	void setup(QObject *receiverOb, const QString &routerName, const char *replySlot, const char *doneSlot, const char *errorSlot)
+	{
+		Q_ASSERT( (m_ob = receiverOb)!= Q_NULLPTR );
+		Q_ASSERT( !(m_routerName = routerName).isEmpty() );
+
+		m_doneSlot			= setupSlot(doneSlot);
+		m_replySlot			= setupSlot(replySlot);
+		m_errorSlot			= setupSlot(errorSlot);
+	}
+};
+
+template <typename T>
+class ROSDataManager : public ROSDataManagerBase
+{
+	QMap<QString, T> m_idDataMap;
+
+public:
+	ROSDataManager(const QString &sentenceTag, const QString &path) : ROSDataManagerBase(sentenceTag, path)
+	{	}
 
 	inline T rosData(const QString &dataID)			{ return m_idDataMap.value(dataID, T(QString("InvalidROSData")));	}
 	inline QList<T> rosDataList()					{ return m_idDataMap.values();		}
@@ -56,8 +83,6 @@ public:
 			Q_ASSERT( !m_routerName.isEmpty() );
 
 			m_ob->metaObject()->method(m_doneSlot).invoke(m_ob, Q_ARG(QString, m_routerName) );
-			if( m_clearOnDone )
-				m_ob = Q_NULLPTR;
 		}
 	}
 	void onReply(const ROS::QSentence &sentence)
@@ -77,18 +102,6 @@ public:
 
 			m_ob->metaObject()->method(m_replySlot).invoke(m_ob, Q_ARG(QString, m_routerName), Q_ARG(T*, &t));
 		}
-	}
-
-	void setup(QObject *receiverOb, const QString &routerName, const QString &sentenceTag, const char *replySlot, const char *doneSlot, const char *errorSlot, bool clearOnDone)
-	{
-		Q_ASSERT( (m_ob = receiverOb)!= Q_NULLPTR );
-		Q_ASSERT( !(m_routerName = routerName).isEmpty() );
-
-		m_doneSlot			= setupSlot(doneSlot);
-		m_replySlot			= setupSlot(replySlot);
-		m_errorSlot			= setupSlot(errorSlot);
-		m_sentenceTag		= sentenceTag;
-		m_clearOnDone		= clearOnDone;
 	}
 };
 #endif // ROSDATAMANAGERBASE_H

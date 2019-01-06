@@ -7,10 +7,13 @@
 #include "../ROSData/ROSInterfaces.h"
 
 
-class ROSInterfaceManager : public ROSDataManagerBase<ROSInterface>
+class ROSInterfaceManager : public ROSDataManager<ROSInterface>
 {
 public:
-	inline QList<ROSInterface> rosDataList()	{ return ROSDataManagerBase::rosDataList();	}
+	ROSInterfaceManager(const QString &routerName, const QString &path) : ROSDataManager(routerName, path)
+	{	}
+
+	inline QList<ROSInterface> rosDataList()	{ return ROSDataManager::rosDataList();	}
 	QList<ROSInterface> rosDataList(const QString &interfaceType);
 };
 

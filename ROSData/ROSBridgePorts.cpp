@@ -56,23 +56,23 @@ unknown-multicast-flood=true
 unknown-unicast-flood=true.tag
 1.id=*0 * */
 
-void ROSBridgePorts::fromSentence(const QString &routerName, const ROS::QSentence &s)
+void ROSBridgePort::fromSentence(const QString &routerName, const ROS::QSentence &s)
 {
 	ROSDataBase::fromSentence(routerName, s);
 	m_ifaceName = s.attribute("interface");
 	m_bridgeName = s.attribute("bridge");
 }
 
-ROS::QSentence &ROSBridgePorts::toSentence(ROS::QSentence &sentence) const
+ROS::QSentence &ROSBridgePort::toSentence(ROS::QSentence &sentence) const
 {
 	sentence.addAttribute("interface", m_ifaceName);
 	sentence.addAttribute("bridge", m_bridgeName);
 	return ROSDataBase::toSentence(sentence);
 }
 
-bool ROSBridgePorts::hasSameData(const ROSDataBase &rosData) const
+bool ROSBridgePort::hasSameData(const ROSDataBase &rosData) const
 {
 	return
-		(m_ifaceName == static_cast<const ROSBridgePorts &>(rosData).m_ifaceName) &&
-		(m_bridgeName == static_cast<const ROSBridgePorts &>(rosData).m_bridgeName);
+		(m_ifaceName == static_cast<const ROSBridgePort &>(rosData).m_ifaceName) &&
+		(m_bridgeName == static_cast<const ROSBridgePort &>(rosData).m_bridgeName);
 }
