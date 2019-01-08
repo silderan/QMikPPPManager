@@ -16,7 +16,8 @@ public:
 	inline void select(const ROSAPIUser::Level &level)	{ setCurrentIndex( level ); }
 	void select(const QString &levelName);
 
-	inline QString currentLevel() const	{ return currentText();	}
+	inline QString currentLevelName() const	{ return currentText();	}
+	inline ROSAPIUser::Level currentLevel()const { return static_cast<ROSAPIUser::Level>(currentIndex()); }
 
 private slots:
 	void onLevelChanged(int index);

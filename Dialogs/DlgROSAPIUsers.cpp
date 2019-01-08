@@ -35,9 +35,10 @@ void DlgROSAPIUsers::clear()
 	ui->usersTable->setRowCount(0);
 }
 
+#include "Dialogs/DlgROSAPIUser.h"
 void DlgROSAPIUsers::on_addUserButton_clicked()
 {
-	ui->usersTable->addEmptyData();
+	emit userModified( DlgROSAPIUser::getRosAPIUser(this), QRouterIDMap() );
 }
 
 void DlgROSAPIUsers::onUsersGroupDataReceived(const ROSAPIUsersGroup &group)

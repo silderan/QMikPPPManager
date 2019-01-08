@@ -31,7 +31,6 @@ public:
 	inline QString userGroup(int row) const				{ return cellText(row, GroupName);	}
 	inline ROSAPIUser::Level userLevel(int row) const	{ return ROSAPIUser::level(cellText(row, UserLevel));	}
 
-	void addEmptyData();
 protected:
 	ROSDataBase *getRosData(int row)override;
 	void setupRow(int row, const ROSDataBase &rosData)override;

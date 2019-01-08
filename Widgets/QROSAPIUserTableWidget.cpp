@@ -17,12 +17,6 @@ QROSAPIUserTableWidget::~QROSAPIUserTableWidget()
 
 }
 
-#include "Dialogs/DlgROSAPIUser.h"
-void QROSAPIUserTableWidget::addEmptyData()
-{
-	emit dataModified( DlgROSAPIUser::getRosAPIUser(this), QRouterIDMap() );
-}
-
 ROSDataBase *QROSAPIUserTableWidget::getRosData(int row)
 {
 	ROSAPIUser *rosAPIUserData = new ROSAPIUser("");

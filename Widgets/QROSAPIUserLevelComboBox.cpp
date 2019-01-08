@@ -42,7 +42,7 @@ void QROSAPIUserLevelComboBoxDelegate::setEditorData(QWidget *editor, const QMod
 void QROSAPIUserLevelComboBoxDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
 {
 	QROSAPIUserLevelComboBox *cb = static_cast<QROSAPIUserLevelComboBox*>(editor);
-	model->setData(index, cb->currentLevel(), Qt::EditRole);
+	model->setData(index, cb->currentLevelName(), Qt::EditRole);
 }
 
 void QROSAPIUserLevelComboBoxDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const

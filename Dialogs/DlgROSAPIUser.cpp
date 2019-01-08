@@ -35,7 +35,7 @@ ROSAPIUser DlgROSAPIUser::rosAPIUser()
 	user.setGroupName( ui->grupNameComboBox->currentGroupName() );
 	user.setUserName( ui->userNameLineEdit->text() );
 	user.setUserPass( ui->userPassLineEdit->text() );
-	user.setRouterName( ui->userLevelComboBox->currentLevel() );
+	user.setUserLevel( ui->userLevelComboBox->currentLevel() );
 	return user;
 }
 
