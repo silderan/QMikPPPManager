@@ -43,25 +43,25 @@ void ROSPPPoEManager::updateRemoteData(ROSDataManagerBase &rosDataManager, const
 	// Tag is not necessary as this program keeps "listening" for ROS changes.
 	if( newROSData.dataID().isEmpty() )
 	{
-		sentence.setCommand( QString("%1add").arg(rosDataManager.path()) );
+		sentence.setCommand( rosDataManager.addCommand() );
 		sendSentence(newROSData.toSentence(sentence));
 	}
 	else
 	if( newROSData.deleting() )
 	{
-		sentence.setCommand( QString("%1remove").arg(rosDataManager.path()) );
+		sentence.setCommand( rosDataManager.removeCommand() );
 		sentence.setID(newROSData.dataID());
 		sendSentence(sentence);
 	}
 	else
 	if( !newROSData.hasSameData(oldROSData) )
 	{
-		sentence.setCommand( QString("%1set").arg(rosDataManager.path()) );
+		sentence.setCommand( rosDataManager.setCommand() );
 		sendSentence(newROSData.toSentence(sentence));
 	}
 }
 
-void ROSPPPoEManager::requestRemoteData(ROSDataManagerBase &rosDataManager, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot, const QStringList &queries)
+void ROSPPPoEManager::requestRemoteData(ROSDataManagerBase &rosDataManager, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
 {
 	Q_ASSERT( receiverOb != Q_NULLPTR );
 	Q_ASSERT( !routerName().isEmpty() );
@@ -71,16 +71,15 @@ void ROSPPPoEManager::requestRemoteData(ROSDataManagerBase &rosDataManager, QObj
 		rosDataManager.setup( receiverOb, routerName(), replySlot, doneSlot, errorSlot );
 
 		ROS::QSentence sentence;
-		foreach( const QString &query, queries )
-			sentence.addQuery(query);
-
-		sentence.addQuery( "#|" );
 		sentence.setTag( rosDataManager.sentenceTag() );
 
-		sentence.setCommand( QString("%1getall").arg(rosDataManager.path()) );
+		foreach( const QString &query, rosDataManager.getallQueries() )
+			sentence.addQuery(query);
+
+		sentence.setCommand( rosDataManager.getallCommand() );
 		sendSentence(sentence);
 
-		sentence.setCommand( QString("%1listen").arg(rosDataManager.path()) );
+		sentence.setCommand( rosDataManager.listenCommand() );
 		sendSentence(sentence);
 	}
 }
@@ -120,7 +119,7 @@ void ROSPPPoEManager::updateIPAddress(const ROSIPAddress &newROSIPAddress)
 
 void ROSPPPoEManager::requestAllInterfaces(QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
 {
-	requestRemoteData( m_rosInterfaceManager, receiverOb, replySlot, doneSlot, errorSlot, QStringList() << "type=ether" << "type=bridge" );
+	requestRemoteData( m_rosInterfaceManager, receiverOb, replySlot, doneSlot, errorSlot );
 }
 void ROSPPPoEManager::updateBridgeInterface(const ROSInterface &newBridgeIface)
 {

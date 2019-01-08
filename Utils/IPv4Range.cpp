@@ -2,7 +2,7 @@
 
 #include <QStringList>
 #include <QRegExp>
-
+#include <QtMath>
 #define KEY_IPV4					("ipv4")
 #define KEY_IPV4RANGE				("ipv4-range")
 #define KEY_IPV4RANGELISTNAME		("ipv4-range-list-name")
@@ -32,12 +32,12 @@ void IPv4::load(const QIniData &iniData)
 	fromString(iniData[KEY_IPV4]);
 }
 
-QString IPv4Range::toString() const
+QString IPv4Range::toLoadString() const
 {
 	return QString("%1:%2-%3").arg( m_name, m_first.toString(), m_last.toString() );
 }
 
-void IPv4Range::fromString(const QString &line)
+void IPv4Range::fromLoadString(const QString &line)
 {
 	QStringList l = line.split( QRegExp("[:-]"), QString::SkipEmptyParts );
 	if( l.count() == 3 )
@@ -48,14 +48,37 @@ void IPv4Range::fromString(const QString &line)
 	}
 }
 
+const IPv4Range &IPv4Range::fromNotationString(QString ip)
+{
+	int splitIndex;
+
+	//clean all whitespaces.
+	ip.replace(" ", "");
+
+	// Check A.B.C.D/M format
+	if( (splitIndex = ip.indexOf('/')) != -1 )
+	{
+		int mask = ip.mid(splitIndex+1).toInt();
+		if( mask > 0 )
+		{
+			quint32 lastIP = static_cast<quint32>(qPow(2, mask)) - 1;
+			setRange( IPv4(ip.left(mask)), IPv4(lastIP) );
+		}
+	}
+	else
+	// Check A1.B1.C1.D1-A2.B2.C2.D2 format
+	if( (splitIndex = ip.indexOf('-')) != -1 )
+		setRange( IPv4(ip.right(splitIndex)), IPv4(ip.mid(splitIndex+1)) );
+}
+
 void IPv4Range::save(QIniData &iniData) const
 {
-	iniData[KEY_IPV4RANGE] = toString();
+	iniData[KEY_IPV4RANGE] = toLoadString();
 }
 
 void IPv4Range::load(const QIniData &iniData)
 {
-	fromString( iniData[KEY_IPV4RANGE] );
+	fromLoadString( iniData[KEY_IPV4RANGE] );
 }
 
 void IPv4RangeMap::save(QIniData &iniData) const
@@ -66,7 +89,7 @@ void IPv4RangeMap::save(QIniData &iniData) const
 	while( it.hasNext() )
 	{
 		it.next();
-		iniData[KEY_IPV4RANGELISTDATA(i++)] = it.value().toString();
+		iniData[KEY_IPV4RANGELISTDATA(i++)] = it.value().toLoadString();
 	}
 }
 

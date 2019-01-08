@@ -27,7 +27,7 @@ ROS::QSentence &ROSPPPProfile::toSentence(ROS::QSentence &sentence) const
 {
 	sentence.addAttribute( "name", m_name );
 	sentence.addAttribute( "rate-limit", m_rateLimit.isUnlimited() ? "" : m_rateLimit.toString() );
-	sentence.addAttribute( "bridge", m_bridgeName );
+	sentence.addAttribute( m_bridgeName.isEmpty() ? "!bridge" : "bridge", m_bridgeName );
 	sentence.addAttribute( "local-address", m_localAdress );
 	sentence.addAttribute( "remote-address", m_remoteAdress );
 

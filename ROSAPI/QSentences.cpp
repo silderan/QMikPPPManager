@@ -215,7 +215,7 @@ QQuery &QQuery::fromWord(const QString &word)
 		type = LessThanProp;
 		break;
 	case '#':
-		name = word.mid(from);
+		name = word.mid(from+1);
 		type = Operation;
 		break;
 	}

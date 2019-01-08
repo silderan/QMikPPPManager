@@ -54,7 +54,10 @@ SOURCES += main.cpp\
 	Dialogs/DlgPPPProfiles.cpp \
     ROSDataManager/ROSInterfaceManager.cpp \
     ROSData/ROSBridgePorts.cpp \
-    ROSData/ROSIPAddress.cpp
+    ROSData/ROSIPAddress.cpp \
+    ROSData/ROSIPPool.cpp \
+    Dialogs/DlgROSIPPool.cpp \
+    Widgets/QROSIPoolTableWidget.cpp
 
 HEADERS  += QMikPPPManager.h \
     Utils/IPv4Range.h \
@@ -103,7 +106,11 @@ HEADERS  += QMikPPPManager.h \
     ROSData/ROSBridgePorts.h \
     ROSData/ROSIPAddress.h \
     ROSDataManager/ROSBridgePortManager.h \
-    ROSDataManager/ROSIPAddressManager.h
+    ROSDataManager/ROSIPAddressManager.h \
+    ROSData/ROSIPPool.h \
+    ROSDataManager/ROSIPPoolManager.h \
+    Dialogs/DlgROSIPPool.h \
+    Widgets/QROSIPoolTableWidget.h
 
 FORMS    += QMikPPPManager.ui \
 	DlgNuevoUsuario.ui \
@@ -114,7 +121,8 @@ FORMS    += QMikPPPManager.ui \
     Dialogs/DlgLookConfig.ui \
     Dialogs/DlgROSAPIUsers.ui \
     Dialogs/DlgROSAPIUser.ui \
-    Dialogs/DlgPPPProfiles.ui
+    Dialogs/DlgPPPProfiles.ui \
+    Dialogs/DlgROSIPPool.ui
 
 DISTFILES += \
     ToDo.txt

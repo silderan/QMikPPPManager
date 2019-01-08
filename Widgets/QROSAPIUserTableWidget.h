@@ -20,9 +20,6 @@ class QROSAPIUserTableWidget : public QTableWidgetBase
 		TotalColumns
 	};
 
-	void _onUserModified(const ROSAPIUser &userData);
-	void _onUserRemoved(const ROSAPIUser &userData);
-
 public:
 	explicit QROSAPIUserTableWidget(QWidget *papi = Q_NULLPTR);
 	virtual ~QROSAPIUserTableWidget()override;

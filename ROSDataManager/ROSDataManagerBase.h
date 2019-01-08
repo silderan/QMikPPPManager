@@ -61,6 +61,14 @@ public:
 		m_replySlot			= setupSlot(replySlot);
 		m_errorSlot			= setupSlot(errorSlot);
 	}
+	inline virtual QString getallCommand()	{ return QString("%1getall").arg(m_path);	}
+	inline virtual QString listenCommand()	{ return QString("%1listen").arg(m_path);	}
+
+	inline virtual QString setCommand()		{ return QString("%1set").arg(m_path);		}
+	inline virtual QString addCommand()		{ return QString("%1add").arg(m_path);		}
+	inline virtual QString removeCommand()	{ return QString("%1remove").arg(m_path);	}
+
+	inline virtual QStringList getallQueries()	{ return QStringList() << "#|";	}
 };
 
 template <typename T>

@@ -23,8 +23,8 @@ public:
 	inline ROSSpeed &operator=(quint64 bps)				{ m_bps = bps;	return *this;		}
 	inline bool operator==(const ROSSpeed &speed)const	{ return m_bps == speed.m_bps;}
 	inline bool operator==(const quint64 &bps)const		{ return m_bps == bps;		}
-	inline operator bool()	{ return m_bps != 0 ;	}
-	inline operator ! ()	{ return m_bps == 0;	}
+	inline operator bool()		{ return m_bps != 0 ;	}
+	inline bool operator ! ()	{ return m_bps == 0;	}
 	inline bool operator &&(const ROSSpeed &speed) const	{ return m_bps && speed.m_bps;	}
 	inline bool operator ||(const ROSSpeed &speed) const	{ return m_bps || speed.m_bps;	}
 };

@@ -115,7 +115,7 @@ public:
 	{	}
 	explicit IPv4Range(const QString &line)
 	{
-		fromString(line);
+		fromLoadString(line);
 	}
 	IPv4Range(const IPv4 &first, const IPv4 &last):
 		m_first(first), m_last(last)
@@ -123,12 +123,22 @@ public:
 
 	}
 
-	const QString &name() const { return m_name;	}
-	const IPv4 &first() const	{ return m_first;	}
-	const IPv4 &last() const	{ return m_last;	}
+	inline const QString &name() const		{ return m_name;	}
+	inline void setName(const QString &name){ m_name = name;	}
 
-	QString toString() const;
-	void fromString(const QString &line);
+	inline const IPv4 &first() const		{ return m_first;	}
+	inline void setFirst(const IPv4 &ipv4)	{ m_first = ipv4;	}
+
+	inline const IPv4 &last() const			{ return m_last;	}
+	inline void setLast(const IPv4 &last)	{ m_last = last;	}
+
+	inline void setRange(const IPv4 &first, const IPv4 &last)	{ setFirst(first); setLast(last);	}
+
+	QString toLoadString() const;
+	void fromLoadString(const QString &line);
+
+	const IPv4Range &fromNotationString(QString ip);
+
 	void save(QIniData &iniData) const;
 	void load(const QIniData &iniData);
 
@@ -155,5 +165,7 @@ public:
 	bool inRange(const IPv4 &ipv4) const { return !rangeName(ipv4).isEmpty(); }
 };
 typedef QMapIterator<QString,IPv4Range> IPv4RangeMapIterator;
+
+typedef QList<IPv4Range> IPv4RangeList;
 
 #endif // IPV4RANGE_H

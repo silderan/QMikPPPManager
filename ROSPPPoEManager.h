@@ -29,7 +29,7 @@ Q_OBJECT
 	ROSIPAddressManager m_rosIPAddressManager;
 
 	void updateRemoteData(ROSDataManagerBase &rosDataManager, const ROSDataBase &newROSData, const ROSDataBase &oldROSData);
-	void requestRemoteData(ROSDataManagerBase &rosDataManager, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot, const QStringList &queries = QStringList());
+	void requestRemoteData(ROSDataManagerBase &rosDataManager, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
 
 public:
 	ROSPPPoEManager(QObject *papi);
