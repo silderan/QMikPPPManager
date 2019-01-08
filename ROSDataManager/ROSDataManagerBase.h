@@ -8,6 +8,7 @@
 #include <QMetaMethod>
 
 #include "../ROSAPI/QSentences.h"
+#include "../ROSData/ROSDataBasics.h"
 
 struct ROSDataManagerBase
 {
@@ -19,6 +20,7 @@ protected:
 	int m_doneSlot;
 	int m_replySlot;
 	int m_errorSlot;
+	QMap<QString, ROSDataBase*> m_idDataMapP;
 
 private:
 	int setupSlot(const char *slotFunction)
@@ -46,11 +48,17 @@ public:
 		Q_ASSERT( path[0] == '/' );
 		Q_ASSERT( path.endsWith('/') );
 	}
+	virtual ~ROSDataManagerBase()
+	{	}
 
 	inline const QString &sentenceTag() const	{ return m_sentenceTag;	}
 	inline const QObject *receiverOb() const	{ return m_ob;			}
 	inline const QString &routerName() const	{ return m_routerName;	}
 	inline const QString &path() const			{ return m_path;		}
+
+	inline ROSDataBase *rosData(const QString &dataID) const		{ return m_idDataMapP.value(dataID, Q_NULLPTR);	}
+	inline QList<ROSDataBase *> rosDataList() const					{ return m_idDataMapP.values();		}
+	inline const QMap<QString, ROSDataBase *> &rosDataMap() const	{ return m_idDataMapP;				}
 
 	void setup(QObject *receiverOb, const QString &routerName, const char *replySlot, const char *doneSlot, const char *errorSlot)
 	{
@@ -74,15 +82,9 @@ public:
 template <typename T>
 class ROSDataManager : public ROSDataManagerBase
 {
-	QMap<QString, T> m_idDataMap;
-
 public:
 	ROSDataManager(const QString &sentenceTag, const QString &path) : ROSDataManagerBase(sentenceTag, path)
 	{	}
-
-	inline T rosData(const QString &dataID)			{ return m_idDataMap.value(dataID, T(QString("InvalidROSData")));	}
-	inline QList<T> rosDataList()					{ return m_idDataMap.values();		}
-	inline const QMap<QString, T> &rosDataMap()		{ return m_idDataMap;				}
 
 	void onDone(const ROS::QSentence &sentence)
 	{
@@ -101,14 +103,14 @@ public:
 		{
 			Q_ASSERT( !m_routerName.isEmpty() );
 
-			T t(m_routerName, sentence);
+			T *t = new T(m_routerName, sentence);
 
-			if( t.deleting() )
-				m_idDataMap.remove(t.dataID());
+			if( t->deleting() )
+				m_idDataMapP.remove( t->dataID() );
 			else
-				m_idDataMap.insert(sentence.getID(), t);
+				m_idDataMapP.insert( t->dataID(), t );
 
-			m_ob->metaObject()->method(m_replySlot).invoke(m_ob, Q_ARG(QString, m_routerName), Q_ARG(T*, &t));
+			m_ob->metaObject()->method(m_replySlot).invoke(m_ob, Q_ARG(QString, m_routerName), Q_ARG(T*, t));
 		}
 	}
 };

@@ -5,9 +5,9 @@ ROSPPPoEManager::ROSPPPoEManager(QObject *papi) : Comm(papi),
 	m_rosAPIUsersGroupManager	("rosAPIUsersGroupManager",	"/user/group/"),
 	m_rosPPPProfileManager		("rosPPPProfileManager",	"/ppp/profile/"),
 	m_rosInterfaceManager		("rosInterfaceManager",		"/interface/"),
-	m_rosBridgeManager			("rosBridgeManager",		"/interface/bridge/"),
 	m_rosBridgePortsManager		("rosBridgePortsManager",	"/interface/bridge/port/"),
-	m_rosIPAddressManager		("rosIPAddressManager",		"/ip/address/")
+	m_rosIPAddressManager		("rosIPAddressManager",		"/ip/address/"),
+	m_rosIPPoolManager			("rosIPPoolManager",		"/ip/pool/")
 {
 	connect(this, SIGNAL(comReceive(ROS::QSentence&)), this, SLOT(onDataReceived(ROS::QSentence&)));
 }
@@ -36,29 +36,61 @@ void ROSPPPoEManager::onDataReceived(ROS::QSentence &sentence)
 	}
 }
 
-void ROSPPPoEManager::updateRemoteData(ROSDataManagerBase &rosDataManager, const ROSDataBase &newROSData, const ROSDataBase &oldROSData)
+ROSDataManagerBase &ROSPPPoEManager::rosDataManager(ROSPPPoEManager::ManagerID &managerID)
 {
+	Q_ASSERT( (managerID >= 0) && (managerID < TotalIDs) );
+
+	switch( managerID )
+	{
+	case ROSPPPoEManager::APIUser:			return m_rosAPIUserManager;
+	case ROSPPPoEManager::APIUsersGroup:	return m_rosAPIUsersGroupManager;
+	case ROSPPPoEManager::PPPProfile:		return m_rosPPPProfileManager;
+	case ROSPPPoEManager::Interface:		return m_rosInterfaceManager;
+	case ROSPPPoEManager::BridgePorts:		return m_rosBridgePortsManager;
+	case ROSPPPoEManager::IPAddress:		return m_rosIPAddressManager;
+	case ROSPPPoEManager::IPPool:			return m_rosIPPoolManager;
+	default:
+		break;
+	}
+	// Will NEVER come here!. But, coding that, avoids warnings.
+	return m_rosAPIUserManager;
+}
+
+QList<ROSDataBase *> ROSPPPoEManager::rosDataList(ROSPPPoEManager::ManagerID managerID)
+{
+	return rosDataManager(managerID).rosDataList();
+}
+
+void ROSPPPoEManager::updateRemoteData(ROSDataManagerBase &rosDataManager, const ROSDataBase &newROSData, const QString &rosDataID)
+{
+	// Sentence Tag is not necessary as this program keeps "listening" for ROS changes.
 	ROS::QSentence sentence;
 
-	// Tag is not necessary as this program keeps "listening" for ROS changes.
-	if( newROSData.dataID().isEmpty() )
+	if( rosDataID.isEmpty() )	// Adding new one.
 	{
 		sentence.setCommand( rosDataManager.addCommand() );
-		sendSentence(newROSData.toSentence(sentence));
+		sendSentence( newROSData.toSentence(sentence) );
 	}
 	else
 	if( newROSData.deleting() )
 	{
 		sentence.setCommand( rosDataManager.removeCommand() );
-		sentence.setID(newROSData.dataID());
+		sentence.setID( rosDataID );
 		sendSentence(sentence);
 	}
 	else
-	if( !newROSData.hasSameData(oldROSData) )
+	if( !newROSData.hasSameData( *rosDataManager.rosData(rosDataID)) )	// Updating remote data.
 	{
 		sentence.setCommand( rosDataManager.setCommand() );
-		sendSentence(newROSData.toSentence(sentence));
+		newROSData.toSentence(sentence);
+		sentence.setID( rosDataID );
+		sendSentence( sentence );
 	}
+}
+void ROSPPPoEManager::updateRemoteData(ROSPPPoEManager::ManagerID managerID, const ROSDataBase &newROSData, const QString &rosDataID)
+{
+	ROSDataManagerBase &rosDataManagerBase = rosDataManager(managerID);
+	updateRemoteData( rosDataManagerBase, newROSData, rosDataID );
 }
 
 void ROSPPPoEManager::requestRemoteData(ROSDataManagerBase &rosDataManager, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
@@ -84,53 +116,7 @@ void ROSPPPoEManager::requestRemoteData(ROSDataManagerBase &rosDataManager, QObj
 	}
 }
 
-void ROSPPPoEManager::requestAllAPIUsers(QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
+void ROSPPPoEManager::requestRemoteData(ROSPPPoEManager::ManagerID managerID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
 {
-	requestRemoteData( m_rosAPIUserManager, receiverOb, replySlot, doneSlot, errorSlot );
-}
-void ROSPPPoEManager::updateROSAPIUser(const ROSAPIUser &newROSAPIUser)
-{
-	updateRemoteData( m_rosAPIUserManager, newROSAPIUser, m_rosAPIUserManager.rosData(newROSAPIUser.dataID()) );
-}
-
-void ROSPPPoEManager::requestAllPPPProfiles(QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
-{
-	requestRemoteData( m_rosPPPProfileManager, receiverOb, replySlot, doneSlot, errorSlot );
-}
-void ROSPPPoEManager::updatePPPProfile(const ROSPPPProfile &newROSPPPProfile)
-{
-	updateRemoteData( m_rosPPPProfileManager, newROSPPPProfile, m_rosAPIUserManager.rosData(newROSPPPProfile.dataID()) );
-}
-
-void ROSPPPoEManager::requestAllAPIUsersGroup(QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
-{
-	requestRemoteData( m_rosAPIUsersGroupManager, receiverOb, replySlot, doneSlot, errorSlot );
-}
-
-void ROSPPPoEManager::requestAllIPAddress(QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
-{
-	requestRemoteData( m_rosIPAddressManager, receiverOb, replySlot, doneSlot, errorSlot );
-}
-
-void ROSPPPoEManager::updateIPAddress(const ROSIPAddress &newROSIPAddress)
-{
-	updateRemoteData( m_rosIPAddressManager, newROSIPAddress, m_rosIPAddressManager.rosData(newROSIPAddress.dataID()) );
-}
-
-void ROSPPPoEManager::requestAllInterfaces(QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
-{
-	requestRemoteData( m_rosInterfaceManager, receiverOb, replySlot, doneSlot, errorSlot );
-}
-void ROSPPPoEManager::updateBridgeInterface(const ROSInterface &newBridgeIface)
-{
-	updateRemoteData( m_rosInterfaceManager, newBridgeIface, m_rosInterfaceManager.rosData(newBridgeIface.dataID()) );
-}
-
-void ROSPPPoEManager::requestAllBridgePorts(QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
-{
-	requestRemoteData( m_rosBridgePortsManager, receiverOb, replySlot, doneSlot, errorSlot );
-}
-void ROSPPPoEManager::updateBridgePort(const ROSBridgePort &newROSBridgePort)
-{
-	updateRemoteData( m_rosBridgePortsManager, newROSBridgePort, m_rosBridgePortsManager.rosData(newROSBridgePort.dataID()) );
+	requestRemoteData( rosDataManager(managerID), receiverOb, replySlot, doneSlot, errorSlot );
 }

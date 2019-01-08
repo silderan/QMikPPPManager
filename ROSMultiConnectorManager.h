@@ -31,9 +31,6 @@ public:
 	bool areAllDisconnected()const;
 	bool areAllConnected()const;
 
-	QStringList rosAPIUsersGrupList()const;
-
-public slots:
 	void sendCancel(const QString &tag, const QString &routerName = QString());
 	void connectHosts(const QString &routerName = QString());
 	void disconnectHosts(bool force, const QString &routerName = QString());
@@ -41,8 +38,16 @@ public slots:
 	void sendSentence(const QString &routerName, const ROS::QSentence &s);
 	void sendSentence(const QString &routerName, const QString &s, const QString &tag, const QStringList attrib = QStringList());
 
-	void updateRemoteAPIUserData(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap);
-	void updateRemotePPPProfileData(const ROSDataBase &profileData, const QRouterIDMap &routerIDMap);
+	QList<ROSDataBase *>rosDataList(ROSPPPoEManager::ManagerID managerID) const;
+	QStringList rosAPIUsersGrupList()const;
+
+	static void requestAll(ROSPPPoEManager *rosPPPoEManager, ROSPPPoEManager::ManagerID managerID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
+	static void requestAll(ROSPPPoEManagerPList rosPPPoEManagerPList, ROSPPPoEManager::ManagerID managerID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
+
+	void requestAll(const QString &routerName, ROSPPPoEManager::ManagerID managerID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
+	void requestAll(ROSPPPoEManager::ManagerID managerID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
+
+	void updateRemoteData(ROSPPPoEManager::ManagerID managerID, const ROSDataBase &rosData, const QRouterIDMap &routerIDMap);
 
 signals:
 	void statusInfo(const QString &info, const QString &routerName);

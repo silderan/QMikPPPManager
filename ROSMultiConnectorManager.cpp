@@ -70,22 +70,28 @@ bool ROSMultiConnectManager::areAllConnected() const
 	return true;
 }
 
-QStringList ROSMultiConnectManager::rosAPIUsersGrupList() const
+QList<ROSDataBase *> ROSMultiConnectManager::rosDataList(ROSPPPoEManager::ManagerID managerID) const
 {
-	QStringList rtn;
+	QList<ROSDataBase*> rtn;
 	ROSPPPoEManagerIterator pppoeManagerIterator(m_rosPppoeManagerMap);
+
 	while( pppoeManagerIterator.hasNext() )
 	{
 		pppoeManagerIterator.next();
-
-		QMapIterator<QString, ROSAPIUsersGroup> rosAPIUsersGroupIterator(pppoeManagerIterator.value()->rosApiUsersGroupManager().rosDataMap());
-		while( rosAPIUsersGroupIterator.hasNext() )
-		{
-			rosAPIUsersGroupIterator.next();
-			if( !rtn.contains(rosAPIUsersGroupIterator.value().groupName()) )
-				rtn.append( rosAPIUsersGroupIterator.value().groupName() );
-		}
+		rtn.append( pppoeManagerIterator.value()->rosDataList(managerID) );
 	}
+	return rtn;
+}
+
+QStringList ROSMultiConnectManager::rosAPIUsersGrupList() const
+{
+	QStringList rtn;
+	foreach( const ROSDataBase *rosData, rosDataList(ROSPPPoEManager::APIUsersGroup) )
+	{
+		if( !rtn.contains( static_cast<const ROSAPIUsersGroup*>(rosData)->groupName()) )
+			rtn.append( static_cast<const ROSAPIUsersGroup*>(rosData)->groupName() );
+	}
+
 	return rtn;
 }
 
@@ -136,6 +142,27 @@ void ROSMultiConnectManager::sendSentence(const QString &routerName, const ROS::
 void ROSMultiConnectManager::sendSentence(const QString &routerName, const QString &cmd, const QString &tag, const QStringList attrib)
 {
 	sendSentence( routerName, ROS::QSentence(cmd, tag, attrib) );
+}
+
+void ROSMultiConnectManager::requestAll(ROSPPPoEManagerPList rosPPPoEManagerPList, ROSPPPoEManager::ManagerID managerID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
+{
+	foreach( ROSPPPoEManager *rosPPPoEManager, rosPPPoEManagerPList)
+		ROSMultiConnectManager::requestAll(rosPPPoEManager, managerID, receiverOb, replySlot, doneSlot, errorSlot);
+}
+
+void ROSMultiConnectManager::requestAll(ROSPPPoEManager *rosPPPoEManager, ROSPPPoEManager::ManagerID managerID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
+{
+	rosPPPoEManager->requestRemoteData(managerID, receiverOb, replySlot, doneSlot, errorSlot);
+}
+
+void ROSMultiConnectManager::requestAll(ROSPPPoEManager::ManagerID managerID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
+{
+	ROSMultiConnectManager::requestAll(m_rosPppoeManagerMap.values(), managerID, receiverOb, replySlot, doneSlot, errorSlot);
+}
+
+void ROSMultiConnectManager::requestAll(const QString &routerName, ROSPPPoEManager::ManagerID managerID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
+{
+	rosPppoeManager(routerName)->requestRemoteData(managerID, receiverOb, replySlot, doneSlot, errorSlot);
 }
 
 void ROSMultiConnectManager::onComError(ROS::Comm::CommError /*commError*/, QAbstractSocket::SocketError /*socketError*/)
@@ -201,29 +228,13 @@ void ROSMultiConnectManager::onLoginChanged(ROS::Comm::LoginState s)
 	}
 }
 
-void ROSMultiConnectManager::updateRemoteAPIUserData(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap)
+void ROSMultiConnectManager::updateRemoteData(ROSPPPoEManager::ManagerID managerID, const ROSDataBase &rosData, const QRouterIDMap &routerIDMap)
 {
-	ROSAPIUser rosAPIUser = static_cast<const ROSAPIUser&>(rosData);
-
 	ROSPPPoEManagerIterator it(m_rosPppoeManagerMap);
 	while( it.hasNext() )
 	{
 		it.next();
-		rosAPIUser.setDataID( routerIDMap.dataID(it.key()) );
-		it.value()->updateROSAPIUser(rosAPIUser);
-	}
-}
-
-void ROSMultiConnectManager::updateRemotePPPProfileData(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap)
-{
-	ROSPPPProfile profileData = static_cast<const ROSPPPProfile&>(rosData);
-
-	ROSPPPoEManagerIterator it(m_rosPppoeManagerMap);
-	while( it.hasNext() )
-	{
-		it.next();
-		profileData.setDataID( routerIDMap.dataID(it.key()) );
-		it.value()->updatePPPProfile(profileData);
+		it.value()->updateRemoteData( managerID, rosData, routerIDMap.dataID(it.key()) );
 	}
 }
 

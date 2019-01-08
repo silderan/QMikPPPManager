@@ -11,11 +11,11 @@ class ROSInterfaceManager : public ROSDataManager<ROSInterface>
 public:
 	ROSInterfaceManager(const QString &routerName, const QString &path) : ROSDataManager(routerName, path)
 	{	}
-	virtual ~ROSInterfaceManager()
+	virtual ~ROSInterfaceManager()override
 	{	}
 
-	inline QList<ROSInterface> rosDataList()	{ return ROSDataManager::rosDataList();	}
-	QList<ROSInterface> rosDataList(const QString &interfaceType);
+	inline QList<ROSDataBase *> rosDataList()	{ return ROSDataManager::rosDataList();	}
+	QList<ROSDataBase *> rosDataList(const QString &interfaceType);
 
 	QStringList getallQueries() override
 	{

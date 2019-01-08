@@ -104,14 +104,17 @@ public slots:
 	void onOneAPIUsersReceived(const QString &routerName, ROSAPIUser *apiUser);
 	void onAllAPIUsersReceived(const QString &routerName);
 	void onAPIUsersErrorReceived(const QString &routerName, const QString &errorString);
+	void updateRemoteAPIUser(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap);
 
 	void onOneAPIUsersGroupReceived(const QString &routerName, ROSAPIUsersGroup *apiUsersGroup);
 	void onAllAPIUsersGroupsReceived(const QString &routerName);
 	void onAPIUsersGroupsErrorReceived(const QString &routerName, const QString &errorString);
+	void updateRemoteAPIUsersGroup(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap);
 
 	void onOnePPPProfileReceived(const QString &routerName, ROSPPPProfile *rosPPPProfile);
 	void onAllPPPProfilesReceived(const QString &routerName);
 	void onPPPProfilesErrorReceived(const QString &routerName, const QString &errorString);
+	void updateRemotePPPProfile(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap);
 
 	void updateConfig();
 

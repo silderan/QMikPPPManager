@@ -1,11 +1,11 @@
 #include "ROSInterfaceManager.h"
 
 
-QList<ROSInterface> ROSInterfaceManager::rosDataList(const QString &interfaceType)
+QList<ROSDataBase *> ROSInterfaceManager::rosDataList(const QString &interfaceType)
 {
-	QList<ROSInterface> rtn;
-	foreach( const ROSInterface &iface, rosDataList() )
-		if( iface.interfaceType() == interfaceType )
+	QList<ROSDataBase *> rtn;
+	foreach( ROSDataBase *iface, rosDataList() )
+		if( static_cast<ROSInterface*>(iface)->interfaceType() == interfaceType )
 			rtn.append(iface);
 	return rtn;
 }

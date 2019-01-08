@@ -14,7 +14,7 @@ public:
 	ROSIPPool(const QString &routerName) : ROSDataBase(routerName)
 	{	}
 
-	inline const QString &poolName() const { return m_name;	}
+	inline const QString &poolName() const				{ return m_name;	}
 	inline void setPoolName(const QString &poolName)	{ m_name = poolName;	}
 
 	inline const IPv4RangeList &poolRanges() const				{ return m_pool;		}
