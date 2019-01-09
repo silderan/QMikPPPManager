@@ -110,7 +110,8 @@ HEADERS  += QMikPPPManager.h \
     ROSData/ROSIPPool.h \
     ROSDataManager/ROSIPPoolManager.h \
     Dialogs/DlgROSIPPool.h \
-    Widgets/QROSIPoolTableWidget.h
+    Widgets/QROSIPoolTableWidget.h \
+    ROSData/DataTypeID.h
 
 FORMS    += QMikPPPManager.ui \
 	DlgNuevoUsuario.ui \

@@ -9,9 +9,7 @@ class ROSInterface : public ROSDataBase
 	QString m_type;
 
 public:
-	ROSInterface(const QString &routerName) : ROSDataBase(routerName)
-	{	}
-	~ROSInterface()
+	explicit ROSInterface(const QString &routerName) : ROSDataBase(DataTypeID::Interface, routerName)
 	{	}
 
 	inline const QString &interfaceName()const	{ return m_name;	}

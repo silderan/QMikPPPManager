@@ -33,7 +33,7 @@ void QROSAPIUserTableWidget::setupRow(int row, const ROSDataBase &rosData)
 	Q_ASSERT( !userData.userName().isEmpty() );
 
 	QTableWidgetBase::setupRow(row, rosData);
-	setCellText( row, UserName, userData.userName(), userData.dataID().isEmpty() ? Qt::ItemIsEditable : Qt::NoItemFlags );
+	setCellText( row, UserName, userData.userName(), userData.rosObjectID().isEmpty() ? Qt::ItemIsEditable : Qt::NoItemFlags );
 	setCellText( row, GroupName, userData.groupName(), Qt::ItemIsEditable );
 	setCellText( row, UserLevel, userData.levelName(), Qt::ItemIsEditable );
 }

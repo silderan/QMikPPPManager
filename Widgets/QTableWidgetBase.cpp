@@ -121,13 +121,13 @@ const QRouterIDMap &QTableWidgetBase::routerIDMap(int row) const
 
 int QTableWidgetBase::rowOf(const ROSDataBase &rosData)
 {
-	return rowOf(rosData.routerName(), rosData.dataID());
+	return rowOf(rosData.routerName(), rosData.rosObjectID());
 }
 
 void QTableWidgetBase::setupRow(int row, const ROSDataBase &rosData)
 {
 	if( m_routerIDColumn != -1 )
-		addCellRoutersID( row, m_routerIDColumn, rosData.routerName(), rosData.dataID() );
+		addCellRoutersID( row, m_routerIDColumn, rosData.routerName(), rosData.rosObjectID() );
 }
 
 void QTableWidgetBase::onRemoteDataModified(const ROSDataBase &rosData)
@@ -145,7 +145,7 @@ void QTableWidgetBase::onRemoteDataModified(const ROSDataBase &rosData)
 void QTableWidgetBase::onRemoteDataDeleted(const ROSDataBase &rosData)
 {
 	Q_ASSERT( !rosData.routerName().isEmpty() );
-	Q_ASSERT( !rosData.dataID().isEmpty() );
+	Q_ASSERT( !rosData.rosObjectID().isEmpty() );
 	Q_ASSERT( rosData.deleting() );
 
 	// If there is no data in there, this function cannot delete anything as it's unable to lookup the data row
@@ -157,7 +157,7 @@ void QTableWidgetBase::onRemoteDataDeleted(const ROSDataBase &rosData)
 	}
 
 	blockSignals(true);
-	int row = rowOf( rosData.routerName(), rosData.dataID() );
+	int row = rowOf( rosData.routerName(), rosData.rosObjectID() );
 	if( row != -1 )
 	{
 		delCellRoutersID(row, rosData.routerName());
@@ -170,7 +170,7 @@ void QTableWidgetBase::onRemoteDataDeleted(const ROSDataBase &rosData)
 void QTableWidgetBase::onRemoteDataReceived(const ROSDataBase &rosData)
 {
 	Q_ASSERT( !rosData.routerName().isEmpty() );
-	Q_ASSERT( !rosData.dataID().isEmpty() );
+	Q_ASSERT( !rosData.rosObjectID().isEmpty() );
 
 	if( columnCount() > 0 )
 	{

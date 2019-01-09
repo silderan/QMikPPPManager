@@ -178,7 +178,7 @@ QString QMikPPPManager::createRouterName(const ConnectInfo &conInfo) const
 
 void QMikPPPManager::requestROSAPIUsers(const QString &routerName)
 {
-	mktAPI.requestAll(routerName, ROSPPPoEManager::APIUser, this,
+	mktAPI.requestAll(routerName, DataTypeID::APIUser, this,
 								  SLOT(onOneAPIUsersReceived(QString,ROSAPIUser*)),
 								  SLOT(onAllAPIUsersReceived(QString)),
 								  SLOT(onAPIUsersErrorReceived(QString,QString)) );
@@ -200,12 +200,12 @@ void QMikPPPManager::onAPIUsersErrorReceived(const QString &routerName, const QS
 }
 void QMikPPPManager::updateRemoteAPIUser(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap)
 {
-	mktAPI.updateRemoteData(ROSPPPoEManager::APIUser, rosData, routerIDMap);
+	mktAPI.updateRemoteData(rosData, routerIDMap);
 }
 
 void QMikPPPManager::requestROSAPIUserGroups(const QString &routerName)
 {
-	mktAPI.requestAll(routerName, ROSPPPoEManager::APIUsersGroup, this,
+	mktAPI.requestAll(routerName, DataTypeID::APIUsersGroup, this,
 									  SLOT(onOneAPIUsersGroupReceived(QString,ROSAPIUsersGroup*)),
 									  SLOT(onAllAPIUsersGroupsReceived(QString)),
 									  SLOT(onAPIUsersGroupsErrorReceived(QString,QString)) );
@@ -228,12 +228,12 @@ void QMikPPPManager::onAPIUsersGroupsErrorReceived(const QString &routerName, co
 
 void QMikPPPManager::updateRemoteAPIUsersGroup(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap)
 {
-	mktAPI.updateRemoteData(ROSPPPoEManager::APIUsersGroup, rosData, routerIDMap);
+	mktAPI.updateRemoteData(rosData, routerIDMap);
 }
 
 void QMikPPPManager::requestPPPProfiles(const QString &routerName)
 {
-	mktAPI.requestAll(routerName, ROSPPPoEManager::PPPProfile, this,
+	mktAPI.requestAll(routerName, DataTypeID::PPPProfile, this,
 										  SLOT(onOnePPPProfileReceived(QString,ROSPPPProfile*)),
 										  SLOT(onAllPPPProfilesReceived(QString)),
 										  SLOT(onPPPProfilesErrorReceived(QString,QString)) );
@@ -256,7 +256,7 @@ void QMikPPPManager::onPPPProfilesErrorReceived(const QString &routerName, const
 
 void QMikPPPManager::updateRemotePPPProfile(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap)
 {
-	mktAPI.updateRemoteData(ROSPPPoEManager::PPPProfile, rosData, routerIDMap);
+	mktAPI.updateRemoteData(rosData, routerIDMap);
 }
 
 void QMikPPPManager::pideUsuarios(const QString &routerName)
@@ -842,10 +842,10 @@ void QMikPPPManager::on_apiUsersButton_clicked()
 	{
 		dlgROSAPIUsers = new DlgROSAPIUsers( this );
 
-		foreach( const ROSDataBase *rosData, mktAPI.rosDataList(ROSPPPoEManager::APIUser) )
+		foreach( const ROSDataBase *rosData, mktAPI.rosDataList(DataTypeID::APIUser) )
 			dlgROSAPIUsers->onUserDataReceived( static_cast<const ROSAPIUser &>(*rosData) );
 
-		foreach( const ROSDataBase *rosData, mktAPI.rosDataList(ROSPPPoEManager::APIUsersGroup) )
+		foreach( const ROSDataBase *rosData, mktAPI.rosDataList(DataTypeID::APIUsersGroup) )
 			dlgROSAPIUsers->onUsersGroupDataReceived( static_cast<const ROSAPIUsersGroup &>(*rosData) );
 
 		connect( dlgROSAPIUsers, SIGNAL(userModified(ROSDataBase,QRouterIDMap)), this, SLOT(updateRemoteAPIUser(ROSDataBase,QRouterIDMap)) );
@@ -860,7 +860,7 @@ void QMikPPPManager::on_pppProfilesButton_clicked()
 	{
 		dlgPPPProfiles = new DlgPPPProfiles( this );
 
-		foreach( const ROSDataBase *rosData, mktAPI.rosDataList(ROSPPPoEManager::PPPProfile) )
+		foreach( const ROSDataBase *rosData, mktAPI.rosDataList(DataTypeID::PPPProfile) )
 			dlgPPPProfiles->onPPPProfileDataReceived( static_cast<const ROSPPPProfile &>(*rosData) );
 
 		connect( dlgPPPProfiles, SIGNAL(dataModified(ROSDataBase,QRouterIDMap)), this, SLOT(updateRemotePPPProfile(ROSDataBase,QRouterIDMap)) );

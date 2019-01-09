@@ -10,7 +10,7 @@ class ROSIPAddress : public ROSDataBase
 	QString m_ifaceName;
 
 public:
-	ROSIPAddress(const QString &routerName) : ROSDataBase(routerName)
+	explicit ROSIPAddress(const QString &routerName) : ROSDataBase(DataTypeID::IPAddress, routerName)
 	{	}
 
 	inline void setAddress(const QString &address)		{ m_address = address;	}

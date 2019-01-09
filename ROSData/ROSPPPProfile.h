@@ -13,12 +13,12 @@ class ROSPPPProfile : public ROSDataBase
 	ROSRateLimit m_rateLimit;
 
 public:
-	ROSPPPProfile(const QString &routerName) : ROSDataBase(routerName, QString())
+	explicit ROSPPPProfile(const QString &routerName) : ROSDataBase(DataTypeID::PPPProfile, routerName, QString())
 	{	}
-	ROSPPPProfile(const QString &routerName, const ROS::QSentence &sentence) : ROSDataBase(routerName, QString())
-	{
-		fromSentence(routerName, sentence);
-	}
+//	ROSPPPProfile(const QString &routerName, const ROS::QSentence &sentence) : ROSDataBase(routerName, QString())
+//	{
+//		fromSentence(routerName, sentence);
+//	}
 
 	inline const QString &profileName() const		{ return m_name;	}
 	inline void setProfileName(const QString &n)	{ m_name = n;		}

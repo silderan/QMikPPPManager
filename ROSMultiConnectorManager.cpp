@@ -70,7 +70,7 @@ bool ROSMultiConnectManager::areAllConnected() const
 	return true;
 }
 
-QList<ROSDataBase *> ROSMultiConnectManager::rosDataList(ROSPPPoEManager::ManagerID managerID) const
+QList<ROSDataBase *> ROSMultiConnectManager::rosDataList(DataTypeID dataTypeID) const
 {
 	QList<ROSDataBase*> rtn;
 	ROSPPPoEManagerIterator pppoeManagerIterator(m_rosPppoeManagerMap);
@@ -78,7 +78,7 @@ QList<ROSDataBase *> ROSMultiConnectManager::rosDataList(ROSPPPoEManager::Manage
 	while( pppoeManagerIterator.hasNext() )
 	{
 		pppoeManagerIterator.next();
-		rtn.append( pppoeManagerIterator.value()->rosDataList(managerID) );
+		rtn.append( pppoeManagerIterator.value()->rosDataList(dataTypeID) );
 	}
 	return rtn;
 }
@@ -86,7 +86,7 @@ QList<ROSDataBase *> ROSMultiConnectManager::rosDataList(ROSPPPoEManager::Manage
 QStringList ROSMultiConnectManager::rosAPIUsersGrupList() const
 {
 	QStringList rtn;
-	foreach( const ROSDataBase *rosData, rosDataList(ROSPPPoEManager::APIUsersGroup) )
+	foreach( const ROSDataBase *rosData, rosDataList(DataTypeID::APIUsersGroup) )
 	{
 		if( !rtn.contains( static_cast<const ROSAPIUsersGroup*>(rosData)->groupName()) )
 			rtn.append( static_cast<const ROSAPIUsersGroup*>(rosData)->groupName() );
@@ -142,27 +142,6 @@ void ROSMultiConnectManager::sendSentence(const QString &routerName, const ROS::
 void ROSMultiConnectManager::sendSentence(const QString &routerName, const QString &cmd, const QString &tag, const QStringList attrib)
 {
 	sendSentence( routerName, ROS::QSentence(cmd, tag, attrib) );
-}
-
-void ROSMultiConnectManager::requestAll(ROSPPPoEManagerPList rosPPPoEManagerPList, ROSPPPoEManager::ManagerID managerID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
-{
-	foreach( ROSPPPoEManager *rosPPPoEManager, rosPPPoEManagerPList)
-		ROSMultiConnectManager::requestAll(rosPPPoEManager, managerID, receiverOb, replySlot, doneSlot, errorSlot);
-}
-
-void ROSMultiConnectManager::requestAll(ROSPPPoEManager *rosPPPoEManager, ROSPPPoEManager::ManagerID managerID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
-{
-	rosPPPoEManager->requestRemoteData(managerID, receiverOb, replySlot, doneSlot, errorSlot);
-}
-
-void ROSMultiConnectManager::requestAll(ROSPPPoEManager::ManagerID managerID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
-{
-	ROSMultiConnectManager::requestAll(m_rosPppoeManagerMap.values(), managerID, receiverOb, replySlot, doneSlot, errorSlot);
-}
-
-void ROSMultiConnectManager::requestAll(const QString &routerName, ROSPPPoEManager::ManagerID managerID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
-{
-	rosPppoeManager(routerName)->requestRemoteData(managerID, receiverOb, replySlot, doneSlot, errorSlot);
 }
 
 void ROSMultiConnectManager::onComError(ROS::Comm::CommError /*commError*/, QAbstractSocket::SocketError /*socketError*/)
@@ -228,14 +207,35 @@ void ROSMultiConnectManager::onLoginChanged(ROS::Comm::LoginState s)
 	}
 }
 
-void ROSMultiConnectManager::updateRemoteData(ROSPPPoEManager::ManagerID managerID, const ROSDataBase &rosData, const QRouterIDMap &routerIDMap)
+void ROSMultiConnectManager::updateRemoteData(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap)
 {
 	ROSPPPoEManagerIterator it(m_rosPppoeManagerMap);
 	while( it.hasNext() )
 	{
 		it.next();
-		it.value()->updateRemoteData( managerID, rosData, routerIDMap.dataID(it.key()) );
+		it.value()->updateRemoteData( rosData, routerIDMap.dataID(it.key()) );
 	}
+}
+
+void ROSMultiConnectManager::requestAll(ROSPPPoEManagerPList rosPPPoEManagerPList, DataTypeID dataTypeID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
+{
+	foreach( ROSPPPoEManager *rosPPPoEManager, rosPPPoEManagerPList)
+		ROSMultiConnectManager::requestAll(rosPPPoEManager, dataTypeID, receiverOb, replySlot, doneSlot, errorSlot);
+}
+
+void ROSMultiConnectManager::requestAll(ROSPPPoEManager *rosPPPoEManager, DataTypeID dataTypeID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
+{
+	rosPPPoEManager->requestRemoteData(dataTypeID, receiverOb, replySlot, doneSlot, errorSlot);
+}
+
+void ROSMultiConnectManager::requestAll(DataTypeID dataTypeID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
+{
+	ROSMultiConnectManager::requestAll(m_rosPppoeManagerMap.values(), dataTypeID, receiverOb, replySlot, doneSlot, errorSlot);
+}
+
+void ROSMultiConnectManager::requestAll(const QString &routerName, DataTypeID dataTypeID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
+{
+	rosPppoeManager(routerName)->requestRemoteData(dataTypeID, receiverOb, replySlot, doneSlot, errorSlot);
 }
 
 ROSMultiConnectManager mktAPI;

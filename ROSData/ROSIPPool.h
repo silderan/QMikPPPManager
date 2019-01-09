@@ -11,7 +11,7 @@ class ROSIPPool : public ROSDataBase
 	IPv4RangeList m_pool;
 
 public:
-	ROSIPPool(const QString &routerName) : ROSDataBase(routerName)
+	explicit ROSIPPool(const QString &routerName) : ROSDataBase(DataTypeID::IPPool, routerName)
 	{	}
 
 	inline const QString &poolName() const				{ return m_name;	}

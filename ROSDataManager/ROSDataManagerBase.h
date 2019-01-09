@@ -103,12 +103,14 @@ public:
 		{
 			Q_ASSERT( !m_routerName.isEmpty() );
 
-			T *t = new T(m_routerName, sentence);
+			T *t = new T(m_routerName);
+
+			t->fromSentence(m_routerName, sentence);
 
 			if( t->deleting() )
-				m_idDataMapP.remove( t->dataID() );
+				delete m_idDataMapP.take( t->rosObjectID() );
 			else
-				m_idDataMapP.insert( t->dataID(), t );
+				m_idDataMapP.insert( t->rosObjectID(), t );
 
 			m_ob->metaObject()->method(m_replySlot).invoke(m_ob, Q_ARG(QString, m_routerName), Q_ARG(T*, t));
 		}

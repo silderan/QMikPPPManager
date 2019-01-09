@@ -5,6 +5,7 @@
 #include <QMapIterator>
 
 #include "ROSAPI/Comm.h"
+#include "ROSData/DataTypeID.h"
 #include "ROSData/ROSAPIUser.h"
 #include "ROSData/ROSAPIUserGroup.h"
 #include "ROSData/ROSPPPProfile.h"
@@ -21,19 +22,6 @@ class ROSPPPoEManager : public ROS::Comm
 {
 Q_OBJECT
 
-public:
-	enum ManagerID
-	{
-		APIUser,
-		APIUsersGroup,
-		PPPProfile,
-		Interface,
-		BridgePorts,
-		IPAddress,
-		IPPool,
-		TotalIDs
-	};
-
 private:
 	ROSAPIUserManager m_rosAPIUserManager;
 	ROSAPIUsersGroupManager m_rosAPIUsersGroupManager;
@@ -43,10 +31,7 @@ private:
 	ROSIPAddressManager m_rosIPAddressManager;
 	ROSIPPoolManager m_rosIPPoolManager;
 
-	ROSDataManagerBase &rosDataManager(ManagerID &managerID);
-
-	void requestRemoteData(ROSDataManagerBase &rosDataManager, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
-	void updateRemoteData(ROSDataManagerBase &rosDataManager, const ROSDataBase &newROSData, const QString &rosDataID);
+	ROSDataManagerBase &rosDataManager(DataTypeID dataTypeID);
 
 public:
 	ROSPPPoEManager(QObject *papi);
@@ -55,10 +40,10 @@ public:
 	ROSAPIUserManager &rosApiUserManager()				{ return m_rosAPIUserManager;		}
 	ROSAPIUsersGroupManager &rosApiUsersGroupManager()	{ return m_rosAPIUsersGroupManager;	}
 	ROSPPPProfileManager &rosPPPProfileManager()		{ return m_rosPPPProfileManager;	}
-	QList<ROSDataBase *>rosDataList(ROSPPPoEManager::ManagerID managerID);
+	QList<ROSDataBase *>rosDataList(DataTypeID dataTypeID);
 
-	void requestRemoteData(ROSPPPoEManager::ManagerID managerID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
-	void updateRemoteData(ROSPPPoEManager::ManagerID managerID, const ROSDataBase &newROSData, const QString &rosDataID);
+	void requestRemoteData(DataTypeID dataTypeID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
+	void updateRemoteData(const ROSDataBase &newROSData, const QString &rosObjectID);
 
 public slots:
 	void onDataReceived(ROS::QSentence &sentence);

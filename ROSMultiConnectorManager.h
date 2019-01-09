@@ -38,16 +38,16 @@ public:
 	void sendSentence(const QString &routerName, const ROS::QSentence &s);
 	void sendSentence(const QString &routerName, const QString &s, const QString &tag, const QStringList attrib = QStringList());
 
-	QList<ROSDataBase *>rosDataList(ROSPPPoEManager::ManagerID managerID) const;
+	QList<ROSDataBase *>rosDataList(DataTypeID dataTypeID) const;
 	QStringList rosAPIUsersGrupList()const;
 
-	static void requestAll(ROSPPPoEManager *rosPPPoEManager, ROSPPPoEManager::ManagerID managerID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
-	static void requestAll(ROSPPPoEManagerPList rosPPPoEManagerPList, ROSPPPoEManager::ManagerID managerID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
+	static void requestAll(ROSPPPoEManager *rosPPPoEManager, DataTypeID dataTypeID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
+	static void requestAll(ROSPPPoEManagerPList rosPPPoEManagerPList, DataTypeID dataTypeID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
 
-	void requestAll(const QString &routerName, ROSPPPoEManager::ManagerID managerID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
-	void requestAll(ROSPPPoEManager::ManagerID managerID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
+	void requestAll(const QString &routerName, DataTypeID dataTypeID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
+	void requestAll(DataTypeID dataTypeID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
 
-	void updateRemoteData(ROSPPPoEManager::ManagerID managerID, const ROSDataBase &rosData, const QRouterIDMap &routerIDMap);
+	void updateRemoteData(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap);
 
 signals:
 	void statusInfo(const QString &info, const QString &routerName);

@@ -10,7 +10,7 @@ class ROSBridgePort : public ROSDataBase
 	QString m_ifaceName;
 
 public:
-	ROSBridgePort(const QString &routerName) : ROSDataBase(routerName)
+	explicit ROSBridgePort(const QString &routerName) : ROSDataBase(DataTypeID::BridgePorts, routerName)
 	{	}
 
 	const QString &bridgeName() const				{ return m_bridgeName;		}

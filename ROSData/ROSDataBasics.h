@@ -7,25 +7,29 @@
 #include <QMapIterator>
 
 #include "ROSAPI/Comm.h"
+#include "DataTypeID.h"
 
 class ROSDataBase
 {
+	const DataTypeID m_dataTypeID;
 	QString m_routerName;
-	QString m_dataID;
+	QString m_rosObjectID;
 	bool m_delete;
 
 public:
-	ROSDataBase(const QString &routerName, const QString &dataID = QString()) :
+	ROSDataBase(DataTypeID dataTypeID, const QString &routerName, const QString &dataID = QString()) :
+		m_dataTypeID(dataTypeID),
 		m_routerName(routerName),
-		m_dataID(dataID),
+		m_rosObjectID(dataID),
 		m_delete(false)
 	{	}
 	virtual ~ROSDataBase()
 	{	}
 
+	inline DataTypeID dataTypeID() const	{	return m_dataTypeID;	}
 
-	inline const QString &dataID()	const		{ return m_dataID;	}
-	inline void setDataID(const QString &id)	{ m_dataID = id;	}
+	inline const QString &rosObjectID()	const		{ return m_rosObjectID;	}
+	inline void setROSObjectID(const QString &id)	{ m_rosObjectID = id;	}
 
 	inline const QString &routerName() const				{ return m_routerName;		}
 	inline void setRouterName(const QString &routerName)	{ m_routerName = routerName;}
