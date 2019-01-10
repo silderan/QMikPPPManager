@@ -12,13 +12,17 @@
 
 #define WARNING(_t)	(QMessageBox::warning(this, objectName(), _t) )
 
-DlgCnfgConnect::DlgCnfgConnect(QWidget *parent) :
+DlgCnfgConnect::DlgCnfgConnect(QWidget *parent, ROSMultiConnectManager &rosMultiConnectManager) :
     QDialog(parent),
-    ui(new Ui::DlgCnfgConnect)
+	ui(new Ui::DlgCnfgConnect),
+	m_rosMultiConnectManager(rosMultiConnectManager)
 {
     ui->setupUi(this);
+
 	ui->hostsTable->setColumnCount(3);
 	ui->hostsTable->setHorizontalHeaderLabels(QStringList() << "IP Servidor" << "Puerto API" << "Estado" );
+
+	setup();
 	connect( ui->addButton, SIGNAL(clicked()), this, SLOT(addRow()) );
 	connect( ui->delButton, SIGNAL(clicked()), this, SLOT(removeCurrentRow()) );
 }
@@ -39,16 +43,31 @@ void DlgCnfgConnect::setup()
 	int row;
 	for( row = 0; row < gGlobalConfig.connectInfoList().count(); ++row )
 	{
-		addRow(row,
-			   gGlobalConfig.connectInfoList().at(row).m_hostIPv4.toString(),
-			   gGlobalConfig.connectInfoList().at(row).m_hostPort );
+		const ConnectInfo &conInfo = gGlobalConfig.connectInfoList().at(row);
+		const QString routerName = conInfo.routerName();
+		ROSPPPoEManager *rosPPPoEManager = multiConnectionManager.rosPppoeManager(routerName);
+		QString routerState;
+		if( rosPPPoEManager != Q_NULLPTR )
+		{
+			if( rosPPPoEManager->isLoged() )
+				routerState = tr("Logado al router");
+			else
+			if( rosPPPoEManager->isDisconnected() )
+				routerState = tr("Desconectado");
+			else
+				routerState = tr("Desconocido");
+		}
+		else
+			routerState = tr("Desconectado");
+		addRow( row, conInfo.hostIPv4().toString(), conInfo.hostPort(), routerState );
+
 	}
 	// Remove the extra rows.
 	while( ui->hostsTable->rowCount() > row )
 		ui->hostsTable->removeRow(row);
 }
 
-void DlgCnfgConnect::addRow(int row, const QString &hostAddr, quint16 hostPort)
+void DlgCnfgConnect::addRow(int row, const QString &hostAddr, quint16 hostPort, const QString &routerState)
 {
 	if( row == -1 )	// Add always a new row.
 		row = ui->hostsTable->rowCount();
@@ -59,12 +78,12 @@ void DlgCnfgConnect::addRow(int row, const QString &hostAddr, quint16 hostPort)
 		portSpinBox->setMinimum(1);
 		portSpinBox->setMaximum(0xffff);
 
-		ui->hostsTable->setItem( row, 0, new QTableWidgetItem() );
-		ui->hostsTable->setCellWidget( row, 1, portSpinBox );
-		ui->hostsTable->setItem( row, 2, new QTableWidgetItem() );
+		ui->hostsTable->setItem( row, AddressCol, new QTableWidgetItem() );
+		ui->hostsTable->setCellWidget( row, PortCol, portSpinBox );
+		ui->hostsTable->setItem( row, StatusCol, new QTableWidgetItem( routerState ) );
 	}
-	ui->hostsTable->item(row, 0)->setText( hostAddr );
-	static_cast<QSpinBox*>(ui->hostsTable->cellWidget(row, 1))->setValue(hostPort);
+	ui->hostsTable->item(row, AddressCol)->setText( hostAddr );
+	static_cast<QSpinBox*>(ui->hostsTable->cellWidget(row, PortCol))->setValue(hostPort);
 }
 
 void DlgCnfgConnect::removeCurrentRow()
@@ -110,16 +129,32 @@ void DlgCnfgConnect::copyDataToGlobalConfig()
 	{
 		if( gGlobalConfig.connectInfoList().count() <= row )
 			gGlobalConfig.connectInfoList().append( ConnectInfo() );
-		gGlobalConfig.connectInfoList()[row].m_hostIPv4 = ui->hostsTable->item(row, 0)->text();
-		gGlobalConfig.connectInfoList()[row].m_hostPort = static_cast<quint16>(static_cast<QSpinBox*>(ui->hostsTable->cellWidget(row, 1))->value());
+		gGlobalConfig.connectInfoList()[row].setHostIPv4( IPv4(ui->hostsTable->item(row, 0)->text()) );
+		gGlobalConfig.connectInfoList()[row].setHostPort(static_cast<quint16>(static_cast<QSpinBox*>(ui->hostsTable->cellWidget(row, 1))->value()));
 		// For now, username is taken globally for all routers.
 		// This way, a username that can connect to the router is used as name in logging.
 		// As connection info is stored globally for all users, this info must not be used. So, clear it.
-		gGlobalConfig.connectInfoList()[row].m_uname.clear();
-		gGlobalConfig.connectInfoList()[row].m_upass.clear();
+		gGlobalConfig.connectInfoList()[row].setUserName("");
+		gGlobalConfig.connectInfoList()[row].setUserPass("");
 	}
 	while( gGlobalConfig.connectInfoList().count() > row )
 		gGlobalConfig.connectInfoList().removeLast();
+}
+
+void DlgCnfgConnect::setRouterStatus(const QString &routerName, const QString &errorString)
+{
+	// There is no need to ompitize it because:
+	// 1. There are usually few routers configured.
+	// 2. Status changes are not quite often.
+	for( int i = 0; i < gGlobalConfig.connectInfoList().count(); ++i )
+	{
+		if( routerName.isEmpty() || (gGlobalConfig.connectInfoList().at(i).routerName() == routerName) )
+		{
+			for( int row = 0; row < ui->hostsTable->rowCount(); ++row )
+				if( ui->hostsTable->item(row, AddressCol)->text() == gGlobalConfig.connectInfoList().at(i).hostIPv4().toString() )
+					ui->hostsTable->item(row, StatusCol)->setText(errorString);
+		}
+	}
 }
 
 void DlgCnfgConnect::on_connectButton_clicked()
@@ -152,8 +187,27 @@ void DlgCnfgConnect::on_cancelButton_clicked()
 	reject();
 }
 
-void DlgCnfgConnect::show()
+void DlgCnfgConnect::onComError(const QString &errorString, const QString &routerName)
 {
-	setup();
-	QDialog::show();
+	setRouterStatus(routerName, errorString);
+}
+
+void DlgCnfgConnect::onROSError(const QString &routerName, const QString &errorString)
+{
+	setRouterStatus(routerName, errorString);
+}
+
+void DlgCnfgConnect::onRouterConnected(const QString &routerName)
+{
+	setRouterStatus( routerName, tr("Conectado") );
+}
+
+void DlgCnfgConnect::onRouterDisconnected(const QString &routerName)
+{
+	setRouterStatus(routerName, tr("Desconectado") );
+}
+
+void DlgCnfgConnect::onLogued(const QString &routerName)
+{
+	setRouterStatus(routerName, tr("Logado") );
 }

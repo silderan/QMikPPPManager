@@ -49,6 +49,7 @@ public:
 	 */
 	virtual bool hasSameData(const ROSDataBase &rosData)const = 0;
 };
+typedef QList<ROSDataBase*> ROSDataBasePList;
 
 class QRouterIDMap : public QMap<QString, QString>
 {

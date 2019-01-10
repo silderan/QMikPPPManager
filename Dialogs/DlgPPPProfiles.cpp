@@ -1,14 +1,15 @@
 #include "DlgPPPProfiles.h"
 #include "ui_DlgPPPProfiles.h"
 
-DlgPPPProfiles::DlgPPPProfiles(QWidget *parent) :
-	QDialog(parent), ui(new Ui::DlgPPPProfiles)
+DlgPPPProfiles::DlgPPPProfiles(QWidget *parent, ROSMultiConnectManager &rosMultiConnectManager) :
+	DlgDataBase(parent, rosMultiConnectManager), ui(new Ui::DlgPPPProfiles)
 {
 	ui->setupUi(this);
 
+	updateMultipleData( DataTypeIDList() << DataTypeID::PPPProfile );
+
 	// Forward signal.
 	connect( ui->profilesTable, SIGNAL(dataModified(ROSDataBase,QRouterIDMap)), this, SIGNAL(dataModified(ROSDataBase,QRouterIDMap)) );
-
 	connect( ui->delButton, SIGNAL(clicked()), ui->profilesTable, SLOT(removeCurrentData()) );
 }
 
@@ -27,7 +28,20 @@ void DlgPPPProfiles::clear()
 	ui->profilesTable->setRowCount(0);
 }
 
-void DlgPPPProfiles::onPPPProfileDataReceived(const ROSPPPProfile &profileData)
+void DlgPPPProfiles::onROSModReply(const ROSDataBase &rosData)
 {
-	ui->profilesTable->onRemoteDataReceived(profileData);
+	if( rosData.dataTypeID() == DataTypeID::PPPProfile )
+		ui->profilesTable->onROSModReply(rosData);
+}
+
+void DlgPPPProfiles::onROSDelReply(const QString &routerName, DataTypeID dataTypeID, const QString &rosObjectID)
+{
+	if( dataTypeID == DataTypeID::PPPProfile )
+		ui->profilesTable->onROSDelReply(routerName, rosObjectID);
+}
+
+void DlgPPPProfiles::onROSDone(const QString &routerName, DataTypeID dataTypeID)
+{
+	if( dataTypeID == DataTypeID::PPPProfile )
+		ui->profilesTable->onROSDone(routerName);
 }

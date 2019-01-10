@@ -3,6 +3,8 @@
 
 #include <QDialog>
 
+#include "../ROSData/ROSIPPool.h"
+
 namespace Ui
 {
 	class DlgROSIPPool;
@@ -17,6 +19,8 @@ class DlgROSIPPool : public QDialog
 public:
 	explicit DlgROSIPPool(QWidget *parent = Q_NULLPTR);
 	~DlgROSIPPool();
+
+	void onDataReceived(const ROSDataBase &rosData);
 
 private slots:
 	void on_closeButton_clicked();

@@ -27,6 +27,19 @@
      </property>
     </spacer>
    </item>
+   <item row="2" column="0">
+    <widget class="QPushButton" name="closeButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Cerrar</string>
+     </property>
+    </widget>
+   </item>
    <item row="0" column="1">
     <widget class="QToolButton" name="addButton">
      <property name="text">
@@ -41,21 +54,14 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="0">
-    <widget class="QPushButton" name="closeButton">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>Cerrar</string>
-     </property>
-    </widget>
-   </item>
    <item row="1" column="0" colspan="3">
-    <widget class="QTableWidget" name="poolTable"/>
+    <widget class="QTreeWidget" name="poolTree">
+     <column>
+      <property name="text">
+       <string notr="true">1</string>
+      </property>
+     </column>
+    </widget>
    </item>
   </layout>
  </widget>

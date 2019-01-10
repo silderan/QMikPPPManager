@@ -14,18 +14,19 @@ class QTableWidgetBase : public QTableWidget
 	Q_OBJECT
 
 	int m_routerIDColumn;
+	int m_routerColumn;
 
 public:
 	explicit QTableWidgetBase(QWidget *parent = Q_NULLPTR);
 	~QTableWidgetBase();
 
 	int rowOf(int colKey, const QString &cellText);
-	int rowOf(const QString &routerName, const QString &dataID);
+	int rowOf(const QString &routerName, const QString &rosObjectID);
 	void setCellText(int row, int col, const QString &text, Qt::ItemFlags itemFlags = Qt::NoItemFlags);
 	QString cellText(int row, int col, const QString &defaultValue = QString())const;
 	int cellInt(int row, int col, int defaultValue = -1)const;
 
-	void addCellRoutersID(int row, int col, const QString &routerName, const QString &dataID);
+	void addCellRoutersID(int row, int col, const QString &routerName, const QString &rosObjectID);
 	void delCellRoutersID(int row, const QString &routerName);
 
 	const QRouterIDMap &routerIDMap(int row) const;
@@ -46,23 +47,24 @@ protected:
 	// Base function performs a routerName-dataID lookup via rowOf(const QString &routerName, const QString &dataID)
 	// Overriders must to lookup based on their specific
 	virtual int rowOf(const ROSDataBase &rosData);
-	// Internally called when new data arrived and row cells mut be updated.
-	// It's not necessary to override this one because this will call setupRow rowOf virtual funcions.
-	virtual void onRemoteDataModified(const ROSDataBase &rosData);
-	// Intercally called when data from ROS informs of data deletion.
-	// It's not necessary to override. It will loolup row and perform the router-id pair lookup, update data and row deletion if necessary.
-	virtual void onRemoteDataDeleted(const ROSDataBase &rosData);
 	// Internally called when rosData must been requested.
 	// Base function does nothing because the only known data are router-id and there are many of them.
 	// So, derived classes must override this funcion and fillup all data.
 	// pointer must be globally allocated and will be deleted later by the caller.
 	virtual ROSDataBase *getRosData(int row) = 0;
 
-public slots:
-	// Must be called at ROS reply.
-	// Peeps rosData to see if it's a modification or deletion and calls onRemoteDataModified or onRemoteDataDeleted acordingly.
-	void onRemoteDataReceived(const ROSDataBase &rosData);
+public:
+	// Must be called when new data arrived and row cells mut be updated.
+	// It's not necessary to override this one because this will call setupRow rowOf virtual funcions.
+	virtual void onROSModReply(const ROSDataBase &rosData);
+	// Must be called when data from ROS informs of data deletion.
+	// It's not necessary to override. It will loolup row and perform the router-id pair lookup, update data and row deletion if necessary.
+	// On single router discconnection must be called also once without rosObjectID and this will remove all router's data.
+	virtual void onROSDelReply(const QString &routerName, const QString &rosObjectID);
+	virtual void onROSDone(const QString &/*routerName*/)
+	{	}
 
+public slots:
 	void removeData(int row);
 	inline void removeCurrentData()		{ removeData(currentRow());	}
 

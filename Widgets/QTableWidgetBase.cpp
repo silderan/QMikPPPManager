@@ -5,7 +5,7 @@
 #include "QRoutersLineEdit.h"
 
 QTableWidgetBase::QTableWidgetBase(QWidget *papi) : QTableWidget(papi),
-	m_routerIDColumn(-1)
+	m_routerIDColumn(-1), m_routerColumn(-1)
 {
 	connect( this, SIGNAL(cellChanged(int,int)), this, SLOT(onCellChanged(int,int)) );
 }
@@ -15,27 +15,39 @@ QTableWidgetBase::~QTableWidgetBase()
 
 }
 
-int QTableWidgetBase::rowOf(const QString &routerName, const QString &dataID)
+int QTableWidgetBase::rowOf(const QString &routerName, const QString &rosObjectID)
 {
 	Q_ASSERT( !routerName.isEmpty() );
-	Q_ASSERT( !dataID.isEmpty() );
 
-	// It's not an error because could be some lookup events before the table has been populated.
-	if( m_routerIDColumn == -1 )
+	// It's not an error because could be some lookup events before the table data has been populated.
+	if( (m_routerIDColumn == -1) && (m_routerColumn == -1) )
 	{
-		qWarning("Cannot lookup row by router/data-id if routerIDColumn is not defined yet");
+		qWarning("Cannot lookup row by router or router/rosObjectID if nor routerColumn neither routerIDColumn are not defined yet");
 		return -1;
 	}
-	for( int row = 0; row < rowCount(); ++row )
+
+	if( (m_routerIDColumn != -1) || (m_routerColumn != -1) )
 	{
-		if( cellWidget(row, m_routerIDColumn) )
+		for( int row = 0; row < rowCount(); ++row )
 		{
-			QRoutersLineEdit* routerLineEdit = static_cast<QRoutersLineEdit*>(cellWidget(row, m_routerIDColumn));
-			Q_ASSERT( routerLineEdit );
-			if( routerLineEdit->dataID(routerName) == dataID )
-				return row;
+			if( cellWidget(row, (m_routerIDColumn != -1) ? m_routerIDColumn : m_routerColumn) )
+			{
+				QRoutersLineEdit* routerLineEdit = static_cast<QRoutersLineEdit*>(cellWidget(row, (m_routerIDColumn != -1) ? m_routerIDColumn : m_routerColumn));
+				Q_ASSERT( routerLineEdit );
+				if( !rosObjectID.isEmpty() )
+				{
+					if( routerLineEdit->rosObjectID(routerName) == rosObjectID )
+						return row;
+				}
+				else
+				{
+					if( !routerLineEdit->rosObjectID(routerName).isEmpty() )
+						return row;
+				}
+			}
 		}
 	}
+
 	return -1;
 }
 
@@ -85,7 +97,7 @@ int QTableWidgetBase::cellInt(int row, int col, int defaultValue) const
 	return defaultValue;
 }
 
-void QTableWidgetBase::addCellRoutersID(int row, int col, const QString &routerName, const QString &dataID)
+void QTableWidgetBase::addCellRoutersID(int row, int col, const QString &routerName, const QString &rosObjectID)
 {
 	Q_ASSERT( (row >= -1) && (row < rowCount()) );
 	Q_ASSERT( (col >= 0) && (col < columnCount()) );
@@ -96,7 +108,7 @@ void QTableWidgetBase::addCellRoutersID(int row, int col, const QString &routerN
 		setCellWidget( row, col, new QRoutersLineEdit() );
 		m_routerIDColumn = col; // This is used later to increase the deletion speed.
 	}
-	static_cast<QRoutersLineEdit*>(cellWidget(row, col))->addRouterID(routerName, dataID);
+	static_cast<QRoutersLineEdit*>(cellWidget(row, col))->addRouterID(routerName, rosObjectID);
 }
 
 void QTableWidgetBase::delCellRoutersID(int row, const QString &routerName)
@@ -126,12 +138,15 @@ int QTableWidgetBase::rowOf(const ROSDataBase &rosData)
 
 void QTableWidgetBase::setupRow(int row, const ROSDataBase &rosData)
 {
-	if( m_routerIDColumn != -1 )
-		addCellRoutersID( row, m_routerIDColumn, rosData.routerName(), rosData.rosObjectID() );
+	if( (m_routerIDColumn != -1) || (m_routerColumn != -1) )
+		addCellRoutersID( row, (m_routerIDColumn != -1) ? m_routerIDColumn : m_routerColumn, rosData.routerName(), rosData.rosObjectID() );
 }
 
-void QTableWidgetBase::onRemoteDataModified(const ROSDataBase &rosData)
+void QTableWidgetBase::onROSModReply(const ROSDataBase &rosData)
 {
+	Q_ASSERT( !rosData.routerName().isEmpty() );
+	Q_ASSERT( !rosData.rosObjectID().isEmpty() );
+
 	blockSignals(true);
 	int row = rowOf( rosData );
 
@@ -142,44 +157,24 @@ void QTableWidgetBase::onRemoteDataModified(const ROSDataBase &rosData)
 	blockSignals(false);
 }
 
-void QTableWidgetBase::onRemoteDataDeleted(const ROSDataBase &rosData)
+void QTableWidgetBase::onROSDelReply(const QString &routerName, const QString &rosObjectID)
 {
-	Q_ASSERT( !rosData.routerName().isEmpty() );
-	Q_ASSERT( !rosData.rosObjectID().isEmpty() );
-	Q_ASSERT( rosData.deleting() );
-
-	// If there is no data in there, this function cannot delete anything as it's unable to lookup the data row
-	// But, it could not be an error as there could be deleting event before the data's been fully populated.
-	if( m_routerIDColumn == -1 )
+	// It's not an error because could be some lookup events before the table data has been populated.
+	if( (m_routerIDColumn == -1) && (m_routerColumn == -1) )
 	{
-		qWarning("Cannot delete data: there is not routerIDColumn defined yet");
+		qWarning("Cannot lookup row by router or router/rosObjectID if nor routerColumn neither routerIDColumn are not defined yet");
 		return;
 	}
 
 	blockSignals(true);
-	int row = rowOf( rosData.routerName(), rosData.rosObjectID() );
-	if( row != -1 )
+	int row;
+	while( (row = rowOf(routerName, rosObjectID)) != -1 )
 	{
-		delCellRoutersID(row, rosData.routerName());
+		delCellRoutersID(row, routerName);
 		if( routersCount(row) == 0 )
 			removeRow(row);
 	}
 	blockSignals(false);
-}
-
-void QTableWidgetBase::onRemoteDataReceived(const ROSDataBase &rosData)
-{
-	Q_ASSERT( !rosData.routerName().isEmpty() );
-	Q_ASSERT( !rosData.rosObjectID().isEmpty() );
-
-	if( columnCount() > 0 )
-	{
-
-		if( rosData.deleting() )
-			onRemoteDataDeleted(rosData);
-		else
-			onRemoteDataModified(rosData);
-	}
 }
 
 void QTableWidgetBase::removeData(int row)

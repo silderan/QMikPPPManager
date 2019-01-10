@@ -1,6 +1,7 @@
 #ifndef DATATYPEID_H
 #define DATATYPEID_H
 
+#include <QList>
 /*
  * This enumerates all types of data requested from ROS (and future other sources)
  * Any new Data manager must have his own type here.
@@ -8,6 +9,7 @@
  */
 typedef enum
 {
+	ErrorTypeID,
 	APIUser,
 	APIUsersGroup,
 	PPPProfile,
@@ -18,5 +20,5 @@ typedef enum
 	TotalIDs
 }DataTypeID;
 
-
+typedef QList<DataTypeID> DataTypeIDList;
 #endif // DATATYPEID_H

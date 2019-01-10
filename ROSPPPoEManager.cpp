@@ -1,44 +1,52 @@
 #include "ROSPPPoEManager.h"
 
 ROSPPPoEManager::ROSPPPoEManager(QObject *papi) : Comm(papi),
-	m_rosAPIUserManager			("rosAPIUserManager",		"/user/"),
-	m_rosAPIUsersGroupManager	("rosAPIUsersGroupManager",	"/user/group/"),
-	m_rosPPPProfileManager		("rosPPPProfileManager",	"/ppp/profile/"),
-	m_rosInterfaceManager		("rosInterfaceManager",		"/interface/"),
-	m_rosBridgePortsManager		("rosBridgePortsManager",	"/interface/bridge/port/"),
-	m_rosIPAddressManager		("rosIPAddressManager",		"/ip/address/"),
-	m_rosIPPoolManager			("rosIPPoolManager",		"/ip/pool/")
+	m_rosAPIUserManager			("/user/"),
+	m_rosAPIUsersGroupManager	("/user/group/"),
+	m_rosPPPProfileManager		("/ppp/profile/"),
+	m_rosInterfaceManager		("/interface/"),
+	m_rosBridgePortsManager		("/interface/bridge/port/"),
+	m_rosIPAddressManager		("/ip/address/"),
+	m_rosIPPoolManager			("/ip/pool/")
 {
 	connect(this, SIGNAL(comReceive(ROS::QSentence&)), this, SLOT(onDataReceived(ROS::QSentence&)));
 }
 
 void ROSPPPoEManager::onDataReceived(ROS::QSentence &sentence)
 {
+	// Empty tags are from updates that won't be usefull as we are
+	// listeing for changes everywhere.
+	if( sentence.tag().isEmpty() )
+		return;
+
 	switch( sentence.getResultType() )
 	{
 	case ROS::QSentence::None:
 		break;
 	case ROS::QSentence::Done:
-		m_rosAPIUserManager.onDone( sentence );
-		m_rosAPIUsersGroupManager.onDone( sentence );
-		m_rosPPPProfileManager.onDone( sentence );
+		emit rosDone( routerName(), static_cast<DataTypeID>(sentence.tag().toInt()) );
 		break;
 	case ROS::QSentence::Trap:
-		emit rosError(routerName(), sentence.attribute("message"));
+		emit rosError( routerName(), sentence.attribute("message") );
 		break;
 	case ROS::QSentence::Fatal:
 		break;
 	case ROS::QSentence::Reply:
-		m_rosAPIUserManager.onReply( sentence );
-		m_rosAPIUsersGroupManager.onReply( sentence );
-		m_rosPPPProfileManager.onReply( sentence );
+		if( sentence.attribute(".dead").isEmpty() )
+			emit rosModReply( *rosDataManager( static_cast<DataTypeID>(sentence.tag().toInt()) ).onROSModReply(sentence) );
+		else
+		{
+			DataTypeID dataTypeID = static_cast<DataTypeID>(sentence.tag().toInt());
+			rosDataManager( dataTypeID ).onROSDeadReply(sentence);
+			emit rosDelReply( routerName(), dataTypeID, sentence.getID() );
+		}
 		break;
 	}
 }
 
 ROSDataManagerBase &ROSPPPoEManager::rosDataManager(DataTypeID dataTypeID)
 {
-	Q_ASSERT( (dataTypeID >= 0) && (dataTypeID < TotalIDs) );
+	Q_ASSERT( (dataTypeID > DataTypeID::ErrorTypeID) && (dataTypeID < TotalIDs) );
 
 	switch( dataTypeID )
 	{
@@ -52,11 +60,11 @@ ROSDataManagerBase &ROSPPPoEManager::rosDataManager(DataTypeID dataTypeID)
 	default:
 		break;
 	}
-	// Will NEVER come here!. But, coding that, avoids warnings.
+	// Will NEVER come here!. But, coding that, avoids compiler warnings.
 	return m_rosAPIUserManager;
 }
 
-QList<ROSDataBase *> ROSPPPoEManager::rosDataList(DataTypeID dataTypeID)
+ROSDataBasePList ROSPPPoEManager::rosDataList(DataTypeID dataTypeID)
 {
 	return rosDataManager(dataTypeID).rosDataList();
 }
@@ -80,28 +88,34 @@ void ROSPPPoEManager::updateRemoteData(const ROSDataBase &newROSData, const QStr
 		sendSentence(sentence);
 	}
 	else
-	if( !newROSData.hasSameData( *rosDataManagerBase.rosData(rosObjectID)) )	// Updating remote data.
 	{
-		sentence.setCommand( rosDataManagerBase.setCommand() );
-		newROSData.toSentence(sentence);
-		sentence.setID( rosObjectID );
-		sendSentence( sentence );
+		if( (rosDataManagerBase.rosData(rosObjectID) == Q_NULLPTR) ||
+			!newROSData.hasSameData(*rosDataManagerBase.rosData(rosObjectID)) )	// Updating remote data.
+		{
+#ifndef QT_NO_DEBUG
+		if( rosDataManagerBase.rosData(rosObjectID) == Q_NULLPTR )
+			qWarning("no se ha encontrado el usuario con ID %s del router %s", rosObjectID.toLatin1().data(), routerName().toLatin1().data());
+#endif
+			sentence.setCommand( rosDataManagerBase.setCommand() );
+			newROSData.toSentence(sentence);
+			sentence.setID( rosObjectID );
+			sendSentence( sentence );
+		}
 	}
 }
 
-void ROSPPPoEManager::requestRemoteData(DataTypeID dataTypeID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot)
+void ROSPPPoEManager::requestRemoteData(DataTypeID dataTypeID)
 {
 	ROSDataManagerBase &rosDataManagerBase = rosDataManager(dataTypeID);
 
-	Q_ASSERT( receiverOb != Q_NULLPTR );
 	Q_ASSERT( !routerName().isEmpty() );
 
-	if( rosDataManagerBase.receiverOb() == Q_NULLPTR )
+	if( rosDataManagerBase.routerName().isEmpty() )
 	{
-		rosDataManagerBase.setup( receiverOb, routerName(), replySlot, doneSlot, errorSlot );
+		rosDataManagerBase.setRouterName( routerName() );
 
 		ROS::QSentence sentence;
-		sentence.setTag( rosDataManagerBase.sentenceTag() );
+		sentence.setTag( QString::number(dataTypeID) );
 
 		foreach( const QString &query, rosDataManagerBase.getallQueries() )
 			sentence.addQuery(query);

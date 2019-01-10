@@ -23,7 +23,7 @@ public:
 
 	const ROSPPPoEManagerMap &rosPPPoEManagerMap() const		{ return m_rosPppoeManagerMap;	}
 	ROSPPPoEManagerMap &rosPPPoEManagerMap()					{ return m_rosPppoeManagerMap;	}
-	ROSPPPoEManager *rosPppoeManager(const QString &routerName)	{ return m_rosPppoeManagerMap[routerName];	}
+	ROSPPPoEManager *rosPppoeManager(const QString &routerName)	{ return m_rosPppoeManagerMap.value(routerName, Q_NULLPTR);	}
 
 	void clear();
 	void addROSConnection(const QString &routerName, const QString &hostAddr, quint16 hostPort , const QString &uname, const QString &upass);
@@ -38,15 +38,16 @@ public:
 	void sendSentence(const QString &routerName, const ROS::QSentence &s);
 	void sendSentence(const QString &routerName, const QString &s, const QString &tag, const QStringList attrib = QStringList());
 
-	QList<ROSDataBase *>rosDataList(DataTypeID dataTypeID) const;
+	ROSDataBasePList rosDataList(DataTypeID dataTypeID, const QString &routerName = QString()) const;
 	QStringList rosAPIUsersGrupList()const;
 
-	static void requestAll(ROSPPPoEManager *rosPPPoEManager, DataTypeID dataTypeID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
-	static void requestAll(ROSPPPoEManagerPList rosPPPoEManagerPList, DataTypeID dataTypeID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
+	static void requestAll(ROSPPPoEManager *rosPPPoEManager, DataTypeID dataTypeID);
+	static void requestAll(ROSPPPoEManagerPList rosPPPoEManagerPList, DataTypeID dataTypeID);
 
-	void requestAll(const QString &routerName, DataTypeID dataTypeID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
-	void requestAll(DataTypeID dataTypeID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
+	void requestAll(const QString &routerName, DataTypeID dataTypeID);
+	void requestAll(DataTypeID dataTypeID);
 
+public slots:
 	void updateRemoteData(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap);
 
 signals:
@@ -57,9 +58,13 @@ signals:
 	void allDisconnected();
 	void logued(const QString &routerName);
 	void comError(QString errorString, const QString &routerName);
+
 	void rosError(const QString &routerName, QString errorString);
+	void rosModReply(const ROSDataBase &rosData);
+	void rosDelReply(const QString &routerName, DataTypeID dataTypeID, const QString &rosObjectID);
+	void rosDone(const QString &routerName, DataTypeID dataTypeID);
 };
 
-extern ROSMultiConnectManager mktAPI;
+extern ROSMultiConnectManager multiConnectionManager;
 
 #endif // MULTIROSCONNECTORMANAGER_H

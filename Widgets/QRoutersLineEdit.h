@@ -24,9 +24,9 @@ public:
 	inline bool count() const	{ return m_routerIDMap.count();		}
 	inline bool isEmpty() const	{ return m_routerIDMap.isEmpty();	}
 
-	inline const QRouterIDMap &routerIDMap() const			{ return m_routerIDMap;	}
-	inline QString dataID(const QString &routerName) const	{ return m_routerIDMap.value(routerName);	}
-	inline int routersCount() const							{ return m_routerIDMap.count();	}
+	inline const QRouterIDMap &routerIDMap() const				{ return m_routerIDMap;	}
+	inline QString rosObjectID(const QString &routerName) const	{ return m_routerIDMap.value(routerName);	}
+	inline int routersCount() const								{ return m_routerIDMap.count();	}
 };
 
 #endif // QROUTERSLINEEDIT_H

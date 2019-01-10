@@ -18,8 +18,11 @@
 #include "ROSData/ROSAPIUserGroup.h"
 #include "ROSData/ROSPPPProfile.h"
 
+
 #include "DlgNuevoUsuario.h"
+
 #include "Dialogs/DlgCnfgConnect.h"
+#include "Dialogs/DlgDataBase.h"
 #include "Dialogs/DlgROSAPIUsers.h"
 #include "Dialogs/DlgPPPProfiles.h"
 
@@ -32,16 +35,8 @@ class QMikPPPManager : public QMainWindow
 {
 	Q_OBJECT
 	Ui::QMikPPPManager *ui;
-	DlgNuevoUsuario *dlgNuevoUsuario;
-	DlgCnfgConnect dlgCnfgConnect;
-	DlgROSAPIUsers *dlgROSAPIUsers;
-	DlgPPPProfiles *dlgPPPProfiles;
-
-	QString createRouterName(const ConnectInfo &conInfo)const;
-
-	void requestROSAPIUsers(const QString &routerName);
-	void requestROSAPIUserGroups(const QString &routerName);
-	void requestPPPProfiles(const QString &routerName);
+	DlgCnfgConnect *dlgCnfgConnect;
+	QDlgDataBasePList m_dialogList;
 
 	void pideUsuarios(const QString &routerName);
 	void pideCambios(const QString &routerName);
@@ -71,7 +66,11 @@ class QMikPPPManager : public QMainWindow
 private slots:
 	void setStatusText(QString errorString, const QString routerName = QString());
 	void onComError(const QString &errorString, const QString &routerName);
+
 	void onROSError(const QString &routerName, const QString &errorString);
+	void onROSModReply(const ROSDataBase &rosData);
+	void onROSDelReply(const QString &routerName, DataTypeID dataTypeID, const QString &rosObjectID);
+	void onROSDone(const QString &routerName, DataTypeID dataTypeID);
 
 	void onRouterConnected(const QString &routerName);
 	void onAllRoutersConnected();
@@ -101,21 +100,6 @@ private slots:
 	void on_pppProfilesButton_clicked();
 
 public slots:
-	void onOneAPIUsersReceived(const QString &routerName, ROSAPIUser *apiUser);
-	void onAllAPIUsersReceived(const QString &routerName);
-	void onAPIUsersErrorReceived(const QString &routerName, const QString &errorString);
-	void updateRemoteAPIUser(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap);
-
-	void onOneAPIUsersGroupReceived(const QString &routerName, ROSAPIUsersGroup *apiUsersGroup);
-	void onAllAPIUsersGroupsReceived(const QString &routerName);
-	void onAPIUsersGroupsErrorReceived(const QString &routerName, const QString &errorString);
-	void updateRemoteAPIUsersGroup(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap);
-
-	void onOnePPPProfileReceived(const QString &routerName, ROSPPPProfile *rosPPPProfile);
-	void onAllPPPProfilesReceived(const QString &routerName);
-	void onPPPProfilesErrorReceived(const QString &routerName, const QString &errorString);
-	void updateRemotePPPProfile(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap);
-
 	void updateConfig();
 
 public:

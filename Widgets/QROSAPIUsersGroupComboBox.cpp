@@ -6,7 +6,7 @@ QROSAPIUsersGroupComboBox::QROSAPIUsersGroupComboBox(QWidget *parent, const QStr
 {
 	if( !groupsList.isEmpty() )
 		setup(groupsList, groupName);
-	addItems( mktAPI.rosAPIUsersGrupList() );
+	addItems( multiConnectionManager.rosAPIUsersGrupList() );
 	connect( this, SIGNAL(currentIndexChanged(int)), this, SLOT(onCurrentIndexChanged(int)) );
 }
 

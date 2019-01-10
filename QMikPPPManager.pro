@@ -27,6 +27,10 @@ SOURCES += main.cpp\
     ROSData/ROSDataBasics.cpp \
 	ROSData/ROSPPPProfile.cpp \
 	ROSData/ROSInterfaces.cpp \
+    ROSDataManager/ROSInterfaceManager.cpp \
+    ROSData/ROSBridgePorts.cpp \
+    ROSData/ROSIPAddress.cpp \
+    ROSData/ROSIPPool.cpp \
 	Widgets/QIPv4RangeComboBox.cpp \
     Widgets/QStaticIPComboBox.cpp \
     Widgets/QROSAPIUserTableWidget.cpp \
@@ -36,6 +40,7 @@ SOURCES += main.cpp\
     Widgets/QROSAPIUsersGroupComboBox.cpp \
     Widgets/QTableWidgetBase.cpp \
 	Widgets/QPPPProfilesTableWidget.cpp \
+    Widgets/QROSIPoolTableWidget.cpp \
     ConfigData/ConnectInfo.cpp \
     ConfigData/TableCellLook.cpp \
     ConfigData/ClientProfile.cpp \
@@ -52,12 +57,8 @@ SOURCES += main.cpp\
     Dialogs/DlgROSAPIUsers.cpp \
 	Dialogs/DlgROSAPIUser.cpp \
 	Dialogs/DlgPPPProfiles.cpp \
-    ROSDataManager/ROSInterfaceManager.cpp \
-    ROSData/ROSBridgePorts.cpp \
-    ROSData/ROSIPAddress.cpp \
-    ROSData/ROSIPPool.cpp \
     Dialogs/DlgROSIPPool.cpp \
-    Widgets/QROSIPoolTableWidget.cpp
+    Dialogs/DlgDataBase.cpp
 
 HEADERS  += QMikPPPManager.h \
     Utils/IPv4Range.h \
@@ -68,15 +69,23 @@ HEADERS  += QMikPPPManager.h \
     ROSAPI/QMD5.h \
     ROSAPI/QSentences.h \
     ROSAPI/Comm.h \
+    ROSData/DataTypeID.h \
     ROSData/ROSAPIUser.h \
     ROSData/ROSAPIUserGroup.h \
     ROSData/ROSDataBasics.h \
 	ROSData/ROSPPPProfile.h \
 	ROSData/ROSInterfaces.h \
+    ROSData/ROSBridgePorts.h \
+    ROSData/ROSIPAddress.h \
+    ROSData/ROSIPPool.h \
 	ROSDataManager/ROSDataManagerBase.h \
 	ROSDataManager/ROSAPIUserManager.h \
 	ROSDataManager/ROSAPIUsersGroupManager.h \
 	ROSDataManager/ROSPPPProfileManager.h \
+    ROSDataManager/ROSInterfaceManager.h \
+    ROSDataManager/ROSBridgePortManager.h \
+    ROSDataManager/ROSIPAddressManager.h \
+    ROSDataManager/ROSIPPoolManager.h \
 	ConfigData/ConnectInfo.h \
     ConfigData/TableCellLook.h \
     ConfigData/ClientProfile.h \
@@ -90,6 +99,7 @@ HEADERS  += QMikPPPManager.h \
     Widgets/QROSAPIUsersGroupComboBox.h \
     Widgets/QTableWidgetBase.h \
 	Widgets/QPPPProfilesTableWidget.h \
+    Widgets/QROSIPoolTableWidget.h \
     QSecretData.h \
     DlgNuevoUsuario.h \
 	DlgExportar.h \
@@ -102,16 +112,8 @@ HEADERS  += QMikPPPManager.h \
     Dialogs/DlgROSAPIUsers.h \
 	Dialogs/DlgROSAPIUser.h \
 	Dialogs/DlgPPPProfiles.h \
-    ROSDataManager/ROSInterfaceManager.h \
-    ROSData/ROSBridgePorts.h \
-    ROSData/ROSIPAddress.h \
-    ROSDataManager/ROSBridgePortManager.h \
-    ROSDataManager/ROSIPAddressManager.h \
-    ROSData/ROSIPPool.h \
-    ROSDataManager/ROSIPPoolManager.h \
     Dialogs/DlgROSIPPool.h \
-    Widgets/QROSIPoolTableWidget.h \
-    ROSData/DataTypeID.h
+    Dialogs/DlgDataBase.h
 
 FORMS    += QMikPPPManager.ui \
 	DlgNuevoUsuario.ui \

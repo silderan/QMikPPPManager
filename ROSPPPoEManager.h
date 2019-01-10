@@ -40,9 +40,9 @@ public:
 	ROSAPIUserManager &rosApiUserManager()				{ return m_rosAPIUserManager;		}
 	ROSAPIUsersGroupManager &rosApiUsersGroupManager()	{ return m_rosAPIUsersGroupManager;	}
 	ROSPPPProfileManager &rosPPPProfileManager()		{ return m_rosPPPProfileManager;	}
-	QList<ROSDataBase *>rosDataList(DataTypeID dataTypeID);
+	ROSDataBasePList rosDataList(DataTypeID dataTypeID);
 
-	void requestRemoteData(DataTypeID dataTypeID, QObject *receiverOb, const char *replySlot, const char *doneSlot, const char *errorSlot);
+	void requestRemoteData(DataTypeID dataTypeID);
 	void updateRemoteData(const ROSDataBase &newROSData, const QString &rosObjectID);
 
 public slots:
@@ -50,6 +50,9 @@ public slots:
 
 signals:
 	void rosError(const QString &routerName, const QString &errorString);
+	void rosModReply(const ROSDataBase &rosData);
+	void rosDelReply(const QString &routerName, DataTypeID dataTypeID, const QString &rosObjectID);
+	void rosDone(const QString &routerName, DataTypeID dataTypeID);
 };
 
 typedef QList<ROSPPPoEManager*> ROSPPPoEManagerPList;	// PPPoE Manager pointer list.
