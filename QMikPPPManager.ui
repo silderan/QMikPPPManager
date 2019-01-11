@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>535</width>
-    <height>530</height>
+    <width>941</width>
+    <height>614</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,6 +15,19 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout_4">
+    <item row="1" column="0" colspan="2">
+     <spacer name="verticalSpacer">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>180</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
     <item row="0" column="0">
      <widget class="QPushButton" name="connectButton">
       <property name="text">
@@ -26,6 +39,13 @@
      <widget class="QPushButton" name="disconnectButton">
       <property name="text">
        <string>Desconectar</string>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="0">
+     <widget class="QPushButton" name="addUserButton">
+      <property name="text">
+       <string>Añadir usuario</string>
       </property>
      </widget>
     </item>
@@ -110,7 +130,7 @@
       </layout>
      </widget>
     </item>
-    <item row="4" column="0" colspan="2">
+    <item row="4" column="0" rowspan="3" colspan="2">
      <widget class="QGroupBox" name="groupBox_2">
       <property name="title">
        <string>Configuración</string>
@@ -172,14 +192,7 @@
       </layout>
      </widget>
     </item>
-    <item row="5" column="0">
-     <widget class="QPushButton" name="addUserButton">
-      <property name="text">
-       <string>Añadir usuario</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="2" rowspan="5">
+    <item row="7" column="2">
      <widget class="QSecretDataTable" name="twUsuarios">
       <property name="font">
        <font>
@@ -203,18 +216,8 @@
       </attribute>
      </widget>
     </item>
-    <item row="1" column="0" colspan="2">
-     <spacer name="verticalSpacer">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>180</height>
-       </size>
-      </property>
-     </spacer>
+    <item row="0" column="2" rowspan="7">
+     <widget class="QTableWidget" name="clientsTable"/>
     </item>
    </layout>
   </widget>
@@ -223,7 +226,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>535</width>
+     <width>941</width>
      <height>21</height>
     </rect>
    </property>

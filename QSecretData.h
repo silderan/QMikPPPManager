@@ -180,6 +180,7 @@ class QSecretDataModel : public QStandardItemModel
 	friend class QSecretDataDelegate;
 
 	QSecretItem *setupCellItem(int row, int col, const QString &txt, const QString &secret_id);
+
 public:
 	enum Columnas
 	{

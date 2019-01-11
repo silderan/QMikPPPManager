@@ -47,7 +47,7 @@ protected:
 	// Base function performs a routerName-dataID lookup via rowOf(const QString &routerName, const QString &dataID)
 	// Overriders must to lookup based on their specific
 	virtual int rowOf(const ROSDataBase &rosData);
-	// Internally called when rosData must been requested.
+	// Internally called when rosData is needed because of table row modification or deletion.
 	// Base function does nothing because the only known data are router-id and there are many of them.
 	// So, derived classes must override this funcion and fillup all data.
 	// pointer must be globally allocated and will be deleted later by the caller.

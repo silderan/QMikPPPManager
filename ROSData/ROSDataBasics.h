@@ -17,10 +17,9 @@ class ROSDataBase
 	bool m_delete;
 
 public:
-	ROSDataBase(DataTypeID dataTypeID, const QString &routerName, const QString &dataID = QString()) :
+	ROSDataBase(DataTypeID dataTypeID, const QString &routerName) :
 		m_dataTypeID(dataTypeID),
 		m_routerName(routerName),
-		m_rosObjectID(dataID),
 		m_delete(false)
 	{	}
 	virtual ~ROSDataBase()

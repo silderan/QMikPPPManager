@@ -28,7 +28,7 @@ public:
 	QString levelName(bool plural = false) const				{ return levelNames(plural)[m_level];	}
 	static ROSAPIUser::Level level(const QString &levelName);
 
-	explicit ROSAPIUser(const QString &routerName) : ROSDataBase(DataTypeID::APIUser, routerName, QString()),
+	explicit ROSAPIUser(const QString &routerName) : ROSDataBase(DataTypeID::APIUser, routerName),
 		m_level(NoRights)
 	{	}
 //	ROSAPIUser(const QString &routerName, const QString &name, Level level = NoRights) : ROSDataBase(routerName, QString()),

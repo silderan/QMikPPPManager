@@ -58,7 +58,11 @@ SOURCES += main.cpp\
 	Dialogs/DlgROSAPIUser.cpp \
 	Dialogs/DlgPPPProfiles.cpp \
     Dialogs/DlgROSIPPool.cpp \
-    Dialogs/DlgDataBase.cpp
+    Dialogs/DlgDataBase.cpp \
+    ROSData/ROSSecret.cpp \
+    ROSDataManager/ROSSecretManager.cpp \
+    Utils/Utils.cpp \
+    Widgets/QROSSecretTableWidget.cpp
 
 HEADERS  += QMikPPPManager.h \
     Utils/IPv4Range.h \
@@ -113,7 +117,11 @@ HEADERS  += QMikPPPManager.h \
 	Dialogs/DlgROSAPIUser.h \
 	Dialogs/DlgPPPProfiles.h \
     Dialogs/DlgROSIPPool.h \
-    Dialogs/DlgDataBase.h
+    Dialogs/DlgDataBase.h \
+    ROSData/ROSSecret.h \
+    ROSDataManager/ROSSecretManager.h \
+    Utils/Utils.h \
+    Widgets/QROSSecretTableWidget.h
 
 FORMS    += QMikPPPManager.ui \
 	DlgNuevoUsuario.ui \
