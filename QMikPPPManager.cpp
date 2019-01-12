@@ -29,13 +29,17 @@
 #include "DlgExportar.h"
 #include "DlgPortScan.h"
 
+#include "Utils/Utils.h"
+
 QMikPPPManager::QMikPPPManager(QWidget *parent) :
 	QMainWindow(parent),
 	ui(new Ui::QMikPPPManager), dlgCnfgConnect(Q_NULLPTR)
 {
 	ui->setupUi(this);
 
-	ui->twUsuarios->setEnabled(false);
+#ifdef UNIT_TESTS_UTILS
+	Utils::UTests();
+#endif
 
 	gGlobalConfig.loadGlobalData();
 	gGlobalConfig.loadLocalUserData();
@@ -60,10 +64,10 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 
 	connect( &multiConnectionManager, SIGNAL(logued(QString)), this, SLOT(onLogued(QString)));
 
-	connect( ui->twUsuarios, SIGNAL(datoModificado(QSecretDataModel::Columnas,QString,QString,bool*)),
-			 this, SLOT(onDatoModificado(QSecretDataModel::Columnas,QString,QString,bool*)) );
-	connect( ui->twUsuarios, SIGNAL(dobleClicUsuario(QSecretData)), this, SLOT(onDobleClicUsuario(QSecretData)) );
-	connect( ui->twUsuarios, SIGNAL(clicUsuario(QSecretData)), this, SLOT(onClicUsuario(QSecretData)) );
+//	connect( ui->twUsuarios, SIGNAL(datoModificado(QSecretDataModel::Columnas,QString,QString,bool*)),
+//			 this, SLOT(onDatoModificado(QSecretDataModel::Columnas,QString,QString,bool*)) );
+//	connect( ui->twUsuarios, SIGNAL(dobleClicUsuario(QSecretData)), this, SLOT(onDobleClicUsuario(QSecretData)) );
+//	connect( ui->twUsuarios, SIGNAL(clicUsuario(QSecretData)), this, SLOT(onClicUsuario(QSecretData)) );
 
 	setNivelUsuario(QConfigData::SinPermisos);
 	ui->cbFiltro->addItem( "Cualquiera", 0 );
@@ -100,14 +104,11 @@ QMikPPPManager::~QMikPPPManager()
 
 void QMikPPPManager::updateConfig()
 {
-	QFont tableFont = ui->twUsuarios->font();
-	tableFont.setPixelSize( gGlobalConfig.tableCellLook().m_fontSize );
-	ui->twUsuarios->setFont( tableFont );
-	ui->twUsuarios->verticalHeader()->setDefaultSectionSize( gGlobalConfig.tableCellLook().m_rowHeight );
 	if( gGlobalConfig.isWindowMaximized() )
 		this->showMaximized();
 	else
 		this->resize(gGlobalConfig.anchoPantalla(), gGlobalConfig.altoPantalla());
+	ui->usersTable->updateConfig();
 }
 
 void QMikPPPManager::setStatusText(QString errorString, const QString routerName)
@@ -152,16 +153,21 @@ void QMikPPPManager::onAllRoutersDisconnected()
 		dlg->clear();
 
 	multiConnectionManager.clear();
+	ui->usersTable->clear();
 }
 
 void QMikPPPManager::onLogued(const QString &routerName)
 {
 	logService.setUserName( gGlobalConfig.userName() );
-	ui->twUsuarios->clear();
-	ui->twUsuarios->setEnabled(true);
+//	ui->twUsuarios->clear();
+//	ui->twUsuarios->setEnabled(true);
 
 	// request api users to know the level privileges.
-	multiConnectionManager.requestAll( routerName, DataTypeID::APIUser );
+//	multiConnectionManager.requestAll( routerName, DataTypeID::APIUser );
+	// And all ppp users data.
+	multiConnectionManager.requestAll( routerName, DataTypeID::PPPSecret );
+	multiConnectionManager.requestAll( routerName, DataTypeID::PPPActive );
+
 
 	if( dlgCnfgConnect != Q_NULLPTR )
 		dlgCnfgConnect->onLogued(routerName);
@@ -196,12 +202,14 @@ void QMikPPPManager::onROSModReply(const ROSDataBase &rosData)
 {
 	foreach( DlgDataBase *dlg, m_dialogList )
 		dlg->onROSModReply(rosData);
+	ui->usersTable->onROSModReply(rosData);
 }
 
 void QMikPPPManager::onROSDelReply(const QString &routerName, DataTypeID dataTypeID, const QString &rosObjectID)
 {
 	foreach( DlgDataBase *dlg, m_dialogList )
 		dlg->onROSDelReply(routerName, dataTypeID, rosObjectID);
+	ui->usersTable->onROSDelReply(routerName, dataTypeID, rosObjectID);
 }
 
 void QMikPPPManager::onROSDone(const QString &routerName, DataTypeID dataTypeID)
@@ -209,17 +217,20 @@ void QMikPPPManager::onROSDone(const QString &routerName, DataTypeID dataTypeID)
 	switch( dataTypeID )
 	{
 	case DataTypeID::ErrorTypeID:	break;
-	case DataTypeID::APIUser:		setStatusText( tr("Usuarios API recibidos"), routerName );	break;
-	case DataTypeID::APIUsersGroup:	setStatusText( tr("Grupos de usuarios API recibidos"), routerName );	break;
-	case DataTypeID::PPPProfile:	setStatusText( tr("Perfiles PPP recibidos"), routerName );	break;
-	case DataTypeID::Interface:		setStatusText( tr("Interfices recibidos"), routerName );	break;
-	case DataTypeID::BridgePorts:	setStatusText( tr("Puertos de los bridges recibidos"), routerName );	break;
-	case DataTypeID::IPAddress:		setStatusText( tr("Direccioens IP recibidas"), routerName );	break;
+	case DataTypeID::APIUser:		setStatusText( tr("Usuarios API recibidos"), routerName );			break;
+	case DataTypeID::APIUsersGroup:	setStatusText( tr("Grupos de usuarios API recibidos"), routerName );break;
+	case DataTypeID::PPPProfile:	setStatusText( tr("Perfiles PPP recibidos"), routerName );			break;
+	case DataTypeID::Interface:		setStatusText( tr("Interfices recibidos"), routerName );			break;
+	case DataTypeID::BridgePorts:	setStatusText( tr("Puertos de los bridges recibidos"), routerName );break;
+	case DataTypeID::IPAddress:		setStatusText( tr("Direccioens IP recibidas"), routerName );		break;
 	case DataTypeID::IPPool:		setStatusText( tr("Pools de direcciones recibidas"), routerName );	break;
+	case DataTypeID::PPPSecret:		setStatusText( tr("Recibidos los datos de usuarios"), routerName );	break;
+	case DataTypeID::PPPActive:		setStatusText( tr("Usuarios activos recibidos"), routerName );		break;
 	case DataTypeID::TotalIDs:		break;
 	}
 	foreach( DlgDataBase *dlg, m_dialogList )
 		dlg->onROSDone(routerName, dataTypeID);
+	ui->usersTable->onROSDone(routerName, dataTypeID);
 }
 
 void QMikPPPManager::pideUsuarios(const QString &routerName)
@@ -496,7 +507,7 @@ void QMikPPPManager::setNivelUsuario(QConfigData::NivelUsuario lvl)
 
 void QMikPPPManager::onDatoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &id, bool *isValid)
 {
-	QSecretData *sd = ui->twUsuarios->findDataBySecretID(id);
+	QSecretData *sd = Q_NULLPTR;//ui->twUsuarios->findDataBySecretID(id);
 	QSecretData oldSecret = *sd;
 	if( !sd )
 		return;
@@ -620,7 +631,7 @@ void QMikPPPManager::onClicUsuario(const QSecretData &sd)
 
 void QMikPPPManager::filtraFilas()
 {
-	ui->twUsuarios->filterRows(ui->leFiltro->text(), ui->cbFiltro->currentData().toInt());
+//	ui->twUsuarios->filterRows(ui->leFiltro->text(), ui->cbFiltro->currentData().toInt());
 }
 
 // Comprueba si el código cliente es válido con los siguiente criterios.
@@ -640,11 +651,11 @@ bool QMikPPPManager::codigoClienteValido(const QString &code, const QSecretData 
 		return false;
 	}
 
-	if( ((sd = ui->twUsuarios->secrets().findDataByClientCode(code, sdOri)) != Q_NULLPTR) &&
-		(QMessageBox::question(this, tr("Código de cliente"), tr("El código de cliente %1 corresponde a %2 y quieres asociarlo a %3.\n¿Es correcto?")
-							  .arg(code)
-							  .arg(sd->usuario())
-							  .arg(sdOri->nombre()), QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes) )
+//	if( ((sd = ui->twUsuarios->secrets().findDataByClientCode(code, sdOri)) != Q_NULLPTR) &&
+//		(QMessageBox::question(this, tr("Código de cliente"), tr("El código de cliente %1 corresponde a %2 y quieres asociarlo a %3.\n¿Es correcto?")
+//							  .arg(code)
+//							  .arg(sd->usuario())
+//							  .arg(sdOri->nombre()), QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes) )
 			return false;
 	return true;
 }
@@ -733,19 +744,19 @@ void QMikPPPManager::on_disconnectButton_clicked()
 
 void QMikPPPManager::on_exportButton_clicked()
 {
-	if( !ui->twUsuarios->count() )
-		QMessageBox::warning(this, objectName(), tr("Ningún usuario descargado del servidor."));
-	else
-	{
-		DlgExportar dlg(this, ui->twUsuarios);
-		dlg.exec();
-	}
+//	if( !ui->twUsuarios->count() )
+//		QMessageBox::warning(this, objectName(), tr("Ningún usuario descargado del servidor."));
+//	else
+//	{
+//		DlgExportar dlg(this, ui->twUsuarios);
+//		dlg.exec();
+//	}
 }
 
 void QMikPPPManager::on_portScanButton_clicked()
 {
-	DlgPortScan dlg(this, ui->twUsuarios);
-	dlg.exec();
+//	DlgPortScan dlg(this, ui->twUsuarios);
+//	dlg.exec();
 }
 
 void QMikPPPManager::on_localConfigButton_clicked()

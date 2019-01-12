@@ -7,7 +7,7 @@
 #include "ROSDataBasics.h"
 #include "../Utils/IPv4Range.h"
 
-class ROSSecretData : public ROSDataBase
+class ROSPPPSecret : public ROSDataBase
 {
 	// Direct ROS data.
 	QString m_userName;
@@ -38,7 +38,7 @@ class ROSSecretData : public ROSDataBase
 	void updateNonROSMember( bool &member, bool newData )	{ if(member != newData) { member = newData; m_commentString.clear(); }	}
 	void updateNonROSMember( IPv4 &member, const IPv4 &newData )	{ if( !(member == newData) ) { member = newData; m_commentString.clear(); }	}
 public:
-	explicit ROSSecretData(const QString &routerName) : ROSDataBase(DataTypeID::APIUser, routerName),
+	explicit ROSPPPSecret(const QString &routerName) : ROSDataBase(DataTypeID::PPPSecret, routerName),
 	  m_needsPublicIP(false)
 	{	}
 
@@ -101,7 +101,7 @@ public:
 	bool needsPublicIP() const					{ return m_needsPublicIP;			}
 	void setNeedsPublicIP(bool needsPublicIP)	{ updateNonROSMember(m_needsPublicIP, needsPublicIP);	}
 
-	const QString &serviceCancelReason() const	{ return m_serviceCancelReason;	}
+	const QString &serviceState() const			{ return m_serviceCancelReason;	}
 	void setServiceCancelReason(const QString c){ updateNonROSMember(m_serviceCancelReason, c);	}
 
 	void fromSentence(const QString &routerName, const ROS::QSentence &s) override;
@@ -109,18 +109,21 @@ public:
 	bool hasSameData(const ROSDataBase &rosData) const override;
 };
 
-class ROSSecretActive : ROSDataBase
+class ROSPPPActive : public ROSDataBase
 {
-	QTime m_uptime;
+	QString m_userName;
+	QDateTime m_uptime;
 	IPv4 m_currentIPv4;
 
 public:
-	explicit ROSSecretActive(const QString &routerName) : ROSDataBase(DataTypeID::APIUser, routerName)
+	explicit ROSPPPActive(const QString &routerName) : ROSDataBase(DataTypeID::PPPActive, routerName)
 	{	}
 
-public:
-	const QTime &uptime() const			{ return m_uptime;	}
-	void setUptime(const QTime &uptime)	{ m_uptime = uptime;}
+	const QString &userName() const		{ return m_userName;	}
+	void setUserName(const QString &u)	{ m_userName = u;		}
+
+	QDateTime uptime() const				{ return m_uptime;	}
+	void setUptime(QDateTime uptime)		{ m_uptime = uptime;}
 
 	const IPv4 &currentIPv4() const					{ return m_currentIPv4;	}
 	void setCurrentIPv4(const IPv4 &currentIPv4)	{ m_currentIPv4 = currentIPv4;	}

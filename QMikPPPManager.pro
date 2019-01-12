@@ -89,7 +89,6 @@ HEADERS  += QMikPPPManager.h \
     ROSDataManager/ROSInterfaceManager.h \
     ROSDataManager/ROSBridgePortManager.h \
     ROSDataManager/ROSIPAddressManager.h \
-    ROSDataManager/ROSIPPoolManager.h \
 	ConfigData/ConnectInfo.h \
     ConfigData/TableCellLook.h \
     ConfigData/ClientProfile.h \
@@ -119,9 +118,12 @@ HEADERS  += QMikPPPManager.h \
     Dialogs/DlgROSIPPool.h \
     Dialogs/DlgDataBase.h \
     ROSData/ROSSecret.h \
-    ROSDataManager/ROSSecretManager.h \
     Utils/Utils.h \
-    Widgets/QROSSecretTableWidget.h
+    Widgets/QROSSecretTableWidget.h \
+    ROSDataManager/ROSPPPSecretManager.h \
+    ROSDataManager/ROSPPPActiveManager.h \
+    ROSDataManager/ROSIPPoolManager.h \
+    UnitTests.h
 
 FORMS    += QMikPPPManager.ui \
 	DlgNuevoUsuario.ui \

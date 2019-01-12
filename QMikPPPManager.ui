@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>941</width>
-    <height>614</height>
+    <height>613</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,19 +15,6 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout_4">
-    <item row="1" column="0" colspan="2">
-     <spacer name="verticalSpacer">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>180</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
     <item row="0" column="0">
      <widget class="QPushButton" name="connectButton">
       <property name="text">
@@ -42,12 +29,21 @@
       </property>
      </widget>
     </item>
-    <item row="7" column="0">
-     <widget class="QPushButton" name="addUserButton">
-      <property name="text">
-       <string>Añadir usuario</string>
+    <item row="0" column="2" rowspan="6">
+     <widget class="QROSSecretTableWidget" name="usersTable"/>
+    </item>
+    <item row="1" column="0" colspan="2">
+     <spacer name="verticalSpacer">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
       </property>
-     </widget>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>180</height>
+       </size>
+      </property>
+     </spacer>
     </item>
     <item row="2" column="0" colspan="2">
      <widget class="QGroupBox" name="groupBox">
@@ -130,7 +126,7 @@
       </layout>
      </widget>
     </item>
-    <item row="4" column="0" rowspan="3" colspan="2">
+    <item row="4" column="0" colspan="2">
      <widget class="QGroupBox" name="groupBox_2">
       <property name="title">
        <string>Configuración</string>
@@ -161,13 +157,6 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
-        <widget class="QPushButton" name="connectionConfigButton">
-         <property name="text">
-          <string>Routers</string>
-         </property>
-        </widget>
-       </item>
        <item row="1" column="0">
         <widget class="QPushButton" name="apiUsersButton">
          <property name="text">
@@ -175,10 +164,10 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="0">
-        <widget class="QPushButton" name="localConfigButton">
+       <item row="0" column="1">
+        <widget class="QPushButton" name="connectionConfigButton">
          <property name="text">
-          <string>Apariencia</string>
+          <string>Routers</string>
          </property>
         </widget>
        </item>
@@ -189,35 +178,22 @@
          </property>
         </widget>
        </item>
+       <item row="0" column="0">
+        <widget class="QPushButton" name="localConfigButton">
+         <property name="text">
+          <string>Apariencia</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </item>
-    <item row="7" column="2">
-     <widget class="QSecretDataTable" name="twUsuarios">
-      <property name="font">
-       <font>
-        <pointsize>8</pointsize>
-       </font>
+    <item row="5" column="0">
+     <widget class="QPushButton" name="addUserButton">
+      <property name="text">
+       <string>Añadir usuario</string>
       </property>
-      <property name="sortingEnabled">
-       <bool>true</bool>
-      </property>
-      <property name="cornerButtonEnabled">
-       <bool>false</bool>
-      </property>
-      <attribute name="verticalHeaderDefaultSectionSize">
-       <number>17</number>
-      </attribute>
-      <attribute name="verticalHeaderMinimumSectionSize">
-       <number>15</number>
-      </attribute>
-      <attribute name="verticalHeaderShowSortIndicator" stdset="0">
-       <bool>false</bool>
-      </attribute>
      </widget>
-    </item>
-    <item row="0" column="2" rowspan="7">
-     <widget class="QTableWidget" name="clientsTable"/>
     </item>
    </layout>
   </widget>
@@ -227,7 +203,7 @@
      <x>0</x>
      <y>0</y>
      <width>941</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>
@@ -236,9 +212,9 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>QSecretDataTable</class>
-   <extends>QTableView</extends>
-   <header>QSecretData.h</header>
+   <class>QROSSecretTableWidget</class>
+   <extends>QTableWidget</extends>
+   <header>Widgets/QROSSecretTableWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

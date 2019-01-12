@@ -34,13 +34,13 @@ void ROSRateLimit::fromString(const QString &str)
 	QStringList speeds = str.split( QRegExp("[/ ]"), QString::SkipEmptyParts );
 	switch( speeds.count() )
 	{
-	case 8:	m_rxAverageSeconds = speeds.at(7).toUInt();
-	case 7:	m_txAverageSeconds = speeds.at(6).toUInt();
-	case 6:	m_rxAverageKbps.fromString( speeds.at(5) );
-	case 5:	m_txAverageKbps.fromString( speeds.at(4) );
-	case 4:	m_rxBurstKbps.fromString( speeds.at(3) );
-	case 3:	m_txBurstKbps.fromString( speeds.at(2) );
-	case 2:	m_rxKbps.fromString( speeds.at(1) );
+	case 8:	m_rxAverageSeconds = speeds.at(7).toUInt(); [[clang::fallthrough]];
+	case 7:	m_txAverageSeconds = speeds.at(6).toUInt(); [[clang::fallthrough]];
+	case 6:	m_rxAverageKbps.fromString( speeds.at(5) ); [[clang::fallthrough]];
+	case 5:	m_txAverageKbps.fromString( speeds.at(4) ); [[clang::fallthrough]];
+	case 4:	m_rxBurstKbps.fromString( speeds.at(3) ); [[clang::fallthrough]];
+	case 3:	m_txBurstKbps.fromString( speeds.at(2) ); [[clang::fallthrough]];
+	case 2:	m_rxKbps.fromString( speeds.at(1) ); [[clang::fallthrough]];
 	case 1:	m_txKbps.fromString( speeds.at(0) );
 		// Ensures that if only one value is present, uses it in both upload and download.
 		if( !m_rxKbps )

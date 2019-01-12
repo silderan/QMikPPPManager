@@ -1,6 +1,7 @@
 #ifndef ROSAPIUSER_H
 #define ROSAPIUSER_H
 
+#include "DataTypeID.h"
 #include "ROSDataBasics.h"
 
 class ROSAPIUser : public ROSDataBase
@@ -31,21 +32,6 @@ public:
 	explicit ROSAPIUser(const QString &routerName) : ROSDataBase(DataTypeID::APIUser, routerName),
 		m_level(NoRights)
 	{	}
-//	ROSAPIUser(const QString &routerName, const QString &name, Level level = NoRights) : ROSDataBase(routerName, QString()),
-//		m_uname(name), m_level(level)
-//	{	}
-//	ROSAPIUser(const QString &routerName, const QString &name, const QString &groupName, const QString &levelName) : ROSDataBase(routerName, QString()),
-//		m_uname(name),
-//		m_group(groupName),
-//		m_level(static_cast<Level>(ROSAPIUser::levelNames().indexOf(levelName.toLower())))
-//	{
-//		if( m_level < NoRights )
-//			m_level = NoRights;
-//	}
-//	ROSAPIUser(const QString &routerName, const ROS::QSentence &sentence) : ROSDataBase(routerName, QString())
-//	{
-//		fromSentence(routerName, sentence);
-//	}
 
 	inline const QString &userName()const			{ return m_uname;	}
 	inline void setUserName(const QString &uname)	{ m_uname = uname;	}

@@ -17,6 +17,8 @@
 #include "ROSDataManager/ROSBridgePortManager.h"
 #include "ROSDataManager/ROSIPAddressManager.h"
 #include "ROSDataManager/ROSIPPoolManager.h"
+#include "ROSDataManager/ROSPPPSecretManager.h"
+#include "ROSDataManager/ROSPPPActiveManager.h"
 
 class ROSPPPoEManager : public ROS::Comm
 {
@@ -30,6 +32,8 @@ private:
 	ROSBridgePortManager m_rosBridgePortsManager;
 	ROSIPAddressManager m_rosIPAddressManager;
 	ROSIPPoolManager m_rosIPPoolManager;
+	ROSPPPSecretManager m_rosSecretManager;
+	ROSPPPActiveManager  m_rosActiveManager;
 
 	ROSDataManagerBase &rosDataManager(DataTypeID dataTypeID);
 

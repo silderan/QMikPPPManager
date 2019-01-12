@@ -7,7 +7,9 @@ ROSPPPoEManager::ROSPPPoEManager(QObject *papi) : Comm(papi),
 	m_rosInterfaceManager		("/interface/"),
 	m_rosBridgePortsManager		("/interface/bridge/port/"),
 	m_rosIPAddressManager		("/ip/address/"),
-	m_rosIPPoolManager			("/ip/pool/")
+	m_rosIPPoolManager			("/ip/pool/"),
+	m_rosSecretManager			("/ppp/secret/"),
+	m_rosActiveManager			("/ppp/active/")
 {
 	connect(this, SIGNAL(comReceive(ROS::QSentence&)), this, SLOT(onDataReceived(ROS::QSentence&)));
 }
@@ -57,9 +59,12 @@ ROSDataManagerBase &ROSPPPoEManager::rosDataManager(DataTypeID dataTypeID)
 	case DataTypeID::BridgePorts:	return m_rosBridgePortsManager;
 	case DataTypeID::IPAddress:		return m_rosIPAddressManager;
 	case DataTypeID::IPPool:		return m_rosIPPoolManager;
+	case DataTypeID::PPPSecret:		return m_rosSecretManager;
+	case DataTypeID::PPPActive:		return m_rosActiveManager;
 	default:
 		break;
 	}
+	Q_ASSERT(false);
 	// Will NEVER come here!. But, coding that, avoids compiler warnings.
 	return m_rosAPIUserManager;
 }

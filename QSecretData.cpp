@@ -11,40 +11,40 @@ void QSecretData::parseComment(const QString &comment)
 		{
 		default:
 			setCodigoCliente(fields[12]);
-            [[fallthrough]];
+			[[clang::fallthrough]];
         case 12:
 			setWPass(fields[11]);
-            [[fallthrough]];
+			[[clang::fallthrough]];
         case 11:
 			setSSID(fields[10]);
-            [[fallthrough]];
+			[[clang::fallthrough]];
         case 10:
 			setNotas(fields[9]);
-            [[fallthrough]];
+			[[clang::fallthrough]];
         case 9:
 			if( fields[8]=="vozip" )
 				setFlagUsaIPPublica(true, IPPUBLICA_VOZIP);
 			else
 				setFlagsUsaIPPublica(fields[8]);
-            [[fallthrough]];
+			[[clang::fallthrough]];
         case 8:
 			setEmail(fields[7]);
-            [[fallthrough]];
+			[[clang::fallthrough]];
         case 7:
 			setComercial(fields[6]);
-            [[fallthrough]];
+			[[clang::fallthrough]];
         case 6:
 			setInstalador(fields[5]);
-            [[fallthrough]];
+			[[clang::fallthrough]];
         case 5:
 			setTelefonos(fields[4]);
-            [[fallthrough]];
+			[[clang::fallthrough]];
         case 4:
 			setPoblacion(fields[3]);
-            [[fallthrough]];
+			[[clang::fallthrough]];
         case 3:
 			setDireccion(fields[2]);
-            [[fallthrough]];
+			[[clang::fallthrough]];
         case 2:
 			setNombre(fields[1]);
 			setPerfilOriginal(fields[0]);

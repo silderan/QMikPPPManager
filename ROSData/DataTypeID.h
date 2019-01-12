@@ -17,6 +17,8 @@ typedef enum
 	BridgePorts,
 	IPAddress,
 	IPPool,
+	PPPSecret,
+	PPPActive,
 	TotalIDs
 }DataTypeID;
 
