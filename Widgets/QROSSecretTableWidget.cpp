@@ -182,6 +182,8 @@ void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &rosSecretDat
 		setupCellItem( userNameItem->row(), Columns::ClientAnnotations,	rosSecretData.notes() );
 
 		// This columns can be filled by active data before the secred was reported. So, here will set data only if it's empty.
+		// TODO: Last logg off must show the last (date-nearest) value because every router will has diferent time-stamp.
+		//       Maybe, could be interesting also keep all data and show to user via cell tool-tip
 		if( item(userNameItem->row(), Columns::ActiveUserStatus) == Q_NULLPTR )
 			setupActiveStatusCellItem( userNameItem->row(), QDateTime(), rosSecretData.lastLogOff() );
 
