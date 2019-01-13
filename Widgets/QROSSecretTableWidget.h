@@ -7,7 +7,23 @@
 #include "ROSData/ROSSecret.h"
 #include "../ConfigData/TableCellLook.h"
 
-class QROSUserNameWidgetItem : public QTableWidgetItem
+class QStyledWidgetItem : public QTableWidgetItem
+{
+	CellLook m_cellLook;
+
+public:
+	QStyledWidgetItem(const QString &text = QString()) : QTableWidgetItem(text)
+	{	}
+
+	void setCellLook(const CellLook &cellLook)
+	{
+		m_cellLook = cellLook;
+		updateStyle();
+	}
+	void updateStyle();
+};
+
+class QROSUserNameWidgetItem : public QStyledWidgetItem
 {
 public:
 	QRouterIDMap rosPPPSecretIDMap;
@@ -15,21 +31,48 @@ public:
 	IPv4 staticIP;
 };
 
-class QROSServiceStatusCellItem : public QTableWidgetItem
+class QROSServiceStatusCellItem : public QStyledWidgetItem
 {
+	ROSPPPSecret::ServiceState m_serviceState;
 
 public:
+	QROSServiceStatusCellItem() : QStyledWidgetItem()
+	{	}
 
+	void setServiceState(ROSPPPSecret::ServiceState st)
+	{
+		m_serviceState = st;
+		updateStyle();
+	}
+	void updateStyle();
 };
 
-class QROSActiveStatusCellItem : public QTableWidgetItem
+class QROSActiveStatusCellItem : public QStyledWidgetItem
 {
+	QDateTime m_uptime;
+	QDateTime m_downtime;
 
 public:
-	QString preOnline;
-	QString preOffline;
-	QDateTime onlineTime;
-	QDateTime lastOffline;
+	QROSActiveStatusCellItem() : QStyledWidgetItem()
+	{	}
+	void setUptime(const QDateTime &uptime)
+	{
+		m_uptime = uptime;
+		updateStyle();
+	}
+	void setDowntime(const QDateTime &downtime)
+	{
+		m_uptime = QDateTime();
+		m_downtime = downtime;
+		updateStyle();
+	}
+	void setTimes(const QDateTime &uptime, const QDateTime &downtime)
+	{
+		m_uptime = uptime;
+		if( downtime.isValid() )
+			m_downtime = downtime;
+		updateStyle();
+	}
 	void updateStyle();
 };
 
@@ -46,7 +89,7 @@ public:
 	{
 		UserName,
 		ClientCode,
-		ClientPaymentStatus,
+		ServiceStatus,
 		UserProfile,
 		ActiveUserStatus,
 		ActiveRouter,
@@ -72,7 +115,8 @@ private:
 	void onROSActiveDelReply(const QString &routerName, const QString &rosObjectID);
 
 	void setupCellItem(int row, Columns col, const QString &cellText);
-	bool isEmptyCellText(int row, Columns col)	{	return (item(row, col) == Q_NULLPTR) || item(row, col)->text().isEmpty();  }
+	void setupServiceCellItem(int row, ROSPPPSecret::ServiceState st);
+	void setupActiveStatusCellItem(int row, const QDateTime &uptime, const QDateTime &downtime);
 
 public:
 	explicit QROSSecretTableWidget(QWidget *papi = Q_NULLPTR);

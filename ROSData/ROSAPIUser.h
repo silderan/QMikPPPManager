@@ -1,6 +1,8 @@
 #ifndef ROSAPIUSER_H
 #define ROSAPIUSER_H
 
+#include "../UnitTests.h"
+
 #include "DataTypeID.h"
 #include "ROSDataBasics.h"
 
@@ -33,20 +35,24 @@ public:
 		m_level(NoRights)
 	{	}
 
-	inline const QString &userName()const			{ return m_uname;	}
-	inline void setUserName(const QString &uname)	{ m_uname = uname;	}
+	const QString &userName()const			{ return m_uname;	}
+	void setUserName(const QString &uname)	{ m_uname = uname;	}
 
-	inline const QString &userPass()const			{ return m_upass;	}
-	inline void setUserPass(const QString &upass)	{ m_upass = upass;	}
+	const QString &userPass()const			{ return m_upass;	}
+	void setUserPass(const QString &upass)	{ m_upass = upass;	}
 
-	inline const QString &groupName()const			{ return m_group;	}
-	inline void setGroupName(const QString group)	{ m_group = group;	}
+	const QString &groupName()const			{ return m_group;	}
+	void setGroupName(const QString group)	{ m_group = group;	}
 
-	inline Level userLevel()const					{ return m_level;	}
-	inline void setUserLevel(Level level)			{ m_level = level;	}
+	Level userLevel()const					{ return m_level;	}
+	void setUserLevel(Level level)			{ m_level = level;	}
 
 	virtual void fromSentence(const QString &routerName, const ROS::QSentence &sentence);
 	virtual ROS::QSentence &toSentence(ROS::QSentence &sentence) const;
 	virtual bool hasSameData(const ROSDataBase &rosAPIUser) const;
+
+#ifdef SIMULATE_ROS_INPUTS
+	static QList<ROS::QSentence> simulatedStepSentences(const QString &routerName, quint32 random, int step);
+#endif
 };
 #endif // ROSAPIUSER_H

@@ -98,6 +98,32 @@ bool ROSInterface::hasSameData(const ROSDataBase &rosInterface) const
 {
 	return
 		(m_name == static_cast<const ROSInterface&>(rosInterface).m_name) &&
-		(m_type == static_cast<const ROSInterface&>(rosInterface).m_type) ;
+			(m_type == static_cast<const ROSInterface&>(rosInterface).m_type) ;
 }
 
+#ifdef SIMULATE_ROS_INPUTS
+QList<ROS::QSentence> ROSInterface::simulatedStepSentences(const QString &routerName, quint32 random, int step)
+{
+	QList<ROS::QSentence> rtn;
+
+	ROS::QSentence sentence;
+	sentence.setTag( QString::number(DataTypeID::Interface) );
+	sentence.setResultType( ROS::QSentence::Result::Reply );
+
+	if( step <= 10 )
+	{
+		ROSInterface iface(routerName);
+		iface.setInterfaceType( "ether" );
+		iface.setInterfaceName( QString("ether%1").arg(step) );
+		iface.toSentence(sentence).setID( QString("s%1").arg(step) );
+		rtn.append( sentence );
+	}
+	else
+	if( step == 11 )
+	{
+		sentence.setResultType( ROS::QSentence::Result::Done );
+		rtn.append( sentence );
+	}
+	return rtn;
+}
+#endif

@@ -3,7 +3,49 @@
 #include <QFont>
 #include <QHeaderView>
 
+#include "../Utils/Utils.h"
 #include "../ConfigData/QConfigData.h"
+
+void QStyledWidgetItem::updateStyle()
+{
+	QFont font = this->font();
+	font.setItalic( m_cellLook.m_fontItalic );
+	font.setBold( m_cellLook.m_fontBold );
+	font.setFamily( m_cellLook.m_fontFamily );
+	setFont( font );
+	setForeground( QBrush(m_cellLook.m_foreColor) );
+	setBackground( QBrush(m_cellLook.m_backColor) );
+}
+
+void QROSServiceStatusCellItem::updateStyle()
+{
+	switch( m_serviceState )
+	{
+	case ROSPPPSecret::ActiveUndefined:		setCellLook( gGlobalConfig.tableCellLook().m_enabled ); break;
+	case ROSPPPSecret::ActiveTemporally:	setCellLook( gGlobalConfig.tableCellLook().m_enabled ); break;
+	case ROSPPPSecret::CanceledNoPay:		setCellLook( gGlobalConfig.tableCellLook().m_disabledNoPay ); break;
+	case ROSPPPSecret::CanceledTemporally:	setCellLook( gGlobalConfig.tableCellLook().m_disabledTemporary ); break;
+	case ROSPPPSecret::CanceledTechnically:	setCellLook( gGlobalConfig.tableCellLook().m_disabledTechnically ); break;
+	case ROSPPPSecret::CanceledRetired:		setCellLook( gGlobalConfig.tableCellLook().m_disabledDevicesRetired ); break;
+	case ROSPPPSecret::CanceledUndefined:	setCellLook( gGlobalConfig.tableCellLook().m_disabledUndefined ); break;
+	}
+	setText( ROSPPPSecret::serviceStateString(m_serviceState) );
+}
+
+
+void QROSActiveStatusCellItem::updateStyle()
+{
+	if( m_uptime.isValid() )
+	{
+		setCellLook( gGlobalConfig.tableCellLook().m_connected );
+		setText( QString("C: %1").arg( m_uptime.toString("dd/MM/yyyy hh:mm:ss")) );
+	}
+	else
+	{
+		setCellLook( gGlobalConfig.tableCellLook().m_disconnected );
+		setText( QString("D: %1").arg( m_downtime.toString("dd/MM/yyyy hh:mm:ss")) );
+	}
+}
 
 QROSSecretTableWidget::QROSSecretTableWidget(QWidget *papi) : QTableWidget(papi)
 {
@@ -80,6 +122,21 @@ void QROSSecretTableWidget::setupCellItem(int row, Columns col, const QString &c
 		item(row, col)->setText(cellText);
 }
 
+void QROSSecretTableWidget::setupServiceCellItem(int row, ROSPPPSecret::ServiceState st)
+{
+	if( item(row, Columns::ServiceStatus) == Q_NULLPTR )
+		setItem(row, static_cast<int>(Columns::ServiceStatus), new QROSServiceStatusCellItem());
+	static_cast<QROSServiceStatusCellItem*>(item(row, Columns::ServiceStatus))->setServiceState(st);
+}
+
+void QROSSecretTableWidget::setupActiveStatusCellItem(int row, const QDateTime &uptime, const QDateTime &downtime)
+{
+	if( item(row, Columns::ActiveUserStatus) == Q_NULLPTR )
+		setItem(row, static_cast<int>(Columns::ActiveUserStatus), new QROSActiveStatusCellItem());
+
+	static_cast<QROSActiveStatusCellItem*>(item(row, Columns::ActiveUserStatus))->setTimes(uptime, downtime);
+}
+
 void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &rosSecretData)
 {
 	if( rosSecretData.profile().isEmpty() || gGlobalConfig.clientProfileList().isInternalProfile(rosSecretData.profile()) )
@@ -124,27 +181,22 @@ void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &rosSecretDat
 		setupCellItem( userNameItem->row(), Columns::ClientEmail,		rosSecretData.email() );
 		setupCellItem( userNameItem->row(), Columns::ClientAnnotations,	rosSecretData.notes() );
 
-		// This columns can be filled by active data before the
-		if( isEmptyCellText(userNameItem->row(), Columns::ActiveUserStatus) )
-			setupCellItem( userNameItem->row(), Columns::ActiveUserStatus, tr("Desconectado: %1").arg(rosSecretData.lastLogOff().toString("dd/MM/yyyy HH:mm:ss")) );
+		// This columns can be filled by active data before the secred was reported. So, here will set data only if it's empty.
+		if( item(userNameItem->row(), Columns::ActiveUserStatus) == Q_NULLPTR )
+			setupActiveStatusCellItem( userNameItem->row(), QDateTime(), rosSecretData.lastLogOff() );
 
-		if( isEmptyCellText(userNameItem->row(), Columns::ActiveRouter) )
+		if( item(userNameItem->row(), Columns::ActiveRouter) == Q_NULLPTR )
 			setupCellItem( userNameItem->row(), Columns::ActiveRouter,	tr("Ninguno") );
 
-		if( isEmptyCellText(userNameItem->row(), Columns::RemoteIP) )
+		if( item(userNameItem->row(), Columns::RemoteIP) == Q_NULLPTR )
 			setupCellItem( userNameItem->row(), Columns::RemoteIP, userNameItem->staticIP.isValid() ? tr("s:%1").arg(userNameItem->staticIP.toString()) : "" );
 
-		// TODO: Apply special service-status style.
-		if( rosSecretData.serviceState().isEmpty() )
-		{
-			setupCellItem( userNameItem->row(), ClientPaymentStatus, tr("Alta") );
-			setupCellItemStyle( userNameItem->row(), ClientPaymentStatus, gGlobalConfig.tableCellLook().m_enabled );
-		}
-		else
-		{
-			setupCellItem( userNameItem->row(), ClientPaymentStatus, rosSecretData.serviceState() );
-			setupCellItemStyle( userNameItem->row(), ClientPaymentStatus, gGlobalConfig.tableCellLook().m_disabledNoPay );
-		}
+		// Quite a long statement... just to pass a CanceledUndefined parameter if client has service canceled but their state does not match.
+		setupServiceCellItem( userNameItem->row(),
+//							  gGlobalConfig.clientProfileList().isDisabledProfile(rosSecretData.profile()) && (rosSecretData.serviceState() < ROSPPPSecret::ServiceState::CanceledNoPay)
+//							  ? ROSPPPSecret::ServiceState::CanceledUndefined :
+								rosSecretData.serviceState() );
+
 	}
 	userNameItem->rosPPPSecretIDMap[rosSecretData.routerName()] = rosSecretData.rosObjectID();
 
@@ -187,7 +239,7 @@ void QROSSecretTableWidget::onROSActiveModReply(const ROSPPPActive &rosSecretAct
 
 	m_activeIDMap[rosSecretActive.rosObjectID()] = userNameItem;
 
-	setupCellItem( userNameItem->row(), Columns::ActiveUserStatus, tr("Conectado: %1").arg(rosSecretActive.uptime().toString("dd/MM/yyyy HH:mm:ss")) );
+	setupActiveStatusCellItem( userNameItem->row(), rosSecretActive.uptime(), QDateTime() );
 	setupCellItem( userNameItem->row(), Columns::ActiveRouter, rosSecretActive.routerName() );
 	setupCellItem( userNameItem->row(), Columns::RemoteIP, rosSecretActive.currentIPv4().toString() );
 	blockSignals(false);
@@ -243,9 +295,14 @@ void QROSSecretTableWidget::updateConfig()
 	tableFont.setPixelSize( gGlobalConfig.tableCellLook().m_fontSize );
 	setFont( tableFont );
 	verticalHeader()->setDefaultSectionSize( gGlobalConfig.tableCellLook().m_rowHeight );
-}
-
-void QROSActiveStatusCellItem::updateStyle()
-{
-
+	for( int row = rowCount()-1; row >= 0; --row )
+	{
+		for( int col = columnCount()-1; col >=0; --col )
+		{
+			if( dynamic_cast<QStyledWidgetItem*>(item(row, static_cast<Columns>(col))) != Q_NULLPTR )
+			{
+				static_cast<QStyledWidgetItem*>(item(row, static_cast<Columns>(col)))->updateStyle();
+			}
+		}
+	}
 }

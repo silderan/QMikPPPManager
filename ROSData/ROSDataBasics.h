@@ -25,16 +25,16 @@ public:
 	virtual ~ROSDataBase()
 	{	}
 
-	inline DataTypeID dataTypeID() const	{	return m_dataTypeID;	}
+	DataTypeID dataTypeID() const	{	return m_dataTypeID;	}
 
-	inline const QString &rosObjectID()	const		{ return m_rosObjectID;	}
-	inline void setROSObjectID(const QString &id)	{ m_rosObjectID = id;	}
+	const QString &rosObjectID()	const		{ return m_rosObjectID;	}
+	void setROSObjectID(const QString &id)	{ m_rosObjectID = id;	}
 
-	inline const QString &routerName() const				{ return m_routerName;		}
-	inline void setRouterName(const QString &routerName)	{ m_routerName = routerName;}
+	const QString &routerName() const				{ return m_routerName;		}
+	void setRouterName(const QString &routerName)	{ m_routerName = routerName;}
 
-	inline bool deleting()const					{ return m_delete;	}
-	inline void setDeleting(bool d)				{ m_delete = d;		}
+	bool deleting()const					{ return m_delete;	}
+	void setDeleting(bool d)				{ m_delete = d;		}
 
 	virtual void fromSentence(const QString &routerName, const ROS::QSentence &s);
 	virtual ROS::QSentence &toSentence(ROS::QSentence &sentence) const;

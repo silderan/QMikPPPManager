@@ -27,14 +27,14 @@ public:
 	virtual ~ROSDataManagerBase()
 	{	}
 
-	inline const QString &routerName() const				{ return m_routerName;		}
-	inline void setRouterName(const QString &routerName)	{ m_routerName = routerName;}
+	const QString &routerName() const				{ return m_routerName;		}
+	void setRouterName(const QString &routerName)	{ m_routerName = routerName;}
 
-	inline const QString &path() const			{ return m_path;		}
+	const QString &path() const			{ return m_path;		}
 
-	inline ROSDataBase *rosData(const QString &dataID) const		{ return m_idDataMapP.value(dataID, Q_NULLPTR);	}
-	inline ROSDataBasePList rosDataList() const						{ return m_idDataMapP.values();		}
-	inline const QMap<QString, ROSDataBase *> &rosDataMap() const	{ return m_idDataMapP;				}
+	ROSDataBase *rosData(const QString &dataID) const		{ return m_idDataMapP.value(dataID, Q_NULLPTR);	}
+	ROSDataBasePList rosDataList() const					{ return m_idDataMapP.values();		}
+	const QMap<QString, ROSDataBase *> &rosDataMap() const	{ return m_idDataMapP;				}
 
 	void setup(const QString &routerName)
 	{
@@ -51,14 +51,14 @@ public:
 	}
 	virtual ROSDataBase *onROSModReply(const ROS::QSentence &sentence) = 0;
 
-	inline virtual QString getallCommand()	{ return QString("%1getall").arg(m_path);	}
-	inline virtual QString listenCommand()	{ return QString("%1listen").arg(m_path);	}
+	virtual QString getallCommand()		{ return QString("%1getall").arg(m_path);	}
+	virtual QString listenCommand()		{ return QString("%1listen").arg(m_path);	}
 
-	inline virtual QString setCommand()		{ return QString("%1set").arg(m_path);		}
-	inline virtual QString addCommand()		{ return QString("%1add").arg(m_path);		}
-	inline virtual QString removeCommand()	{ return QString("%1remove").arg(m_path);	}
+	virtual QString setCommand()		{ return QString("%1set").arg(m_path);		}
+	virtual QString addCommand()		{ return QString("%1add").arg(m_path);		}
+	virtual QString removeCommand()		{ return QString("%1remove").arg(m_path);	}
 
-	inline virtual QStringList getallQueries()	{ return QStringList() << "#|";	}
+	virtual QStringList getallQueries()	{ return QStringList() << "#|";	}
 };
 
 template <typename T>

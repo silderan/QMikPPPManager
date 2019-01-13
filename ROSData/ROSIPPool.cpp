@@ -46,3 +46,35 @@ bool ROSIPPool::hasSameData(const ROSDataBase &rosData) const
 	}
 	return true;
 }
+
+#ifdef SIMULATE_ROS_INPUTS
+QList<ROS::QSentence> ROSIPPool::simulatedStepSentences(const QString &routerName, quint32 random, int step)
+{
+	ROSIPPool ipPool(routerName);
+	QList<ROS::QSentence> rtn;
+	ROS::QSentence sentence;
+	sentence.setTag( QString::number(DataTypeID::IPPool) );
+	sentence.setResultType( ROS::QSentence::Result::Reply );
+
+	switch( step )
+	{
+	case 1:
+		ipPool.setPoolName( "PoolIPLocal" );
+		ipPool.poolRanges().append( IPv4Range(IPv4("192.168.1.1"),IPv4("192.168.1.1")) );
+		ipPool.toSentence(sentence).setID("s1");
+		rtn.append( sentence );
+		break;
+	case 2:
+		ipPool.setPoolName( "poolClientes" );
+		ipPool.poolRanges().append( IPv4Range(IPv4("192.168.1.2"),IPv4("192.168.1.254")) );
+		ipPool.toSentence(sentence).setID("s2");
+		rtn.append( sentence );
+		break;
+	case 3:
+		sentence.setResultType( ROS::QSentence::Result::Done );
+		rtn.append( sentence );
+		break;
+	}
+	return rtn;
+}
+#endif

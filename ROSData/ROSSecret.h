@@ -5,10 +5,23 @@
 #include <QDateTime>
 
 #include "ROSDataBasics.h"
+#include "../UnitTests.h"
 #include "../Utils/IPv4Range.h"
 
 class ROSPPPSecret : public ROSDataBase
 {
+public:
+	enum ServiceState
+	{
+		ActiveUndefined,
+		ActiveTemporally,
+		CanceledNoPay,
+		CanceledTemporally,
+		CanceledTechnically,
+		CanceledRetired,
+		CanceledUndefined
+	};
+private:
 	// Direct ROS data.
 	QString m_userName;
 	QString m_userPass;
@@ -30,20 +43,19 @@ class ROSPPPSecret : public ROSDataBase
 	QString m_WPass;
 	QString m_notes;
 	IPv4 m_staticIP;
-	QString m_serviceCancelReason;
+	ServiceState m_serviceState;
 	bool m_needsPublicIP;
 
 	void fromCommentString(const QString &commentString);
 	void updateNonROSMember( QString &member, const QString &newData )	{ if(member != newData) { member = newData; m_commentString.clear(); }	}
 	void updateNonROSMember( bool &member, bool newData )	{ if(member != newData) { member = newData; m_commentString.clear(); }	}
 	void updateNonROSMember( IPv4 &member, const IPv4 &newData )	{ if( !(member == newData) ) { member = newData; m_commentString.clear(); }	}
+
 public:
 	explicit ROSPPPSecret(const QString &routerName) : ROSDataBase(DataTypeID::PPPSecret, routerName),
-	  m_needsPublicIP(false)
+	  m_serviceState(ServiceState::ActiveUndefined), m_needsPublicIP(false)
 	{	}
 
-
-public:
 	const QString &userName() const				{ return m_userName;	}
 	void setUserName(const QString &userName)	{ m_userName = userName;}
 
@@ -101,12 +113,21 @@ public:
 	bool needsPublicIP() const					{ return m_needsPublicIP;			}
 	void setNeedsPublicIP(bool needsPublicIP)	{ updateNonROSMember(m_needsPublicIP, needsPublicIP);	}
 
-	const QString &serviceState() const			{ return m_serviceCancelReason;	}
-	void setServiceCancelReason(const QString c){ updateNonROSMember(m_serviceCancelReason, c);	}
+	void setServiceState(const QString &c);
+	void setServiceState(ServiceState st);
+	static QString serviceStateROSString(ServiceState);
+	QString serviceStateROSString() const;
+	static QString serviceStateString(ServiceState st);
+	QString serviceStateString() const;
+	ServiceState serviceState() const			{ return m_serviceState;	}
 
 	void fromSentence(const QString &routerName, const ROS::QSentence &s) override;
 	ROS::QSentence &toSentence(ROS::QSentence &sentence) const override;
 	bool hasSameData(const ROSDataBase &rosData) const override;
+
+#ifdef SIMULATE_ROS_INPUTS
+	static QList<ROS::QSentence> simulatedStepSentences(const QString &routerName, quint32 random, int step);
+#endif
 };
 
 class ROSPPPActive : public ROSDataBase
@@ -131,6 +152,10 @@ public:
 	void fromSentence(const QString &routerName, const ROS::QSentence &s) override;
 	ROS::QSentence &toSentence(ROS::QSentence &sentence) const override;
 	bool hasSameData(const ROSDataBase &rosData) const override;
+
+#ifdef SIMULATE_ROS_INPUTS
+	static QList<ROS::QSentence> simulatedStepSentences(const QString &routerName, quint32 random, int step);
+#endif
 };
 
 #endif // ROSSECRET_H

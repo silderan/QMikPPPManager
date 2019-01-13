@@ -74,5 +74,33 @@ bool ROSBridgePort::hasSameData(const ROSDataBase &rosData) const
 {
 	return
 		(m_ifaceName == static_cast<const ROSBridgePort &>(rosData).m_ifaceName) &&
-		(m_bridgeName == static_cast<const ROSBridgePort &>(rosData).m_bridgeName);
+			(m_bridgeName == static_cast<const ROSBridgePort &>(rosData).m_bridgeName);
 }
+
+#ifdef SIMULATE_ROS_INPUTS
+QList<ROS::QSentence> ROSBridgePort::simulatedStepSentences(const QString &routerName, quint32 random, int step)
+{
+	QList<ROS::QSentence> rtn;
+
+	ROS::QSentence sentence;
+	sentence.setTag( QString::number(DataTypeID::BridgePorts) );
+	sentence.setResultType( ROS::QSentence::Result::Reply );
+
+	if( step < 10 )
+	{
+		ROSBridgePort port(routerName);
+		port.setBridgeName( "bridgePPPoE" );
+		port.setIfaceName( QString("ether%1").arg(step) );
+		port.toSentence(sentence).setID( QString("s%1").arg(step) );
+		rtn.append( sentence );
+	}
+	else
+	if( step == 10 )
+	{
+		sentence.setResultType( ROS::QSentence::Result::Done );
+		rtn.append( sentence );
+	}
+
+	return rtn;
+}
+#endif

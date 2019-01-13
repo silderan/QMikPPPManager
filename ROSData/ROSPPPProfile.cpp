@@ -41,5 +41,53 @@ bool ROSPPPProfile::hasSameData(const ROSDataBase &rosPPPProfile) const
 		(m_rateLimit == static_cast<const ROSPPPProfile &>(rosPPPProfile).m_rateLimit) &&
 		(m_bridgeName == static_cast<const ROSPPPProfile &>(rosPPPProfile).m_bridgeName) &&
 		(m_localAdress == static_cast<const ROSPPPProfile &>(rosPPPProfile).m_localAdress) &&
-		(m_remoteAdress == static_cast<const ROSPPPProfile &>(rosPPPProfile).m_remoteAdress) ;
+			(m_remoteAdress == static_cast<const ROSPPPProfile &>(rosPPPProfile).m_remoteAdress) ;
 }
+
+#ifdef SIMULATE_ROS_INPUTS
+QList<ROS::QSentence> ROSPPPProfile::simulatedStepSentences(const QString &routerName, quint32 random, int step)
+{
+	ROSPPPProfile pppProfile(routerName);
+	QList<ROS::QSentence> rtn;
+
+	ROS::QSentence sentence;
+	sentence.setTag( QString::number(DataTypeID::PPPProfile) );
+	sentence.setResultType( ROS::QSentence::Result::Reply );
+
+	switch( step )
+	{
+	case 1:
+		pppProfile.setProfileName( "Basico" );
+		pppProfile.setBridgeName( "bridgePPPoE" );
+		pppProfile.setLocalAddress( "localGateway" );
+		pppProfile.setRemoteAddress( "clientIPPool" );
+		pppProfile.rateLimit().fromString( "5M/5M" );
+		pppProfile.toSentence(sentence).setID( "s1" );
+		rtn.append( sentence );
+		break;
+	case 2:
+		pppProfile.setProfileName( "Medio" );
+		pppProfile.setBridgeName( "bridgePPPoE" );
+		pppProfile.setLocalAddress( "localGateway" );
+		pppProfile.setRemoteAddress( "clientIPPool" );
+		pppProfile.rateLimit().fromString( "10M/10M" );
+		pppProfile.toSentence(sentence).setID( "s2" );
+		rtn.append( sentence );
+		break;
+	case 3:
+		pppProfile.setProfileName( "Alto" );
+		pppProfile.setBridgeName( "bridgePPPoE" );
+		pppProfile.setLocalAddress( "localGateway" );
+		pppProfile.setRemoteAddress( "clientIPPool" );
+		pppProfile.rateLimit().fromString( "15M/15M" );
+		pppProfile.toSentence(sentence).setID( "s3" );
+		rtn.append( sentence );
+		break;
+	case 4:
+		sentence.setResultType( ROS::QSentence::Result::Done );
+		rtn.append( sentence );
+		break;
+	}
+	return rtn;
+}
+#endif

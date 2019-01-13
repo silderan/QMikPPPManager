@@ -10,6 +10,8 @@
 #include "ROSData/ROSAPIUserGroup.h"
 #include "ROSData/ROSPPPProfile.h"
 
+#include "UnitTests.h"
+
 #include "ROSDataManager/ROSAPIUserManager.h"
 #include "ROSDataManager/ROSAPIUsersGroupManager.h"
 #include "ROSDataManager/ROSPPPProfileManager.h"
@@ -48,6 +50,11 @@ public:
 
 	void requestRemoteData(DataTypeID dataTypeID);
 	void updateRemoteData(const ROSDataBase &newROSData, const QString &rosObjectID);
+
+#ifdef SIMULATE_ROS_INPUTS
+private slots:
+	void simulateStep();
+#endif
 
 public slots:
 	void onDataReceived(ROS::QSentence &sentence);

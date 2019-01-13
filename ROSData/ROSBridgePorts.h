@@ -1,7 +1,7 @@
 #ifndef ROSBRIDGEPORTS_H
 #define ROSBRIDGEPORTS_H
 
-
+#include "../UnitTests.h"
 #include "ROSDataBasics.h"
 
 class ROSBridgePort : public ROSDataBase
@@ -22,6 +22,10 @@ public:
 	virtual void fromSentence(const QString &routerName, const ROS::QSentence &s);
 	virtual ROS::QSentence &toSentence(ROS::QSentence &sentence) const;
 	virtual bool hasSameData(const ROSDataBase &rosData) const;
+
+#ifdef SIMULATE_ROS_INPUTS
+	static QList<ROS::QSentence> simulatedStepSentences(const QString &routerName, quint32 random, int step);
+#endif
 };
 
 #endif // ROSBRIDGEPORTS_H

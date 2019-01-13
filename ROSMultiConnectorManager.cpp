@@ -222,7 +222,7 @@ void ROSMultiConnectManager::updateRemoteData(const ROSDataBase &rosData, const 
 
 void ROSMultiConnectManager::requestAll(ROSPPPoEManagerPList rosPPPoEManagerPList, DataTypeID dataTypeID)
 {
-	foreach( ROSPPPoEManager *rosPPPoEManager, rosPPPoEManagerPList)
+	foreach( ROSPPPoEManager *rosPPPoEManager, rosPPPoEManagerPList )
 		ROSMultiConnectManager::requestAll(rosPPPoEManager, dataTypeID);
 }
 
@@ -235,6 +235,18 @@ void ROSMultiConnectManager::requestAll(DataTypeID dataTypeID)
 {
 	ROSMultiConnectManager::requestAll(m_rosPppoeManagerMap.values(), dataTypeID);
 }
+
+#ifdef SIMULATE_ROS_INPUTS
+void ROSMultiConnectManager::simulateROSConnection()
+{
+	addROSConnection("simulated RouterA", "192.168.88.2", 8729, "", "" );
+	emit logued( "simulated RouterA" );
+	addROSConnection("simulated RouterB", "192.168.88.3", 8729, "", "" );
+	emit logued( "simulated RouterB" );
+	addROSConnection("simulated RouterC", "192.168.88.4", 8729, "", "" );
+	emit logued( "simulated RouterC" );
+}
+#endif
 
 void ROSMultiConnectManager::requestAll(const QString &routerName, DataTypeID dataTypeID)
 {

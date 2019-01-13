@@ -54,3 +54,50 @@ bool ROSAPIUser::hasSameData(const ROSDataBase &rosAPIUser) const
 			(m_group == static_cast<const ROSAPIUser&>(rosAPIUser).m_group) &&
 			(m_level == static_cast<const ROSAPIUser&>(rosAPIUser).m_level);
 }
+
+QList<ROS::QSentence> ROSAPIUser::simulatedStepSentences(const QString &routerName, quint32 random, int step)
+{
+	ROSAPIUser apiUser(routerName);
+	QList<ROS::QSentence> rtn;
+	ROS::QSentence sentence;
+	sentence.setTag( QString::number(DataTypeID::APIUser) );
+	sentence.setResultType( ROS::QSentence::Result::Reply );
+
+	switch( step )
+	{
+	case 1:
+		apiUser.setUserName( "Rafa" );
+		apiUser.setGroupName( "API" );
+		apiUser.setUserLevel( Level::Supervisor );
+		apiUser.toSentence(sentence).setID("s1");
+		rtn.append( sentence );
+		break;
+	case 2:
+		apiUser.setUserName( "Lourdes" );
+		apiUser.setGroupName( "API" );
+		apiUser.setUserLevel( Level::Administrator );
+		apiUser.toSentence(sentence).setID("s2");
+		rtn.append( sentence );
+		break;
+	case 3:
+		apiUser.setUserName( "Balma" );
+		apiUser.setGroupName( "API" );
+		apiUser.setUserLevel( Level::Comercial );
+		apiUser.toSentence(sentence).setID("s3");
+		rtn.append( sentence );
+		break;
+	case 4:
+		apiUser.setUserName( "Link" );
+		apiUser.setGroupName( "API" );
+		apiUser.setUserLevel( Level::Instalator );
+		apiUser.toSentence(sentence).setID("s4");
+		rtn.append( sentence );
+		break;
+	case 5:
+		sentence.setResultType( ROS::QSentence::Result::Done );
+		rtn.append( sentence );
+		break;
+	}
+
+	return rtn;
+}

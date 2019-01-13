@@ -6,6 +6,8 @@
 
 #include "ROSPPPoEManager.h"
 
+#include "UnitTests.h"
+
 class ROSMultiConnectManager : public QObject
 {
 Q_OBJECT
@@ -46,6 +48,10 @@ public:
 
 	void requestAll(const QString &routerName, DataTypeID dataTypeID);
 	void requestAll(DataTypeID dataTypeID);
+
+#ifdef SIMULATE_ROS_INPUTS
+	void simulateROSConnection();
+#endif
 
 public slots:
 	void updateRemoteData(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap);

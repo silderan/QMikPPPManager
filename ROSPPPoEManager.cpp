@@ -1,5 +1,7 @@
 #include "ROSPPPoEManager.h"
 
+#include <ROSData/ROSIPPool.h>
+
 ROSPPPoEManager::ROSPPPoEManager(QObject *papi) : Comm(papi),
 	m_rosAPIUserManager			("/user/"),
 	m_rosAPIUsersGroupManager	("/user/group/"),
@@ -109,6 +111,10 @@ void ROSPPPoEManager::updateRemoteData(const ROSDataBase &newROSData, const QStr
 	}
 }
 
+#ifdef SIMULATE_ROS_INPUTS
+#include <QTimer>
+#endif
+
 void ROSPPPoEManager::requestRemoteData(DataTypeID dataTypeID)
 {
 	ROSDataManagerBase &rosDataManagerBase = rosDataManager(dataTypeID);
@@ -119,6 +125,13 @@ void ROSPPPoEManager::requestRemoteData(DataTypeID dataTypeID)
 	{
 		rosDataManagerBase.setRouterName( routerName() );
 
+#ifdef SIMULATE_ROS_INPUTS
+		QTimer *timer = new QTimer(this);
+		connect(timer, SIGNAL(timeout()), this, SLOT(simulateStep()));
+		timer->setProperty( "dataTypeID", static_cast<int>(dataTypeID) );
+		timer->setProperty( "step", 1 );
+		timer->start(1000);
+#else
 		ROS::QSentence sentence;
 		sentence.setTag( QString::number(dataTypeID) );
 
@@ -130,5 +143,36 @@ void ROSPPPoEManager::requestRemoteData(DataTypeID dataTypeID)
 
 		sentence.setCommand( rosDataManagerBase.listenCommand() );
 		sendSentence(sentence);
+#endif
 	}
 }
+
+#ifdef SIMULATE_ROS_INPUTS
+#include <QRandomGenerator>
+void ROSPPPoEManager::simulateStep()
+{
+	if( sender() == Q_NULLPTR )
+		return;
+	QList<ROS::QSentence> sList;
+	int step = sender()->property("step").toInt();
+	DataTypeID dataTypeID = static_cast<DataTypeID>(sender()->property("dataTypeID").toInt());
+	quint32 random = QRandomGenerator::global()->generate();
+	switch( dataTypeID )
+	{
+	case DataTypeID::ErrorTypeID:	break;
+	case DataTypeID::APIUser:		sList = ROSAPIUser::simulatedStepSentences(routerName(), random, step );		break;
+	case DataTypeID::APIUsersGroup:	sList = ROSAPIUsersGroup::simulatedStepSentences(routerName(), random, step );	break;
+	case DataTypeID::PPPProfile:	sList = ROSPPPProfile::simulatedStepSentences(routerName(), random, step );		break;
+	case DataTypeID::Interface:		sList = ROSInterface::simulatedStepSentences(routerName(), random, step );		break;
+	case DataTypeID::BridgePorts:	sList = ROSBridgePort::simulatedStepSentences(routerName(), random, step );		break;
+	case DataTypeID::IPAddress:		sList = ROSIPAddress::simulatedStepSentences(routerName(), random, step );		break;
+	case DataTypeID::IPPool:		sList = ROSIPPool::simulatedStepSentences(routerName(), random, step );			break;
+	case DataTypeID::PPPSecret:		sList = ROSPPPSecret::simulatedStepSentences(routerName(), random, step );		break;
+	case DataTypeID::PPPActive:		sList = ROSPPPActive::simulatedStepSentences(routerName(), random, step );		break;
+	case DataTypeID::TotalIDs:		break;
+	}
+	sender()->setProperty("step", step+1);
+	foreach( ROS::QSentence sentence, sList )
+		onDataReceived( sentence );
+}
+#endif

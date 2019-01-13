@@ -1,6 +1,7 @@
 #ifndef ROSPPPPROFILE_H
 #define ROSPPPPROFILE_H
 
+#include "../UnitTests.h"
 #include "ROSDataBasics.h"
 #include "../Utils/ROSRateLimit.h"
 
@@ -15,29 +16,29 @@ class ROSPPPProfile : public ROSDataBase
 public:
 	explicit ROSPPPProfile(const QString &routerName) : ROSDataBase(DataTypeID::PPPProfile, routerName)
 	{	}
-//	ROSPPPProfile(const QString &routerName, const ROS::QSentence &sentence) : ROSDataBase(routerName, QString())
-//	{
-//		fromSentence(routerName, sentence);
-//	}
 
-	inline const QString &profileName() const		{ return m_name;	}
-	inline void setProfileName(const QString &n)	{ m_name = n;		}
+	const QString &profileName() const		{ return m_name;	}
+	void setProfileName(const QString &n)	{ m_name = n;		}
 
-	inline const ROSRateLimit &rateLimit() const	{ return m_rateLimit;	}
-	inline ROSRateLimit &rateLimit()				{ return m_rateLimit;	}
+	const ROSRateLimit &rateLimit() const	{ return m_rateLimit;	}
+	ROSRateLimit &rateLimit()				{ return m_rateLimit;	}
 
-	inline const QString &localAddress()const					{ return m_localAdress;	}
-	inline void setLocalAddress(const QString &localAddress)	{ m_localAdress = localAddress;	}
+	const QString &localAddress()const					{ return m_localAdress;	}
+	void setLocalAddress(const QString &localAddress)	{ m_localAdress = localAddress;	}
 
-	inline const QString &remoteAddress()const					{ return m_remoteAdress;}
-	inline void setRemoteAddress(const QString &remoteAddress)	{ m_remoteAdress = remoteAddress;	}
+	const QString &remoteAddress()const					{ return m_remoteAdress;}
+	void setRemoteAddress(const QString &remoteAddress)	{ m_remoteAdress = remoteAddress;	}
 
-	inline const QString &bridgeName() const				{ return m_bridgeName;	}
-	inline void setBridgeName(const QString &bridgeName)	{ m_bridgeName = bridgeName;	}
+	const QString &bridgeName() const				{ return m_bridgeName;	}
+	void setBridgeName(const QString &bridgeName)	{ m_bridgeName = bridgeName;	}
 
 	virtual void fromSentence(const QString &routerName, const ROS::QSentence &sentence);
 	virtual ROS::QSentence &toSentence(ROS::QSentence &sentence) const;
 	virtual bool hasSameData(const ROSDataBase &rosPPPProfile) const;
+
+#ifdef SIMULATE_ROS_INPUTS
+	static QList<ROS::QSentence> simulatedStepSentences(const QString &routerName, quint32 random, int step);
+#endif
 };
 
 #endif // ROSPPPPROFILE_H

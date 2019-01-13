@@ -83,6 +83,7 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 	ui->cbFiltro->addItem( "Alta", FILTRO_ALTA );
 	ui->cbFiltro->addItem( "Baja", FILTRO_BAJA );
 	onAllRoutersDisconnected();
+
 }
 
 QMikPPPManager::~QMikPPPManager()
@@ -163,7 +164,7 @@ void QMikPPPManager::onLogued(const QString &routerName)
 //	ui->twUsuarios->setEnabled(true);
 
 	// request api users to know the level privileges.
-//	multiConnectionManager.requestAll( routerName, DataTypeID::APIUser );
+	multiConnectionManager.requestAll( routerName, DataTypeID::APIUser );
 	// And all ppp users data.
 	multiConnectionManager.requestAll( routerName, DataTypeID::PPPSecret );
 	multiConnectionManager.requestAll( routerName, DataTypeID::PPPActive );
@@ -734,7 +735,11 @@ void QMikPPPManager::on_connectButton_clicked()
 									 gGlobalConfig.userPass() );
 		}
 	}
+#ifdef SIMULATE_ROS_INPUTS
+	multiConnectionManager.simulateROSConnection();
+#else
 	multiConnectionManager.connectHosts();
+#endif
 }
 
 void QMikPPPManager::on_disconnectButton_clicked()

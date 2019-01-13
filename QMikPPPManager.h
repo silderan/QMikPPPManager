@@ -14,6 +14,8 @@
 #include <QUrl>
 #include <QInputEvent>
 
+#include "UnitTests.h"
+
 #include "ROSData/ROSAPIUser.h"
 #include "ROSData/ROSAPIUserGroup.h"
 #include "ROSData/ROSPPPProfile.h"
