@@ -714,6 +714,9 @@ void QMikPPPManager::on_cbFiltro_currentIndexChanged(int )
 
 void QMikPPPManager::on_connectButton_clicked()
 {
+#ifdef SIMULATE_ROS_INPUTS
+	multiConnectionManager.simulateROSConnection();
+#else
 	if( gGlobalConfig.connectInfoList().isEmpty() )
 	{
 		QMessageBox::information( this, objectName(), tr("No hay ninguna conexión configurada. Configúrala para poderte conectar.") );
@@ -735,9 +738,6 @@ void QMikPPPManager::on_connectButton_clicked()
 									 gGlobalConfig.userPass() );
 		}
 	}
-#ifdef SIMULATE_ROS_INPUTS
-	multiConnectionManager.simulateROSConnection();
-#else
 	multiConnectionManager.connectHosts();
 #endif
 }

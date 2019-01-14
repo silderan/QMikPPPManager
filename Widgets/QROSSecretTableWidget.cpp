@@ -258,7 +258,7 @@ void QROSSecretTableWidget::onROSActiveDelReply(const QString &routerName, const
 		if( item(userNameItem->row(), Columns::ActiveRouter)->text() == routerName )
 		{
 			blockSignals(true);
-			setupCellItem( userNameItem->row(), Columns::ActiveUserStatus, tr("Desconectado: %1").arg(QDateTime::currentDateTime().toString()) );
+			setupActiveStatusCellItem( userNameItem->row(), QDateTime(), QDateTime::currentDateTime() );
 			setupCellItem( userNameItem->row(), Columns::ActiveRouter, tr("Ninguno") );
 			setupCellItem( userNameItem->row(), Columns::RemoteIP, userNameItem->staticIP.isValid() ? tr("s:%1").arg(userNameItem->staticIP.toString()) : "" );
 			m_activeIDMap.remove(rosObjectID);
