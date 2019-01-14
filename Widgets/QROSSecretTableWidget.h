@@ -21,9 +21,10 @@ public:
 		updateStyle();
 	}
 	void updateStyle();
+	virtual const CellLook &getCellLook() = 0;
 };
 
-class QROSUserNameWidgetItem : public QStyledWidgetItem
+class QROSUserNameWidgetItem : public QTableWidgetItem
 {
 public:
 	QRouterIDMap rosPPPSecretIDMap;
@@ -41,10 +42,10 @@ public:
 
 	void setServiceState(ROSPPPSecret::ServiceState st)
 	{
-		m_serviceState = st;
+		setText( ROSPPPSecret::serviceStateString(m_serviceState = st) );
 		updateStyle();
 	}
-	void updateStyle();
+	virtual const CellLook &getCellLook()override;
 };
 
 class QROSActiveStatusCellItem : public QStyledWidgetItem
@@ -52,18 +53,21 @@ class QROSActiveStatusCellItem : public QStyledWidgetItem
 	QDateTime m_uptime;
 	QDateTime m_downtime;
 
+	void updateText();
 public:
 	QROSActiveStatusCellItem() : QStyledWidgetItem()
 	{	}
 	void setUptime(const QDateTime &uptime)
 	{
 		m_uptime = uptime;
+		updateText();
 		updateStyle();
 	}
 	void setDowntime(const QDateTime &downtime)
 	{
 		m_uptime = QDateTime();
 		m_downtime = downtime;
+		updateText();
 		updateStyle();
 	}
 	void setTimes(const QDateTime &uptime, const QDateTime &downtime)
@@ -71,9 +75,10 @@ public:
 		m_uptime = uptime;
 		if( downtime.isValid() )
 			m_downtime = downtime;
+		updateText();
 		updateStyle();
 	}
-	void updateStyle();
+	virtual const CellLook &getCellLook()override;
 };
 
 class QROSSecretTableWidget : public QTableWidget

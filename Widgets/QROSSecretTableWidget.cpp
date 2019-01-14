@@ -8,6 +8,7 @@
 
 void QStyledWidgetItem::updateStyle()
 {
+	m_cellLook = getCellLook();
 	QFont font = this->font();
 	font.setItalic( m_cellLook.m_fontItalic );
 	font.setBold( m_cellLook.m_fontBold );
@@ -17,34 +18,33 @@ void QStyledWidgetItem::updateStyle()
 	setBackground( QBrush(m_cellLook.m_backColor) );
 }
 
-void QROSServiceStatusCellItem::updateStyle()
+const CellLook &QROSServiceStatusCellItem::getCellLook()
 {
 	switch( m_serviceState )
 	{
-	case ROSPPPSecret::ActiveUndefined:		setCellLook( gGlobalConfig.tableCellLook().m_enabled ); break;
-	case ROSPPPSecret::ActiveTemporally:	setCellLook( gGlobalConfig.tableCellLook().m_enabled ); break;
-	case ROSPPPSecret::CanceledNoPay:		setCellLook( gGlobalConfig.tableCellLook().m_disabledNoPay ); break;
-	case ROSPPPSecret::CanceledTemporally:	setCellLook( gGlobalConfig.tableCellLook().m_disabledTemporary ); break;
-	case ROSPPPSecret::CanceledTechnically:	setCellLook( gGlobalConfig.tableCellLook().m_disabledTechnically ); break;
-	case ROSPPPSecret::CanceledRetired:		setCellLook( gGlobalConfig.tableCellLook().m_disabledDevicesRetired ); break;
-	case ROSPPPSecret::CanceledUndefined:	setCellLook( gGlobalConfig.tableCellLook().m_disabledUndefined ); break;
+	case ROSPPPSecret::ActiveUndefined:		return gGlobalConfig.tableCellLook().m_enabled;
+	case ROSPPPSecret::ActiveTemporally:	return gGlobalConfig.tableCellLook().m_enabled;
+	case ROSPPPSecret::CanceledNoPay:		return gGlobalConfig.tableCellLook().m_disabledNoPay;
+	case ROSPPPSecret::CanceledTemporally:	return gGlobalConfig.tableCellLook().m_disabledTemporary;
+	case ROSPPPSecret::CanceledTechnically:	return gGlobalConfig.tableCellLook().m_disabledTechnically;
+	case ROSPPPSecret::CanceledRetired:		return gGlobalConfig.tableCellLook().m_disabledDevicesRetired;
+	case ROSPPPSecret::CanceledUndefined:	return gGlobalConfig.tableCellLook().m_disabledUndefined;
 	}
-	setText( ROSPPPSecret::serviceStateString(m_serviceState) );
 }
 
-
-void QROSActiveStatusCellItem::updateStyle()
+void QROSActiveStatusCellItem::updateText()
 {
 	if( m_uptime.isValid() )
-	{
-		setCellLook( gGlobalConfig.tableCellLook().m_connected );
-		setText( QString("C: %1").arg( m_uptime.toString("dd/MM/yyyy hh:mm:ss")) );
-	}
+		setText( QString("C: %1").arg(m_uptime.toString("dd/MM/yyyy hh:mm:ss")) );
 	else
-	{
-		setCellLook( gGlobalConfig.tableCellLook().m_disconnected );
-		setText( QString("D: %1").arg( m_downtime.toString("dd/MM/yyyy hh:mm:ss")) );
-	}
+		setText( QString("D: %1").arg(m_downtime.toString("dd/MM/yyyy hh:mm:ss")) );
+}
+
+const CellLook &QROSActiveStatusCellItem::getCellLook()
+{
+	if( m_uptime.isValid() )
+		return gGlobalConfig.tableCellLook().m_connected;
+	return gGlobalConfig.tableCellLook().m_disconnected;
 }
 
 QROSSecretTableWidget::QROSSecretTableWidget(QWidget *papi) : QTableWidget(papi)
