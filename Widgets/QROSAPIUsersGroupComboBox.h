@@ -10,7 +10,7 @@ class QROSAPIUsersGroupComboBox : public QComboBox
 	Q_OBJECT
 
 public:
-	explicit QROSAPIUsersGroupComboBox(QWidget *parent = 0, const QStringList &groupsList = QStringList(), const QString &groupName = QString());
+	explicit QROSAPIUsersGroupComboBox(QWidget *parent = Q_NULLPTR, const QStringList &groupsList = QStringList(), const QString &groupName = QString());
 	~QROSAPIUsersGroupComboBox();
 
 	int index(const QString &groupName)const;
@@ -37,7 +37,7 @@ class QROSAPIUsersGroupComboBoxDelegate : public QStyledItemDelegate
 	Q_OBJECT
 
 public:
-	QROSAPIUsersGroupComboBoxDelegate(QObject *papi = 0) : QStyledItemDelegate(papi)
+	QROSAPIUsersGroupComboBoxDelegate(QObject *papi = Q_NULLPTR) : QStyledItemDelegate(papi)
 	{	}
 
 	QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const Q_DECL_OVERRIDE;

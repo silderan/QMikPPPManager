@@ -22,13 +22,15 @@ void ROSPPPoEManager::onDataReceived(ROS::QSentence &sentence)
 	// listeing for changes everywhere.
 	if( sentence.tag().isEmpty() )
 		return;
+	DataTypeID dataTypeID = static_cast<DataTypeID>(sentence.tag().toInt());
 
 	switch( sentence.getResultType() )
 	{
 	case ROS::QSentence::None:
 		break;
 	case ROS::QSentence::Done:
-		emit rosDone( routerName(), static_cast<DataTypeID>(sentence.tag().toInt()) );
+		rosDataManager(dataTypeID).onROSDoneReply();
+		emit rosDone( routerName(), dataTypeID );
 		break;
 	case ROS::QSentence::Trap:
 		emit rosError( routerName(), sentence.attribute("message") );
@@ -37,11 +39,10 @@ void ROSPPPoEManager::onDataReceived(ROS::QSentence &sentence)
 		break;
 	case ROS::QSentence::Reply:
 		if( sentence.attribute(".dead").isEmpty() )
-			emit rosModReply( *rosDataManager( static_cast<DataTypeID>(sentence.tag().toInt()) ).onROSModReply(sentence) );
+			emit rosModReply( *rosDataManager(dataTypeID).onROSModReply(sentence) );
 		else
 		{
-			DataTypeID dataTypeID = static_cast<DataTypeID>(sentence.tag().toInt());
-			rosDataManager( dataTypeID ).onROSDeadReply(sentence);
+			rosDataManager(dataTypeID).onROSDeadReply(sentence);
 			emit rosDelReply( routerName(), dataTypeID, sentence.getID() );
 		}
 		break;
@@ -130,7 +131,7 @@ void ROSPPPoEManager::requestRemoteData(DataTypeID dataTypeID)
 		connect(timer, SIGNAL(timeout()), this, SLOT(simulateStep()));
 		timer->setProperty( "dataTypeID", static_cast<int>(dataTypeID) );
 		timer->setProperty( "step", 1 );
-		timer->start(1000);
+		timer->start(250);
 #else
 		ROS::QSentence sentence;
 		sentence.setTag( QString::number(dataTypeID) );

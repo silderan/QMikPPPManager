@@ -16,9 +16,10 @@ protected:
 	QString m_routerName;
 	QString m_path;
 	QMap<QString, ROSDataBase*> m_idDataMapP;
+	bool m_done;
 
 public:
-	ROSDataManagerBase(const QString &path) : m_path(path)
+	ROSDataManagerBase(const QString &path) : m_path(path), m_done(false)
 	{
 		Q_ASSERT( path.count() > 2 );
 		Q_ASSERT( path[0] == '/' );
@@ -31,6 +32,7 @@ public:
 	void setRouterName(const QString &routerName)	{ m_routerName = routerName;}
 
 	const QString &path() const			{ return m_path;		}
+	bool done() const	{ return m_done;	}
 
 	ROSDataBase *rosData(const QString &dataID) const		{ return m_idDataMapP.value(dataID, Q_NULLPTR);	}
 	ROSDataBasePList rosDataList() const					{ return m_idDataMapP.values();		}
@@ -48,7 +50,10 @@ public:
 		Q_ASSERT( !m_routerName.isEmpty() );
 
 		delete m_idDataMapP.take( sentence.getID() );
+//		qDebug("Deleted from map:  %s:%s", m_routerName.toLatin1().constData(), sentence.getID().toLatin1().constData() );
 	}
+	virtual void onROSDoneReply()		{ m_done = true;	}
+
 	virtual ROSDataBase *onROSModReply(const ROS::QSentence &sentence) = 0;
 
 	virtual QString getallCommand()		{ return QString("%1getall").arg(m_path);	}
@@ -74,9 +79,16 @@ public:
 		Q_ASSERT( sentence.attribute(".dead").isEmpty() );
 		Q_ASSERT( !m_routerName.isEmpty() );
 
-		T *t = new T(m_routerName);
+		T *t;
+		if( (t = static_cast<T*>(m_idDataMapP.value(sentence.getID(), Q_NULLPTR))) == Q_NULLPTR )
+		{
+			t = new T(m_routerName);
+			m_idDataMapP.insert( sentence.getID(), t );
+//			qDebug( "New data for %s:%s", m_routerName.toLatin1().constData(), sentence.getID().toLatin1().constData() );
+		}
+//		else
+//			qDebug("Recovered from map:  %s:%s", m_routerName.toLatin1().constData(), sentence.getID().toLatin1().constData() );
 		t->fromSentence(m_routerName, sentence);
-		m_idDataMapP.insert( sentence.getID(), t );
 		return t;
 	}
 };

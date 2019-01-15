@@ -15,20 +15,20 @@ private:
 	bool m_default;		// Si este perfil es el perfil por defecto.
 
 public:
-	inline const QString &profileName() const				{ return m_name;		}
-	inline void setProfileName(const QString &profileName)	{ m_name = profileName;	}
+	const QString &profileName() const				{ return m_name;		}
+	void setProfileName(const QString &profileName)	{ m_name = profileName;	}
 
-	inline const QString &groupName() const			{ return m_group;	}
-	inline void setGroupName(const QString &group)	{ m_group = group;	}
+	const QString &groupName() const			{ return m_group;	}
+	void setGroupName(const QString &group)	{ m_group = group;	}
 
-	inline bool isInternalProfile() const		{ return m_internal;}
-	inline void setInternalProfile(bool i)		{ m_internal = i;	}
+	bool isInternalProfile() const		{ return m_internal;}
+	void setInternalProfile(bool i)		{ m_internal = i;	}
 
-	inline bool isDisabledProfile() const		{ return m_disabled;}
-	inline void setDisabledProfile(bool d)		{ m_disabled = d;	}
+	bool isDisabledProfile() const		{ return m_disabled;}
+	void setDisabledProfile(bool d)		{ m_disabled = d;	}
 
-	inline bool isDefaultProfile() const		{ return m_default;	}
-	inline void setDefaultProfile(bool d)		{ m_default = d;	}
+	bool isDefaultProfile() const		{ return m_default;	}
+	void setDefaultProfile(bool d)		{ m_default = d;	}
 
 	explicit ClientProfileData(const QString &saveString) :
 		m_disabled(false),
@@ -43,11 +43,11 @@ public:
 		m_default(false)
 	{	}
 
-	inline bool operator==(const QString &profileName) const
+	bool operator==(const QString &profileName) const
 	{
 		return m_name == profileName;
 	}
-	inline bool operator==(const ClientProfileData &clientProfileData) const
+	bool operator==(const ClientProfileData &clientProfileData) const
 	{
 		return m_name == clientProfileData.profileName();
 	}
@@ -56,6 +56,7 @@ public:
 	void fromSaveString(const QString &saveString);
 };
 
+// TODO: Doesn't this fits better in a map?
 class QClientProfileList : public QList<ClientProfileData>
 {
 	// TODO: caching current default and disabled profiles to improve lookup speed.

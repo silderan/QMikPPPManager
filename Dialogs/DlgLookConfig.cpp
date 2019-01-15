@@ -28,6 +28,7 @@ DlgLookConfig::DlgLookConfig(QWidget *parent) :
 	connect( ui->backGreenSpinBox, SIGNAL(valueChanged(int)), this, SLOT(updateCurrentCellLook(int)) );
 	connect( ui->backBlueSpinBox, SIGNAL(valueChanged(int)), this, SLOT(updateCurrentCellLook(int)) );
 
+	ui->coloursTable->resizeColumnsToContents();
 	onItemSelected();
 }
 
