@@ -801,6 +801,7 @@ void QMikPPPManager::on_advancedConfigButton_clicked()
 		gGlobalConfig.staticIPv4RangeListMap() = dlgConfig->staticIPv4RangeListMap();
 		gGlobalConfig.clientProfileMap() = dlgConfig->clientProfileList();
 		gGlobalConfig.saveGlobalProtectedData();
+		ui->usersTable->applyFilter();
 	}
 
 	dlgConfig->deleteLater();

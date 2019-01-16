@@ -247,12 +247,13 @@ QList<ROS::QSentence> ROSPPPSecret::simulatedStepSentences(const QString &router
 		secret.setUserName( SIMULATED_USER_NAME(i) );
 		secret.setUserPass( "PASS" );
 		secret.setCity( "Ciudad" );
+		secret.setAddress( "dirección" );
 		secret.setSSID( QString("SSID-%1").arg(i) );
 		secret.setEmail( QString("Email-%1").arg(i) );
 		secret.setNotes( QString("Notas %1").arg(i) );
 		secret.setWPass( QString("WPASS%1").arg(i) );
 		secret.setPhones( QString("96441234%1").arg(i) );
-		secret.setProfile( (i < 3) ? "Bajo" : (i < 6) ? "Medio" : "Alto" );
+		secret.setProfile( (i < 3) ? "Basico" : (i < 6) ? "Medio" : "Alto" );
 		secret.setStaticIP( (i == 3) ? IPv4("192.168.1.3") : (i == 6) ? IPv4("192.168.1.6") : IPv4() );
 		secret.setComercial( "Comercial" );
 		secret.setClientCode( QString("1234%1").arg(i) );
@@ -261,7 +262,7 @@ QList<ROS::QSentence> ROSPPPSecret::simulatedStepSentences(const QString &router
 		secret.setServiceState( static_cast<ServiceState>(i % 7) );
 		secret.setInstallerName( "Instalador" );
 		secret.setNeedsPublicIP( i % 2 );
-		secret.setOriginalProfile( (i < 3) ? "Bajo" : (i < 6) ? "Medio" : "Alto" );
+		secret.setOriginalProfile( secret.profile() );
 		secret.setROSObjectID( SIMULATED_USER_ID(i) );
 		ROS::QSentence sentence;
 		secret.toSentence(sentence);
@@ -297,8 +298,15 @@ QList<ROS::QSentence> ROSPPPSecret::simulatedStepSentences(const QString &router
 			if( !(rC & 2) )
 				secret.setAddress( QString("Dirección %1").arg(random) );
 			else
+			{
 				secret.setServiceState( static_cast<ServiceState>(rD % 7) );
+				if( secret.serviceState() < ServiceState::CanceledNoPay )
+					secret.setProfile( secret.originalProfile() );
+				else
+					secret.setProfile("SinServicio");
+			}
 			secret.toSentence(sentence);
+			currentMapList[routerName][i] = sentence;
 			sentence.setTag( QString::number(DataTypeID::PPPSecret) );
 			sentence.setResultType( ROS::QSentence::Result::Reply );
 			rtn.append( sentence );

@@ -6,7 +6,7 @@
 #include "../Utils/Utils.h"
 #include "../ConfigData/QConfigData.h"
 #include "../ConfigData/ClientProfile.h"
-
+#include "../ROSMultiConnectorManager.h"
 
 void QStyledWidgetItem::updateStyle()
 {
@@ -113,6 +113,24 @@ QROSSecretTableWidget::QROSSecretTableWidget(QWidget *papi) : QTableWidget(papi)
 	Q_ASSERT( columnCount() == TotalColumns );
 }
 
+bool QROSSecretTableWidget::shouldBeVisible(int row)
+{
+	if( !gGlobalConfig.clientProfileMap().containsProfileName(userNameWidgetItem(row)->rosPPPSecret.profile()) )
+		return false;
+	return true;
+}
+
+void QROSSecretTableWidget::showRowIfValid(int row)
+{
+	shouldBeVisible(row) ? showRow(row) : hideRow(row);
+}
+
+void QROSSecretTableWidget::applyFilter()
+{
+	for( int row = rowCount()-1; row >= 0; --row )
+		showRowIfValid(row);
+}
+
 void QROSSecretTableWidget::setupCellItemStyle(QTableWidgetItem *item, const CellLook &cellLook)
 {
 	QFont font = item->font();
@@ -139,24 +157,13 @@ void QROSSecretTableWidget::clear()
 	m_userNameMap.clear();
 }
 
+QString QROSSecretTableWidget::createObjectIDKey(const ROSPPPSecret &rosPPPSecret)
+{
+	return createObjectIDKey(rosPPPSecret.routerName(), rosPPPSecret.rosObjectID());
+}
 QString QROSSecretTableWidget::createObjectIDKey(const QString &routerName, const QString &rosObjectID)
 {
 	return QString("%1:%2").arg(routerName, rosObjectID);
-}
-
-QROSUserNameWidgetItem *QROSSecretTableWidget::addNewRow(const QString &userName)
-{
-	int row = rowCount();
-
-	insertRow(row);
-	// All right, there is no item. Let's create a new one.
-	QROSUserNameWidgetItem *userNameItem = new QROSUserNameWidgetItem();
-	// Put it on user name column.
-	setItem(row, Columns::UserName, userNameItem);
-	userNameItem->setText( userName );
-
-	m_userNameMap[userName] = userNameItem;
-	return userNameItem;
 }
 
 void QROSSecretTableWidget::setupCellItem(int row, Columns col, const QString &cellText)
@@ -182,70 +189,85 @@ void QROSSecretTableWidget::setupActiveStatusCellItem(int row, const QDateTime &
 	static_cast<QROSActiveStatusCellItem*>(item(row, Columns::ActiveUserStatus))->setTimes(uptime, downtime);
 }
 
-void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &rosSecretData)
+QROSUserNameWidgetItem *QROSSecretTableWidget::addNewRow(const QString &userName)
 {
-	if( rosSecretData.profile().isEmpty() || !gGlobalConfig.clientProfileMap().contains(rosSecretData.profile()) )
-		return;
+	int row = rowCount();
 
-	QString secretIDKey = createObjectIDKey(rosSecretData.userName(), rosSecretData.rosObjectID());
-	QROSUserNameWidgetItem *userNameItem = m_secretIDMap.value(secretIDKey, Q_NULLPTR);
+	insertRow(row);
+	// All right, there is no item. Let's create a new one.
+	QROSUserNameWidgetItem *userNameItem = new QROSUserNameWidgetItem();
+	// Put it on user name column.
+	setItem(row, Columns::UserName, userNameItem);
+	userNameItem->setText( userName );
+
+	m_userNameMap[userName] = userNameItem;
+	return userNameItem;
+}
+
+QROSUserNameWidgetItem *QROSSecretTableWidget::userNameWidgetItem(int row)
+{
+	return static_cast<QROSUserNameWidgetItem*>(item(row, Columns::UserName));
+}
+
+void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &rosPPPSecret)
+{
+	if( rosPPPSecret.profile().isEmpty() )
+		return;
 
 	blockSignals(true);
 
-	if( userNameItem == Q_NULLPTR )
+	QROSUserNameWidgetItem *userNameItem;
+
+	// Find the item by the pair routerName-rosObjectID (the ObjectIDKey)...
+	if( (userNameItem = m_secretIDMap.value(createObjectIDKey(rosPPPSecret), Q_NULLPTR)) == Q_NULLPTR )
 	{
-		// If there is no item, maybe there is with de same user-name.
-		userNameItem = m_userNameMap.value(rosSecretData.userName(), Q_NULLPTR);
+		// ...or by the name if it was created before by the a secretActive event.
+		if( (userNameItem = m_userNameMap.value(rosPPPSecret.userName(), Q_NULLPTR)) == Q_NULLPTR )
+			userNameItem = addNewRow(rosPPPSecret.userName());
 
-		if( userNameItem == Q_NULLPTR )
-			userNameItem = addNewRow(rosSecretData.userName());
-
-		// Copy usefull data.
-		userNameItem->staticIP = rosSecretData.staticIP();
-		m_secretIDMap[secretIDKey] = userNameItem;
+		userNameItem->rosPPPSecret = rosPPPSecret;
+		m_secretIDMap[createObjectIDKey(rosPPPSecret)] = userNameItem;
 	}
 
-	if( userNameItem->rosPPPSecretIDMap.isEmpty() ||	// It's empty the first time that a secret data comes.
-		!userNameItem->rosPPPSecretIDMap[rosSecretData.routerName()].isEmpty() ) // It's not empty when data from this router has been updated.
+	// As username is key for this map, has special code.
+	if( item(userNameItem->row(), Columns::UserName)->text() != rosPPPSecret.userName() )
 	{
-		// As username is used for key map, has sepecial code.
-		if( item(userNameItem->row(), Columns::UserName)->text() != rosSecretData.userName() )
-		{
-			// Copy the item to the new name key.
-			m_userNameMap[rosSecretData.userName()] = m_userNameMap[item(userNameItem->row(), Columns::UserName)->text()];
-			m_userNameMap.remove(item(userNameItem->row(), Columns::UserName)->text());
-			setupCellItem(userNameItem->row(), UserName,			rosSecretData.userName() );
-		}
-		setupCellItem( userNameItem->row(), Columns::ClientCode,		rosSecretData.clientCode() );
-		setupCellItem( userNameItem->row(), Columns::UserProfile,		rosSecretData.originalProfile() );
-		setupCellItem( userNameItem->row(), Columns::ClientName,		rosSecretData.clientName() );
-		setupCellItem( userNameItem->row(), Columns::ClientAddress,		rosSecretData.address() );
-		setupCellItem( userNameItem->row(), Columns::ClientCity,		rosSecretData.city() );
-		setupCellItem( userNameItem->row(), Columns::ClientPhone,		rosSecretData.phones() );
-		setupCellItem( userNameItem->row(), Columns::ClientInstaller,	rosSecretData.installerName() );
-		setupCellItem( userNameItem->row(), Columns::ClientEmail,		rosSecretData.email() );
-		setupCellItem( userNameItem->row(), Columns::ClientAnnotations,	rosSecretData.notes() );
-
-		// This columns can be filled by active data before the secred was reported. So, here will set data only if it's empty.
-		// TODO: Last logg off must show the last (date-nearest) value because every router will has diferent time-stamp.
-		//       Maybe, could be interesting also keep all data and show to user via cell tool-tip
-		if( item(userNameItem->row(), Columns::ActiveUserStatus) == Q_NULLPTR )
-			setupActiveStatusCellItem( userNameItem->row(), QDateTime(), rosSecretData.lastLogOff() );
-
-		if( item(userNameItem->row(), Columns::ActiveRouter) == Q_NULLPTR )
-			setupCellItem( userNameItem->row(), Columns::ActiveRouter,	tr("Ninguno") );
-
-		if( item(userNameItem->row(), Columns::RemoteIP) == Q_NULLPTR )
-			setupCellItem( userNameItem->row(), Columns::RemoteIP, userNameItem->staticIP.isValid() ? tr("s:%1").arg(userNameItem->staticIP.toString()) : "" );
-
-		// Quite a long statement... just to pass a CanceledUndefined parameter if client has service canceled but their state does not match.
-		setupServiceCellItem( userNameItem->row(),
-//							  gGlobalConfig.clientProfileList().isDisabledProfile(rosSecretData.profile()) && (rosSecretData.serviceState() < ROSPPPSecret::ServiceState::CanceledNoPay)
-//							  ? ROSPPPSecret::ServiceState::CanceledUndefined :
-								rosSecretData.serviceState() );
-
+		// Copy the item to the new name key.
+		m_userNameMap[rosPPPSecret.userName()] = m_userNameMap.take( item(userNameItem->row(), Columns::UserName)->text() );
+		setupCellItem(userNameItem->row(), UserName,				rosPPPSecret.userName() );
 	}
-	userNameItem->rosPPPSecretIDMap[rosSecretData.routerName()] = rosSecretData.rosObjectID();
+
+	setupCellItem( userNameItem->row(), Columns::ClientCode,		rosPPPSecret.clientCode() );
+	setupCellItem( userNameItem->row(), Columns::UserProfile,		rosPPPSecret.originalProfile() );
+	setupCellItem( userNameItem->row(), Columns::ClientName,		rosPPPSecret.clientName() );
+	setupCellItem( userNameItem->row(), Columns::ClientAddress,		rosPPPSecret.address() );
+	setupCellItem( userNameItem->row(), Columns::ClientCity,		rosPPPSecret.city() );
+	setupCellItem( userNameItem->row(), Columns::ClientPhone,		rosPPPSecret.phones() );
+	setupCellItem( userNameItem->row(), Columns::ClientInstaller,	rosPPPSecret.installerName() );
+	setupCellItem( userNameItem->row(), Columns::ClientEmail,		rosPPPSecret.email() );
+	setupCellItem( userNameItem->row(), Columns::ClientAnnotations,	rosPPPSecret.notes() );
+
+	// This columns can be filled by active data before the secred was reported. So, here will set data only if they're empty.
+	// TODO: Last logg off must show the last (date-nearest) value because every router will has diferent time-stamp.
+	//       Maybe, could be interesting also keep all data and show to user via cell tool-tip
+	if( item(userNameItem->row(), Columns::ActiveUserStatus) == Q_NULLPTR )
+		setupActiveStatusCellItem( userNameItem->row(), QDateTime(), rosPPPSecret.lastLogOff() );
+
+	if( item(userNameItem->row(), Columns::ActiveRouter) == Q_NULLPTR )
+		setupCellItem( userNameItem->row(), Columns::ActiveRouter,	tr("Ninguno") );
+
+	if( item(userNameItem->row(), Columns::RemoteIP) == Q_NULLPTR )
+		setupCellItem( userNameItem->row(), Columns::RemoteIP, userNameItem->rosPPPSecret.staticIP().isValid() ? tr("s:%1").arg(userNameItem->rosPPPSecret.staticIP().toString()) : "" );
+
+	// Quite a long statement... just to pass a CanceledUndefined parameter if client has service canceled but their state does not match.
+	setupServiceCellItem( userNameItem->row(),
+//						  gGlobalConfig.clientProfileList().isDisabledProfile(rosSecretData.profile()) && (rosSecretData.serviceState() < ROSPPPSecret::ServiceState::CanceledNoPay)
+//						  ? ROSPPPSecret::ServiceState::CanceledUndefined :
+							rosPPPSecret.serviceState() );
+
+	userNameItem->rosPPPSecretIDMap[rosPPPSecret.routerName()] = rosPPPSecret.rosObjectID();
+
+	showRowIfValid(userNameItem->row());
 
 	blockSignals(false);
 }
@@ -262,7 +284,7 @@ void QROSSecretTableWidget::onROSSecretDelReply(const QString &routerName, const
 		{
 			m_userNameMap.remove( userNameItem->text() );
 			m_secretIDMap.remove( key );
-			m_activeIDMap.remove( userNameItem->rosPPPActiveObjectID );
+			m_activeIDMap.remove( userNameItem->rosPPPActive.rosObjectID() );
 			blockSignals(true);
 			removeRow(userNameItem->row());
 			blockSignals(false);
@@ -270,25 +292,26 @@ void QROSSecretTableWidget::onROSSecretDelReply(const QString &routerName, const
 	}
 }
 
-void QROSSecretTableWidget::onROSActiveModReply(const ROSPPPActive &rosSecretActive)
+void QROSSecretTableWidget::onROSActiveModReply(const ROSPPPActive &rosPPPActive)
 {
-	QROSUserNameWidgetItem *userNameItem = m_userNameMap.value( rosSecretActive.userName(), Q_NULLPTR );
+	QROSUserNameWidgetItem *userNameItem = m_userNameMap.value( rosPPPActive.userName(), Q_NULLPTR );
 
 	blockSignals(true);
-	// If there is nothing here, could be a active event before the secred has come.
+	// If there is nothing here, could be a active event before the secred has arrived.
 	if( userNameItem == Q_NULLPTR )
-		userNameItem = addNewRow(rosSecretActive.userName());
+		userNameItem = addNewRow(rosPPPActive.userName());
 
 	// That could happen when a new connection comes before a desconnection.
-	if( !userNameItem->rosPPPActiveObjectID.isEmpty() )
-		m_activeIDMap.remove(userNameItem->rosPPPActiveObjectID);
-	userNameItem->rosPPPActiveObjectID = rosSecretActive.rosObjectID();
+	if( !userNameItem->rosPPPActive.rosObjectID().isEmpty() )
+		m_activeIDMap.remove(userNameItem->rosPPPActive.rosObjectID());
 
-	m_activeIDMap[rosSecretActive.rosObjectID()] = userNameItem;
+	userNameItem->rosPPPActive = rosPPPActive;
 
-	setupActiveStatusCellItem( userNameItem->row(), rosSecretActive.uptime(), QDateTime() );
-	setupCellItem( userNameItem->row(), Columns::ActiveRouter, rosSecretActive.routerName() );
-	setupCellItem( userNameItem->row(), Columns::RemoteIP, rosSecretActive.currentIPv4().toString() );
+	m_activeIDMap[rosPPPActive.rosObjectID()] = userNameItem;
+
+	setupActiveStatusCellItem( userNameItem->row(), rosPPPActive.uptime(), QDateTime() );
+	setupCellItem( userNameItem->row(), Columns::ActiveRouter, rosPPPActive.routerName() );
+	setupCellItem( userNameItem->row(), Columns::RemoteIP, rosPPPActive.currentIPv4().toString() );
 	blockSignals(false);
 }
 
@@ -299,13 +322,14 @@ void QROSSecretTableWidget::onROSActiveDelReply(const QString &routerName, const
 	// Not found: not yet in table.
 	if( userNameItem != Q_NULLPTR )
 	{
+		userNameItem->rosPPPActive = ROSPPPActive("");
 		// Take care. can be a connection from another router.
 		if( item(userNameItem->row(), Columns::ActiveRouter)->text() == routerName )
 		{
 			blockSignals(true);
 			setupActiveStatusCellItem( userNameItem->row(), QDateTime(), QDateTime::currentDateTime() );
 			setupCellItem( userNameItem->row(), Columns::ActiveRouter, tr("Ninguno") );
-			setupCellItem( userNameItem->row(), Columns::RemoteIP, userNameItem->staticIP.isValid() ? tr("s:%1").arg(userNameItem->staticIP.toString()) : "" );
+			setupCellItem( userNameItem->row(), Columns::RemoteIP, userNameItem->rosPPPSecret.staticIP().isValid() ? tr("s:%1").arg(userNameItem->rosPPPSecret.staticIP().toString()) : "" );
 			m_activeIDMap.remove(rosObjectID);
 			blockSignals(false);
 		}
@@ -332,6 +356,7 @@ void QROSSecretTableWidget::onROSDelReply(const QString &routerName, DataTypeID 
 
 void QROSSecretTableWidget::onROSDone(const QString &routerName, DataTypeID dataTypeID)
 {
+	Q_UNUSED(routerName);
 	if( (dataTypeID == DataTypeID::PPPSecret) || (dataTypeID == DataTypeID::PPPActive) )
 		resizeColumnsToContents();
 }

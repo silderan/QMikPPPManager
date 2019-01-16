@@ -26,10 +26,15 @@ public:
 
 class QROSUserNameWidgetItem : public QTableWidgetItem
 {
+
 public:
+	QROSUserNameWidgetItem() : rosPPPSecret(""), rosPPPActive("")
+	{	}
+
+	ROSPPPSecret rosPPPSecret;
+	ROSPPPActive rosPPPActive;
 	QRouterIDMap rosPPPSecretIDMap;
 	QString rosPPPActiveObjectID;
-	IPv4 staticIP;
 };
 
 class QROSServiceStatusCellItem : public QStyledWidgetItem
@@ -129,13 +134,10 @@ public:
 	};
 	QROSUserNameWidgetItem *addNewRow(const QString &userName);
 
-private:
 	static QString createObjectIDKey(const QString &routerName, const QString &rosObjectID);
 
-	void onROSSecretModReply(const ROSPPPSecret &rosSecretData);
 	void onROSSecretDelReply(const QString &routerName, const QString &rosObjectID);
 
-	void onROSActiveModReply(const ROSPPPActive &rosSecretActive);
 	void onROSActiveDelReply(const QString &routerName, const QString &rosObjectID);
 
 	void setupCellItem(int row, Columns col, const QString &cellText);

@@ -10,6 +10,7 @@
 
 class ROSPPPSecret : public ROSDataBase
 {
+
 public:
 	enum ServiceState
 	{
@@ -21,11 +22,12 @@ public:
 		CanceledRetired,
 		CanceledUndefined
 	};
+
 private:
 	// Direct ROS data.
 	QString m_userName;
 	QString m_userPass;
-	QString m_profile;		// User's current profile. Can be a profile without Internet access for people in stand by.
+	QString m_profile;		// User's current profile. Can be a profile without Internet access for people with canceled service.
 	QDateTime m_lastLogOff;
 	QString m_commentString;
 

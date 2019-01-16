@@ -11,7 +11,7 @@
 
 class ROSDataBase
 {
-	const DataTypeID m_dataTypeID;
+	DataTypeID m_dataTypeID;
 	QString m_routerName;
 	QString m_rosObjectID;
 	bool m_delete;
