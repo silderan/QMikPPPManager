@@ -184,7 +184,7 @@ void QROSSecretTableWidget::setupActiveStatusCellItem(int row, const QDateTime &
 
 void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &rosSecretData)
 {
-	if( rosSecretData.profile().isEmpty() || gGlobalConfig.clientProfileMap().contains(rosSecretData.profile()) )
+	if( rosSecretData.profile().isEmpty() || !gGlobalConfig.clientProfileMap().contains(rosSecretData.profile()) )
 		return;
 
 	QString secretIDKey = createObjectIDKey(rosSecretData.userName(), rosSecretData.rosObjectID());

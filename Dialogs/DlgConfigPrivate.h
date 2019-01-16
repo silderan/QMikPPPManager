@@ -12,7 +12,7 @@ public:
 	QROSProfileNameDelegate(ROSMultiConnectManager *multiConManager, const QStringList *selectedProfiles, QObject *papi) :
 		QProfileGroupNameDelegate( multiConManager, DataTypeID::PPPProfile, false, selectedProfiles, papi)
 	{	}
-	virtual QString rosDataSelectableText( const ROSDataBase &rosData ) const
+	virtual QString rosDataSelectableText( const ROSDataBase &rosData ) const Q_DECL_OVERRIDE
 	{
 		return static_cast<const ROSPPPProfile&>(rosData).profileName();
 	}

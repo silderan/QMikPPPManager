@@ -275,8 +275,8 @@ QList<ROS::QSentence> ROSPPPSecret::simulatedStepSentences(const QString &router
 		if( initialMapList[routerName].count() )
 		{
 			int i = rB % initialMapList[routerName].count();
-
 			ROS::QSentence sentence = initialMapList[routerName].at(i);
+
 			sentence.setTag( QString::number(DataTypeID::PPPSecret) );
 			sentence.setResultType( ROS::QSentence::Result::Reply );
 			rtn.append( sentence );
@@ -311,9 +311,9 @@ QList<ROS::QSentence> ROSPPPSecret::simulatedStepSentences(const QString &router
 QList<ROS::QSentence> ROSPPPActive::simulatedStepSentences(const QString &routerName, quint32 random, int step)
 {
 	QList<ROS::QSentence> rtn;
-	int rA = random & 0xF;
-	int rB = (random >> 4) & 0xF;
-	int rC = (random >> 8) & 0xF;
+	int rA = (random >> 16) & 0xF;
+	int rB = (random >> 20) & 0xF;
+	int rC = (random >> 24) & 0xF;
 
 	if( !(rA % 3) )
 	{

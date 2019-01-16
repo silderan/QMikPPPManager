@@ -64,6 +64,13 @@ QList<ROS::QSentence> ROSPPPProfile::simulatedStepSentences(const QString &route
 		pppProfile.rateLimit().fromString( "5M/5M" );
 		pppProfile.toSentence(sentence).setID( "s1" );
 		rtn.append( sentence );
+		pppProfile.setProfileName( "SinServicio" );
+		pppProfile.setBridgeName( "bridgePPPoE" );
+		pppProfile.setLocalAddress( "localGateway" );
+		pppProfile.setRemoteAddress( "clientIPPool" );
+		pppProfile.rateLimit().fromString( "0/0" );
+		pppProfile.toSentence(sentence).setID( "s0" );
+		rtn.append( sentence );
 		break;
 	case 2:
 		pppProfile.setProfileName( "Medio" );

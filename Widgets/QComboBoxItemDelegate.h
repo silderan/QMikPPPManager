@@ -83,15 +83,18 @@ public:
 
 	void setEditorData(QWidget *editor, const QModelIndex &index) const Q_DECL_OVERRIDE
 	{
-		QComboBox *cb = static_cast<QComboBox*>(editor);
-		int i = cb->findData( index.data().toString() );
-
-		if( i == -1 )
+		if( index.data().toString().count() )
 		{
-			i = cb->count();
-			cb->addItem( index.data().toString() );
+			QComboBox *cb = static_cast<QComboBox*>(editor);
+			int i = cb->findData( index.data().toString() );
+
+			if( i == -1 )
+			{
+				i = cb->count();
+				cb->addItem( index.data().toString() );
+			}
+			cb->setCurrentIndex( i );
 		}
-		cb->setCurrentIndex( i );
 	}
 	void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const Q_DECL_OVERRIDE
 	{
