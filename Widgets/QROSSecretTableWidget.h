@@ -34,7 +34,6 @@ public:
 	ROSPPPSecret rosPPPSecret;
 	ROSPPPActive rosPPPActive;
 	QRouterIDMap rosPPPSecretIDMap;
-	QString rosPPPActiveObjectID;
 };
 
 class QROSServiceStatusCellItem : public QStyledWidgetItem
@@ -134,10 +133,14 @@ public:
 	};
 	QROSUserNameWidgetItem *addNewRow(const QString &userName);
 
+	QROSUserNameWidgetItem *userNameWidgetItem(int row);
+	static QString createObjectIDKey(const ROSPPPSecret &rosPPPSecret);
 	static QString createObjectIDKey(const QString &routerName, const QString &rosObjectID);
 
+	void onROSSecretModReply(const ROSPPPSecret &rosPPPSecret);
 	void onROSSecretDelReply(const QString &routerName, const QString &rosObjectID);
 
+	void onROSActiveModReply(const ROSPPPActive &rosPPPActive);
 	void onROSActiveDelReply(const QString &routerName, const QString &rosObjectID);
 
 	void setupCellItem(int row, Columns col, const QString &cellText);
@@ -148,8 +151,12 @@ public:
 	static void setupCellItemStyle(QTableWidgetItem *item, const CellLook &cellLook);
 	void setupCellItemStyle(int row, Columns col, const CellLook &cellLook);
 
+	bool shouldBeVisible(int row);
+	void showRowIfValid(int row);
+
 public:
 	explicit QROSSecretTableWidget(QWidget *papi = Q_NULLPTR);
+	void applyFilter();
 
 	QString originalProfile(int row)	{ return row < rowCount() ? item(row, UserProfile)->text() : QString(); }
 
