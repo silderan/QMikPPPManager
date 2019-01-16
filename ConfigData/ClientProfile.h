@@ -10,38 +10,25 @@ struct ClientProfileData
 private:
 	QString m_name;
 	QString m_group;
-	bool m_disabled;	// Si este perfil es para usuarios dados de baja.
-	bool m_internal;	// Si este perfil es interno y no ha de usarse.
-	bool m_default;		// Si este perfil es el perfil por defecto.
 
 public:
+	explicit ClientProfileData(const QString &saveString = QString())
+	{
+		fromSaveString(saveString);
+	}
+
 	const QString &profileName() const				{ return m_name;		}
 	void setProfileName(const QString &profileName)	{ m_name = profileName;	}
 
 	const QString &groupName() const			{ return m_group;	}
 	void setGroupName(const QString &group)	{ m_group = group;	}
 
-	bool isInternalProfile() const		{ return m_internal;}
-	void setInternalProfile(bool i)		{ m_internal = i;	}
+	static QString serviceCanceledGroupName();
 
-	bool isDisabledProfile() const		{ return m_disabled;}
-	void setDisabledProfile(bool d)		{ m_disabled = d;	}
+	bool isServiceCanceledProfile() const	{ return m_group == serviceCanceledGroupName();	}
+	void setServiceCanceledProfile()		{ m_group = serviceCanceledGroupName();	}
 
-	bool isDefaultProfile() const		{ return m_default;	}
-	void setDefaultProfile(bool d)		{ m_default = d;	}
-
-	explicit ClientProfileData(const QString &saveString) :
-		m_disabled(false),
-		m_internal(false),
-		m_default(false)
-	{
-		fromSaveString(saveString);
-	}
-	ClientProfileData() :
-		m_disabled(false),
-		m_internal(false),
-		m_default(false)
-	{	}
+	bool isValid() const				{ return !m_name.isEmpty() && !m_group.isEmpty();	}
 
 	bool operator==(const QString &profileName) const
 	{
@@ -56,34 +43,22 @@ public:
 	void fromSaveString(const QString &saveString);
 };
 
-// TODO: Doesn't this fits better in a map?
-class QClientProfileList : public QList<ClientProfileData>
+class QClientProfileMap : public QMap<QString, ClientProfileData>
 {
-	// TODO: caching current default and disabled profiles to improve lookup speed.
 public:
-	void append(const ClientProfileData &saveString);
-
-	bool contains(const QString &profileName) const;
-
 	void save(QIniData &cnfgData) const;
 	void load(const QIniData &cnfgData);
 
-	int indexOfDisabledProfile()const;
-	ClientProfileData disabledProfile()const;
-	bool isDisabledProfile(const QString &profileName)const;
+	void insert(const ClientProfileData &clientProfileData);
+	ClientProfileData serviceCanceledProfile() const;
 
-	int indexOfDefaultProfile()const;
-	ClientProfileData defaultProfile()const;
-	bool isDefaultProfile(const QString &profileName)const;
+	QStringList profileNames() const;
+	QStringList groupNames() const;
 
-	int isInternalProfile(const QString &profileName)const;
+	bool containsProfileName(const QString &profileName);
+	bool containsGroupName(const QString &groupName);
 
-	void setDisabledProfile(int index);
-	void setDefaultProfile(int index);
-	void setProfileGroupName(int index, const QString &name);
-
-	QStringList profileNames()const;
-	// Return all profile names excluding disabled and internals.
+	// Return all profile names excluding canceled.
 	QStringList regularProfileNames()const;
 };
 

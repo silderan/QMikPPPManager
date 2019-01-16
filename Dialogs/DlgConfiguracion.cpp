@@ -3,70 +3,72 @@
 
 #include <QTableWidgetItem>
 #include <QLineEdit>
+#include <QMessageBox>
 
-#include "Utils/IPv4Range.h"
-#include "ConfigData/QConfigData.h"
+#include "DlgConfigPrivate.h"
 
-DlgConfiguracion::DlgConfiguracion(QWidget *parent) :
-	QDialog(parent),
-	ui(new Ui::DlgConfiguracion)
+DlgConfiguracion::DlgConfiguracion(const QStringList &installerList, const QStringList &comercialList, const IPv4RangeListMap &staticIPv4RangeListMap, const QClientProfileMap &clientProfileMap, ROSMultiConnectManager &multiConManager, QWidget *papi) :
+	QDialog(papi), ui(new Ui::DlgConfiguracion)
+  , m_installerList(installerList)
+  , m_comercialList(comercialList)
+  , m_staticIPv4RangeListMap(staticIPv4RangeListMap)
+  , m_clientProfileMap(clientProfileMap)
+  , m_multiConManager(multiConManager)
 {
 	int row;
 	ui->setupUi(this);
 
-	IPv4RangeMapIterator it(gGlobalConfig.staticIPv4Map());
-	while( it.hasNext() )
+	ui->profilesTable->setItemDelegateForColumn( 0, new QROSProfileNameDelegate(&m_multiConManager, &m_selectedProfiles,this ) );
+	ui->profilesTable->setItemDelegateForColumn( 1, new QProfileTypeDelegate(&m_groupNames, this) );
+
+	ui->staticIPv4Table->setItemDelegateForColumn( 2, new QProfileGroupNameDelegate( &m_groupNames, false, Q_NULLPTR, this ) );
+
+	if( staticIPv4RangeListMap.count() )
 	{
-		it.next();
-		row = ui->staticIPv4Table->rowCount();
-		ui->staticIPv4Table->insertRow(row);
-		ui->staticIPv4Table->setItem(row, 0, new QTableWidgetItem(it.value().first().toString()));
-		ui->staticIPv4Table->setItem(row, 1, new QTableWidgetItem(it.value().last().toString()));
-		ui->staticIPv4Table->setItem(row, 0, new QTableWidgetItem(it.key()));
+		IPv4RangeListMapIterator it(staticIPv4RangeListMap);
+		while( it.hasNext() )
+		{
+			it.next();
+			foreach( const IPv4Range &ipv4Range, it.value() )
+				addStaticIPRangeRow( ipv4Range, it.key() );
+		}
 	}
 
-	for( row = 0; row < gGlobalConfig.instaladores().count(); ++row )
+	for( row = 0; row < qMax(m_installerList.count(), m_comercialList.count())+10; ++row )
 	{
 		ui->listaInstaladores->insertRow(row);
-		ui->listaInstaladores->setItem(row, 0, new QTableWidgetItem(gGlobalConfig.instaladores()[row]));
+		ui->listaInstaladores->setItem(row, 0, new QTableWidgetItem());
+		ui->listaInstaladores->setItem(row, 1, new QTableWidgetItem());
 	}
 
-	for( row = 0; row < gGlobalConfig.comerciales().count(); ++row )
-	{
-		if( row >= ui->listaInstaladores->rowCount() )
-			ui->listaInstaladores->insertRow(row);
-		ui->listaInstaladores->setItem(row, 1, new QTableWidgetItem(gGlobalConfig.instaladores()[row]));
-	}
+	for( row = 0; row < m_installerList.count(); ++row )
+		ui->listaInstaladores->setItem(row, 0, new QTableWidgetItem(m_installerList[row]));
 
-	m_profilesGroupNameList.append( tr("Básico") );
-	m_profilesGroupNameList.append( tr("Interno") );
-	m_profilesGroupNameList.append( tr("Baja") );
+	for( row = 0; row < m_comercialList.count(); ++row )
+		ui->listaInstaladores->item(row, 1)->setText(m_comercialList[row]);
 
-	for( row = 0; row < gGlobalConfig.clientProfileList().count(); ++row )
-	{
-		if( !m_profilesGroupNameList.contains(gGlobalConfig.clientProfileList().at(row).groupName()) )
-			m_profilesGroupNameList.append(gGlobalConfig.clientProfileList().at(row).groupName());
-	}
-	for( row = 0; row < gGlobalConfig.clientProfileList().count(); ++row )
-		addProfileTableRow(gGlobalConfig.clientProfileList().at(row));
+	foreach( const ClientProfileData &clientProfileData, m_clientProfileMap )
+		addProfileTableRow(clientProfileData);
 
-	switch( gGlobalConfig.nivelUsuario() )
-	{
-	case QConfigData::SinPermisos:
-	case QConfigData::Comercial:
-		this->setDisabled(true);
-		ui->btCancelar->setDisabled(false);
-		break;
-	case QConfigData::Supervisor:
-		ui->listaInstaladores->setDisabled(false);
-		break;
-	case QConfigData::Instalador:
-		ui->listaInstaladores->setDisabled(true);
-		[[fallthrough]];
-	case QConfigData::Administrador:
-		ui->grRangosIP->setDisabled(true);
-		break;
-	}
+	refillDialogUsedData();
+
+//	switch( m_configData.nivelUsuario() )
+//	{
+//	case QConfigData::SinPermisos:
+//	case QConfigData::Comercial:
+//		this->setDisabled(true);
+//		ui->btCancelar->setDisabled(false);
+//		break;
+//	case QConfigData::Supervisor:
+//		ui->listaInstaladores->setDisabled(false);
+//		break;
+//	case QConfigData::Instalador:
+//		ui->listaInstaladores->setDisabled(true);
+//		[[fallthrough]];
+//	case QConfigData::Administrador:
+//		ui->grRangosIP->setDisabled(true);
+//		break;
+//	}
 }
 
 DlgConfiguracion::~DlgConfiguracion()
@@ -74,67 +76,125 @@ DlgConfiguracion::~DlgConfiguracion()
 	delete ui;
 }
 
-void DlgConfiguracion::on_cbEditingFinished()
-{
-	QString text = static_cast<QLineEdit*>(sender())->text();
-	if( !m_profilesGroupNameList.contains(text) )
-	{
-		m_profilesGroupNameList.append(text);
-		for( int row = 0; row < ui->profilesTable->rowCount(); ++row )
-			static_cast<QComboBox*>(ui->profilesTable->cellWidget(row, 1))->addItem(text);
-	}
-}
-
 void DlgConfiguracion::addProfileTableRow(const ClientProfileData &clientProfileData)
 {
-	/*
-	 * The combo box for the profile group has some special tractment so needs
-	 * to keep track of all them to keep their data up to date.
-	*/
 	int row = ui->profilesTable->rowCount();
 
 	ui->profilesTable->insertRow(row);
-	gGlobalConfig.clientProfileList()[row].profileName();
 
-	QComboBox *profileCB = new QComboBox();
-	profileCB->addItem( tr("[Básico]"), "defaultProfile" );
-	profileCB->addItem( tr("[Baja]"), "disabledProfile" );
-	profileCB->addItem( tr("[Interno]"), "internalProfile" );
+	ui->profilesTable->setItem( row, 0, new QTableWidgetItem(clientProfileData.profileName()) );
+	QTableWidgetItem *item = new QTableWidgetItem(clientProfileData.groupName());
+	ui->profilesTable->setItem( row, 1, item );
+}
 
-	profileCB->addItems(m_profilesGroupNameList);
-	connect( profileCB->lineEdit(), SIGNAL(editingFinished()), this, SLOT(on_cbEditingFinished()) );
+void DlgConfiguracion::addStaticIPRangeRow(const IPv4Range &ipv4Range, const QString &profileName)
+{
+	int row = ui->staticIPv4Table->rowCount();
+	ui->staticIPv4Table->insertRow(row);
+	ui->staticIPv4Table->setItem(row, 0, new QTableWidgetItem(ipv4Range.first().toString()));
+	ui->staticIPv4Table->setItem(row, 1, new QTableWidgetItem(ipv4Range.last().toString()));
+	ui->staticIPv4Table->setItem(row, 2, new QTableWidgetItem(profileName));
+}
 
-	ui->profilesTable->setItem(row, 0, new QTableWidgetItem(clientProfileData.profileName()) );
-	ui->profilesTable->setCellWidget(row, 1, profileCB );
+void DlgConfiguracion::refillDialogUsedData()
+{
+	m_groupNames.clear();
+	m_selectedProfiles.clear();
+
+	for( int row = 0; row < ui->profilesTable->rowCount(); ++row )
+	{
+		if( ui->profilesTable->item(row, 1) != Q_NULLPTR )
+		{
+			QString groupName = ui->profilesTable->item(row, 1)->text();
+			if( !groupName.isEmpty() &&
+					checkValidGroupName(groupName, row) &&
+					!m_groupNames.contains(groupName) &&
+					(groupName != ClientProfileData::serviceCanceledGroupName()) )
+				m_groupNames.append(ui->profilesTable->item(row, 1)->text());
+		}
+		if( ui->profilesTable->item(row, 0) != Q_NULLPTR )
+			m_selectedProfiles.append( ui->profilesTable->item(row, 0)->text() );
+	}
+}
+
+void DlgConfiguracion::raisesWarning(const QString &error)
+{
+	QMessageBox::warning(this, this->windowTitle(), error);
+}
+
+bool DlgConfiguracion::checkValidGroupName(const QString &groupName, int row)
+{
+	if( groupName.isEmpty() )
+		raisesWarning( tr("El grupo del perfil en la fila %1 está vacío").arg(row+1) );
+	else
+	if( groupName == ClientProfileData::serviceCanceledGroupName() )
+		return true;
+	else
+	if( groupName.contains( QRegExp("[^a-zA-z0-9\\/\\-]")) )
+		raisesWarning( tr("El grupo %1 de la fila %2 contiene caracteres no válidos").arg(groupName).arg(row+1) );
+	else
+		return true;
+	return false;
 }
 
 void DlgConfiguracion::on_btAceptar_clicked()
 {
 	QString s;
-	QStringList ins, com;
+
 	int row;
+	m_clientProfileMap.clear();
+	for( row = 0; row < ui->profilesTable->rowCount(); ++row )
+	{
+		ClientProfileData clientProfileData;
+		clientProfileData.setProfileName( ui->profilesTable->item(row, 0)->text().trimmed() );
+		clientProfileData.setGroupName( ui->profilesTable->item(row, 1)->text().trimmed() );
+
+		if( clientProfileData.profileName().isEmpty() )
+			return raisesWarning( tr("El nombre del perfil en la fila %1 está vacío").arg(row+1) );
+		if( m_clientProfileMap.containsProfileName(clientProfileData.profileName()) )
+			return raisesWarning( tr("El perfil %1 de la fila %2 está duplicado").arg(clientProfileData.profileName()).arg(row+1) );
+		if( clientProfileData.profileName().contains(QRegExp("[^a-zA-z0-9\\/\\-]")))
+			return raisesWarning( tr("El perfil %1 de la fila %2 contiene caracteres no válidos").arg(clientProfileData.profileName()).arg(row+1) );
+
+		if( !checkValidGroupName(clientProfileData.groupName(), row) )
+			return;
+		m_clientProfileMap.insert( clientProfileData );
+	}
+	if( !m_clientProfileMap.serviceCanceledProfile().isValid() )
+		return raisesWarning( tr("Debes elegir un perfil para los servicios cancelados") );
+
+	m_staticIPv4RangeListMap.clear();
+	for( row = 0; row < ui->staticIPv4Table->rowCount(); ++row )
+	{
+		QString profileGroupName = ui->staticIPv4Table->item(row, 2)->text();
+		if( profileGroupName.isEmpty() )
+			return raisesWarning( tr("El nombre del grupo de perfiles en la fila %1 de ips estáticas está vacío").arg(row+1) );
+
+		if( !m_clientProfileMap.containsGroupName(profileGroupName) )
+			return raisesWarning( tr("El grupo de perfiles %1 en la fila %2 no existe.").arg(profileGroupName).arg(row+1) );
+
+		IPv4 first(ui->staticIPv4Table->item(row, 0)->text());
+		if( !first.isValid() )
+			return raisesWarning( tr("La IP %1 del grupo de perfiles %2 en la fila %3 no es válida.").arg(first.toString(), profileGroupName).arg(row+1) );
+
+		IPv4 last(ui->staticIPv4Table->item(row, 1)->text());
+		if( !last.isValid() )
+			return raisesWarning( tr("La IP %1 del grupo de perfiles %2 en la fila %3 no es válida.").arg(last.toString(), profileGroupName).arg(row+1) );
+
+		if( first > last )
+			return raisesWarning( tr("La primera IP (%1) es mayor que la última (%2) del grupo de perfiles %3 en la fila %4 no es válida.").arg(first.toString(), last.toString(), profileGroupName).arg(row+1) );
+
+		if( profileGroupName.count() )
+			m_staticIPv4RangeListMap.append(profileGroupName, IPv4Range(first, last) );
+	}
+	m_installerList.clear();
+	m_comercialList.clear();
 	for( row = 0; row < ui->listaInstaladores->rowCount(); ++row )
 	{
 		if( (ui->listaInstaladores->item(row, 0) != Q_NULLPTR) && !(s = ui->listaInstaladores->item(row, 0)->text()).isEmpty() )
-			ins.append(s);
+			m_installerList.append(s);
 		if( (ui->listaInstaladores->item(row, 1) != Q_NULLPTR) && !(s = ui->listaInstaladores->item(row, 1)->text()).isEmpty() )
-			com.append(s);
-	}
-	gGlobalConfig.setInstaladores(ins);
-	gGlobalConfig.setComerciales(com);
-
-	for( row = 0; row < ui->profilesTable->rowCount(); ++row )
-	{
-		QString profileName = ui->profilesTable->item(row, 0)->text();
-		QComboBox *profileCB = static_cast<QComboBox*>(ui->profilesTable->cellWidget(row, 1));
-
-		if( profileCB->currentData().toString() == "defaultProfile" )
-			gGlobalConfig.clientProfileList().setDefaultProfile(row);
-
-		if( profileCB->currentData().toString() == "disabledProfile" )
-			gGlobalConfig.clientProfileList().setDisabledProfile(row);
-
-		gGlobalConfig.clientProfileList().setProfileGroupName(row, profileCB->currentText());
+			m_comercialList.append(s);
 	}
 	accept();
 }
@@ -144,14 +204,32 @@ void DlgConfiguracion::on_btCancelar_clicked()
 	reject();
 }
 
-void DlgConfiguracion::on_sbTamTxt_valueChanged(int tamFuente)
+void DlgConfiguracion::on_addProfileButton_clicked()
 {
-	QFont tableFont = ui->listaInstaladores->font();
-	tableFont.setPixelSize(tamFuente);
-	ui->listaInstaladores->setFont(tableFont);
+	addProfileTableRow();
 }
 
-void DlgConfiguracion::on_sbAltFilas_valueChanged(int alturaFila)
+void DlgConfiguracion::on_delProfileButton_clicked()
 {
-	ui->listaInstaladores->verticalHeader()->setDefaultSectionSize(alturaFila);
+	ui->profilesTable->removeRow(ui->profilesTable->currentRow());
+	refillDialogUsedData();
+}
+
+void DlgConfiguracion::on_addStaticRangeButton_clicked()
+{
+	addStaticIPRangeRow();
+}
+
+void DlgConfiguracion::on_delStaticRangeButton_clicked()
+{
+	ui->staticIPv4Table->removeRow( ui->staticIPv4Table->currentRow() );
+	refillDialogUsedData();
+}
+
+void DlgConfiguracion::on_profilesTable_cellChanged(int row, int column)
+{
+	Q_UNUSED(row);
+	Q_UNUSED(column);
+	// Need to redo all list because I cannot know the old group name and may be deleted.
+	refillDialogUsedData();
 }

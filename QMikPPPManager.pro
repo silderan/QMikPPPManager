@@ -123,7 +123,9 @@ HEADERS  += QMikPPPManager.h \
     ROSDataManager/ROSPPPSecretManager.h \
     ROSDataManager/ROSPPPActiveManager.h \
     ROSDataManager/ROSIPPoolManager.h \
-    UnitTests.h
+    UnitTests.h \
+    Dialogs/DlgConfigPrivate.h \
+    Widgets/QComboBoxItemDelegate.h
 
 FORMS    += QMikPPPManager.ui \
 	DlgNuevoUsuario.ui \

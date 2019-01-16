@@ -12,17 +12,12 @@ QConfigData gGlobalConfig;
 
 QComboBox *QConfigData::setupCBPerfiles(QComboBox *cb, const QString &select)
 {
-	return QConfigData::setupComboBox(cb, false, select, clientProfileList().profileNames());
+	return QConfigData::setupComboBox(cb, false, select, clientProfileMap().profileNames());
 }
 
 QComboBox *QConfigData::setupCBPerfilesUsables(QComboBox *cb, const QString &select)
 {
-	QStringList pp = clientProfileList().profileNames();
-	QString p;
-	foreach(p, pp)
-		if( clientProfileList().isInternalProfile(p) )
-			pp.removeOne(p);
-	return QConfigData::setupComboBox(cb, false, select, pp);
+	return QConfigData::setupComboBox(cb, false, select, clientProfileMap().regularProfileNames());
 }
 
 QComboBox *QConfigData::setupCBInstaladores(QComboBox *cb, const QString &select)
@@ -91,10 +86,11 @@ void QConfigData::loadGlobalProtectedData()
 	QIniData cnfgData;
 	QIniFile::load(m_rosProtectedFName, &cnfgData);
 
-	m_comerciales		= cnfgData[GPKEY_COMERCIALES].split(',', QString::SkipEmptyParts);
+	m_instaladores	= cnfgData[GPKEY_INSTALADORES].split(',', QString::SkipEmptyParts);
+	m_comerciales	= cnfgData[GPKEY_COMERCIALES].split(',', QString::SkipEmptyParts);
 
-	m_clientProfileList.load(cnfgData);
-	m_staticIPv4Map.load(cnfgData);
+	m_clientProfileMap.load(cnfgData);
+	m_staticIPv4RangeListMap.load(cnfgData);
 }
 
 void QConfigData::loadGlobalData()
@@ -123,19 +119,17 @@ void QConfigData::saveLocalUserData() const
 
 void QConfigData::saveGlobalProtectedData() const
 {
-	if( nivelUsuario() == Supervisor )
-	{
-		QIniData cnfgData;
+	QIniData cnfgData;
 
-		cnfgData[GPKEY_COMERCIALES]	= m_comerciales.join(',');
-		cnfgData[GPKEY_INSTALADORES]= m_instaladores.join(',');
+	cnfgData[GPKEY_COMERCIALES]	= m_comerciales.join(',');
+	cnfgData[GPKEY_INSTALADORES]= m_instaladores.join(',');
 
-		m_clientProfileList.save(cnfgData);
-		m_staticIPv4Map.save(cnfgData);
+	m_clientProfileMap.save(cnfgData);
+	m_staticIPv4RangeListMap.save(cnfgData);
 
-		QIniFile::save(m_rosProtectedFName, cnfgData);
-	}
+	QIniFile::save(m_rosProtectedFName, cnfgData);
 }
+
 
 void QConfigData::saveGlobalData() const
 {

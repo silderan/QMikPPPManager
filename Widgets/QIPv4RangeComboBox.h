@@ -9,7 +9,7 @@ class QIPv4RangeComboBox : public QComboBox
 {
 public:
 	QIPv4RangeComboBox(QWidget *papi = Q_NULLPTR);
-	void setup(const IPv4RangeMap &ipv4RangeMap, const IPv4List &ipv4HideList, const IPv4 &initialSelectedIP = IPv4());
+	void setup(const IPv4RangeList &ipv4RangeList, const IPv4List &ipv4HideList, const IPv4 &initialSelectedIP = IPv4());
 
 public slots:
 

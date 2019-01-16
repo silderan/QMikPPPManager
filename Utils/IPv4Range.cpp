@@ -7,6 +7,7 @@
 #define KEY_IPV4RANGE				("ipv4-range")
 #define KEY_IPV4RANGELISTNAME		("ipv4-range-list-name")
 #define KEY_IPV4RANGELISTDATA(_l)	(QString("ipv4-range-list-data-%1").arg(_l))
+#define KEY_IPV4RANGELISTMAPDATA(_l)	(QString("ipv4-range-list-map-data-%1").arg(_l))
 
 IPv4 IPv4::FromString(const QString &ipv4String)
 {
@@ -34,17 +35,16 @@ void IPv4::load(const QIniData &iniData)
 
 QString IPv4Range::toLoadString() const
 {
-	return QString("%1:%2-%3").arg( m_name, m_first.toString(), m_last.toString() );
+	return QString("%1-%2").arg( m_first.toString(), m_last.toString() );
 }
 
 void IPv4Range::fromLoadString(const QString &line)
 {
-	QStringList l = line.split( QRegExp("[:-]"), QString::SkipEmptyParts );
-	if( l.count() == 3 )
+	QStringList l = line.split( '-', QString::SkipEmptyParts );
+	if( l.count() >= 2 )
 	{
-		m_name = l[0];
-		m_first.fromString( l[1] );
-		m_last.fromString( l[2] );
+		m_first.fromString( l[0] );
+		m_last.fromString( l[1] );
 	}
 }
 
@@ -69,6 +69,7 @@ const IPv4Range &IPv4Range::fromNotationString(QString ip)
 	// Check A1.B1.C1.D1-A2.B2.C2.D2 format
 	if( (splitIndex = ip.indexOf('-')) != -1 )
 		setRange( IPv4(ip.right(splitIndex)), IPv4(ip.mid(splitIndex+1)) );
+	return *this;
 }
 
 void IPv4Range::save(QIniData &iniData) const
@@ -81,38 +82,38 @@ void IPv4Range::load(const QIniData &iniData)
 	fromLoadString( iniData[KEY_IPV4RANGE] );
 }
 
-void IPv4RangeMap::save(QIniData &iniData) const
+void IPv4RangeListMap::save(QIniData &iniData) const
 {
-	iniData[KEY_IPV4RANGELISTNAME] = m_name;
-	IPv4RangeMapIterator it(*this);
+	IPv4RangeListMapIterator it(*this);
 	int i = 0;
 	while( it.hasNext() )
 	{
 		it.next();
-		iniData[KEY_IPV4RANGELISTDATA(i++)] = it.value().toLoadString();
+		QString loadString;
+		foreach( const IPv4Range &ipv4Range, it.value() )
+			loadString += QString("%1,").arg( ipv4Range.toLoadString() );
+
+		iniData[KEY_IPV4RANGELISTMAPDATA(++i)] = QString("%1:%2").arg(it.key(), loadString);
 	}
 }
 
-void IPv4RangeMap::load(const QIniData &iniData)
+void IPv4RangeListMap::load(const QIniData &iniData)
 {
 	clear();
-	m_name = iniData[KEY_IPV4RANGELISTNAME];
 	QString line;
-	for( int i = 0; !(line = iniData[KEY_IPV4RANGELISTDATA(i+1)]).isEmpty(); i++ )
+	for( int i = 0; !(line = iniData[KEY_IPV4RANGELISTMAPDATA(i+1)]).isEmpty(); i++ )
 	{
-		IPv4Range ipv4Range(line);
-		insert(ipv4Range.name(), ipv4Range);
+		int sep = line.indexOf(':');
+		if( sep != -1 )
+		{
+			IPv4RangeList ipv4RangeList;
+			QString key = line.left(sep);
+			QString ipv4RangeList_loadString = line.mid(sep+1);
+
+			foreach( QString ipv4Range_LoadString,  ipv4RangeList_loadString.split(',', QString::SkipEmptyParts) )
+				ipv4RangeList.append( IPv4Range(ipv4Range_LoadString) );
+
+			insert(key, ipv4RangeList);
+		}
 	}
 }
-
-//QString IPv4RangeMap::range(const IPv4 &ipv4) const
-//{
-//	IPv4RangeMapIterator it(*this);
-//	while( it.hasNext() )
-//	{
-//		it.next();
-//		if( it.value().inRange(ipv4))
-//			return it.key();
-//	}
-//	return QString();
-//}

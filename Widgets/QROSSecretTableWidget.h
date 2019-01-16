@@ -81,6 +81,25 @@ public:
 	virtual const CellLook &getCellLook()override;
 };
 
+#include <QStyledItemDelegate>
+#include <QStringList>
+#include <QComboBox>
+
+class QSelectableStaticIPDelegate : public QStyledItemDelegate
+{
+	Q_OBJECT
+
+public:
+	QSelectableStaticIPDelegate(QObject *papi = Q_NULLPTR) : QStyledItemDelegate(papi)
+	{	}
+
+	QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const Q_DECL_OVERRIDE;
+
+	void setEditorData(QWidget *editor, const QModelIndex &index) const Q_DECL_OVERRIDE;
+	void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const Q_DECL_OVERRIDE;
+	void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const Q_DECL_OVERRIDE;
+};
+
 class QROSSecretTableWidget : public QTableWidget
 {
 	Q_OBJECT
@@ -123,12 +142,14 @@ private:
 	void setupServiceCellItem(int row, ROSPPPSecret::ServiceState st);
 	void setupActiveStatusCellItem(int row, const QDateTime &uptime, const QDateTime &downtime);
 
-public:
-	explicit QROSSecretTableWidget(QWidget *papi = Q_NULLPTR);
-
 	QTableWidgetItem *item(int row, Columns col)				{ return QTableWidget::item(row, static_cast<int>(col));	}
 	static void setupCellItemStyle(QTableWidgetItem *item, const CellLook &cellLook);
 	void setupCellItemStyle(int row, Columns col, const CellLook &cellLook);
+
+public:
+	explicit QROSSecretTableWidget(QWidget *papi = Q_NULLPTR);
+
+	QString originalProfile(int row)	{ return row < rowCount() ? item(row, UserProfile)->text() : QString(); }
 
 	void clear();
 	void onROSModReply(const ROSDataBase &rosData);

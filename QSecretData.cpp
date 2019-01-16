@@ -53,11 +53,11 @@ void QSecretData::parseComment(const QString &comment)
 	}
 	else
 	{
-		setPerfilOriginal( (perfilReal().isEmpty() || gGlobalConfig.clientProfileList().isDisabledProfile(perfilReal())) ? gGlobalConfig.clientProfileList().defaultProfile().profileName() : perfilReal());
+//		setPerfilOriginal( (perfilReal().isEmpty() || gGlobalConfig.clientProfileMap().isDisabledProfile(perfilReal())) ? gGlobalConfig.clientProfileList().defaultProfile().profileName() : perfilReal());
 		parsePlainComment(comment);
 	}
-	if( !gGlobalConfig.clientProfileList().isDisabledProfile(perfilReal()) )
-		setPerfilOriginal(perfilReal());
+//	if( !gGlobalConfig.clientProfileMap().isDisabledProfile(perfilReal()) )
+//		setPerfilOriginal(perfilReal());
 }
 
 int QSecretData::firstOf(const QString &txt, const QStringList &ws, int from, int *lenMatched)
@@ -199,7 +199,7 @@ QString QSecretData::comment()
 
 bool QSecretData::dadoDeBaja() const
 {
-	return gGlobalConfig.clientProfileList().isDisabledProfile(perfilReal());
+	return gGlobalConfig.clientProfileMap().serviceCanceledProfile().profileName() == perfilReal();
 }
 
 void QSecretData::toSentence(ROS::QSentence *s)
@@ -342,7 +342,7 @@ QWidget *QSecretDataDelegate::createEditor(QWidget *parent,
 	case QSecretDataModel::ColIP:
 	{
 		QStaticIPComboBox *staticIPComboBox = new QStaticIPComboBox(parent);
-		staticIPComboBox->setup(gGlobalConfig.staticIPv4Map(), static_cast<const QSecretDataModel*>(index.model())->ipsEstaticasUsadas());
+//		staticIPComboBox->setup(gGlobalConfig.staticIPv4Map(), static_cast<const QSecretDataModel*>(index.model())->ipsEstaticasUsadas());
 		return staticIPComboBox;
 	}
 	case QSecretDataModel::ColContrato:
@@ -665,8 +665,7 @@ void QSecretDataModel::fillupTable()
  */
 void QSecretDataModel::addSecret(const QSecretData &sd, bool addToTable)
 {
-	if( !gGlobalConfig.clientProfileList().isInternalProfile(sd.perfilReal()) ||
-		gGlobalConfig.clientProfileList().isDisabledProfile(sd.perfilReal()) )
+	if( gGlobalConfig.clientProfileMap().containsGroupName(sd.perfilReal()) )
 	{
 		int pos;
 		int row;

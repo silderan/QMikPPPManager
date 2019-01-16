@@ -35,12 +35,12 @@ private:
 	QString m_rosFName;
 	QString m_rosProtectedFName;
 
-	QClientProfileList m_clientProfileList;			// La configuración global de los perfiles de clientes.
+	QClientProfileMap m_clientProfileMap;			// La configuración global de los perfiles de clientes.
 
 	QStringList m_instaladores;			// Lista de nombres instaladores.
 	QStringList m_comerciales;			// Lista de nombres de los comerciales/vendedores.
 	NivelUsuario m_nivelUsuario;
-	IPv4RangeMap m_staticIPv4Map;		// Lista de rangos de IP estáticas.
+	IPv4RangeListMap m_staticIPv4RangeListMap;		// Lista de rangos de IP estáticas. (key=ProfileGroup: key=IPv4RangeList)
 
 	QString m_exportFile;				// Fichero al que se exporta.
 
@@ -64,7 +64,6 @@ public:
 
 	void defaults()
 	{
-		addRange( IPv4Range(IPv4(192,168,1,50), IPv4(192,168,1,254)) );
 		setNivelUsuario(SinPermisos);
 	}
 
@@ -106,13 +105,13 @@ public:
 	void setAnchoPantalla(int a)		{ m_anchoPantalla = a;	}
 	void setAltoPantalla(int a)			{ m_altoPantalla = a;	}
 
-	QClientProfileList &clientProfileList()			{ return m_clientProfileList;	}
+	QClientProfileMap &clientProfileMap()			{ return m_clientProfileMap;	}
 
-	void addRange(const IPv4Range &ipv4Range)		{ m_staticIPv4Map.addRange(ipv4Range);			}
-	void delRange(const QString &ipv4RangeName)		{ m_staticIPv4Map.delRange(ipv4RangeName);		}
-	void delRange(const IPv4Range &ipv4Range)		{ m_staticIPv4Map.delRange(ipv4Range.name());	}
+//	void addRange(const IPv4Range &ipv4Range)		{ m_staticIPv4Map.addRange(ipv4Range);			}
+//	void delRange(const QString &ipv4RangeName)		{ m_staticIPv4Map.delRange(ipv4RangeName);		}
+//	void delRange(const IPv4Range &ipv4Range)		{ m_staticIPv4Map.delRange(ipv4Range.name());	}
 
-	bool esIPEstatica(const IPv4 &ipv4) const		{ return m_staticIPv4Map.inRange(ipv4);	}
+//	bool esIPEstatica(const IPv4 &ipv4) const		{ return m_staticIPv4Map.inRange(ipv4);	}
 
 	void setInstaladores(const QStringList &l)		{ m_instaladores = l;	}
 	void addInstalador(const QString &instalador)	{ if( !m_instaladores.contains(instalador) ) m_instaladores.append(instalador); }
@@ -122,7 +121,8 @@ public:
 	void addComercial(const QString &instalador)	{ if( !m_comerciales.contains(instalador) ) m_comerciales.append(instalador); }
 	const QStringList &comerciales() const			{ return m_comerciales; }
 
-	const IPv4RangeMap &staticIPv4Map() const		{ return m_staticIPv4Map;	}
+	const IPv4RangeListMap &staticIPv4RangeListMap() const	{ return m_staticIPv4RangeListMap;	}
+	IPv4RangeListMap &staticIPv4RangeListMap()				{ return m_staticIPv4RangeListMap;	}
 
 	TableCellLook &tableCellLook()					{ return m_tableCellLook;	}
 

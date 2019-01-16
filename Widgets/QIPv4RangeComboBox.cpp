@@ -6,19 +6,16 @@ QIPv4RangeComboBox::QIPv4RangeComboBox(QWidget *papi) :
 
 }
 
-void QIPv4RangeComboBox::setup(const IPv4RangeMap &ipv4RangeMap, const IPv4List &ipv4HideList, const IPv4 &initialSelectedIP)
+void QIPv4RangeComboBox::setup(const IPv4RangeList &ipv4RangeList, const IPv4List &ipv4HideList, const IPv4 &initialSelectedIP)
 {
-	IPv4RangeMapIterator it(ipv4RangeMap);
 	int newSel = -1;
-
-	while( it.hasNext() )
+	foreach( const IPv4Range &ipv4Range, ipv4RangeList)
 	{
-		it.next();
-		for( IPv4 first = it.value().first(); first <= it.value().last(); ++first )
+		for( IPv4 first = ipv4Range.first(); first <= ipv4Range.last(); ++first )
 		{
 			if( !ipv4HideList.contains(first) )
 			{
-				addItem( first.toString(), it.value().name() );
+				addItem( first.toString() );
 				if( initialSelectedIP.isValid() && (first == initialSelectedIP) )
 					newSel = count()-1;
 			}

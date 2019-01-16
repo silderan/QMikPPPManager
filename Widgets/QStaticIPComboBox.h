@@ -10,7 +10,7 @@ class QStaticIPComboBox : public QIPv4RangeComboBox
 public:
 	explicit QStaticIPComboBox(QWidget *parent = Q_NULLPTR);
 
-	void setup(const IPv4RangeMap &ipv4RangeMap, const IPv4List &ipv4UsedList);
+	void setup(const IPv4RangeList &ipv4RangeList, const IPv4List &ipv4HideList, const IPv4 &initialSelectedIP);
 };
 
 #endif // QSTATICIPCOMBOBOX_H

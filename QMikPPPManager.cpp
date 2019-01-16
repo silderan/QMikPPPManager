@@ -82,8 +82,8 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 	ui->cbFiltro->addItem( "CCliente", FILTRO_CCLIENTE );
 	ui->cbFiltro->addItem( "Alta", FILTRO_ALTA );
 	ui->cbFiltro->addItem( "Baja", FILTRO_BAJA );
-	onAllRoutersDisconnected();
 
+	onAllRoutersDisconnected();
 }
 
 QMikPPPManager::~QMikPPPManager()
@@ -536,7 +536,7 @@ void QMikPPPManager::onDatoModificado(QSecretDataModel::Columnas col, const QStr
 
 			// TODO: Repasar esto!!!!
 			if( !sd->dadoDeBaja() )
-				sd->setPerfilReal( gGlobalConfig.clientProfileList().defaultProfile().profileName() );
+				sd->setPerfilReal( "" );
 			else
 				sd->setPerfilReal( sd->perfilOriginal() );
 			actualizaPerfilRemoto( sd );
@@ -788,10 +788,20 @@ void QMikPPPManager::on_connectionConfigButton_clicked()
 
 void QMikPPPManager::on_advancedConfigButton_clicked()
 {
-	DlgConfiguracion *dlgConfig = new DlgConfiguracion(this);
+	DlgConfiguracion *dlgConfig = new DlgConfiguracion( gGlobalConfig.instaladores(),
+														gGlobalConfig.comerciales(),
+														gGlobalConfig.staticIPv4RangeListMap(),
+														gGlobalConfig.clientProfileMap(),
+														multiConnectionManager, this );
 
 	if( dlgConfig->exec() )
-		updateConfig();
+	{
+		gGlobalConfig.setInstaladores( dlgConfig->installerList() );
+		gGlobalConfig.setComerciales( dlgConfig->comercialList() );
+		gGlobalConfig.staticIPv4RangeListMap() = dlgConfig->staticIPv4RangeListMap();
+		gGlobalConfig.clientProfileMap() = dlgConfig->clientProfileList();
+		gGlobalConfig.saveGlobalProtectedData();
+	}
 
 	dlgConfig->deleteLater();
 }

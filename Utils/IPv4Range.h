@@ -102,7 +102,6 @@ class IPv4Range
 {
 	IPv4 m_first;
 	IPv4 m_last;
-	QString m_name;	// Just a name to identify it when necessary.
 
 public:
 	IPv4Range() :
@@ -110,8 +109,7 @@ public:
 	{	}
 	IPv4Range(const IPv4Range &ipv4Range) :
 		m_first(ipv4Range.m_first),
-		m_last(ipv4Range.m_last),
-		m_name(ipv4Range.m_name)
+		m_last(ipv4Range.m_last)
 	{	}
 	explicit IPv4Range(const QString &line)
 	{
@@ -119,12 +117,7 @@ public:
 	}
 	IPv4Range(const IPv4 &first, const IPv4 &last):
 		m_first(first), m_last(last)
-	{
-
-	}
-
-	inline const QString &name() const		{ return m_name;	}
-	inline void setName(const QString &name){ m_name = name;	}
+	{	}
 
 	inline const IPv4 &first() const		{ return m_first;	}
 	inline void setFirst(const IPv4 &ipv4)	{ m_first = ipv4;	}
@@ -146,26 +139,20 @@ public:
 	bool inRange(const T &ipv4) const	{ return ipv4 >= m_first && ipv4 <= m_last; }
 };
 
-class IPv4RangeMap : public QMap<QString, IPv4Range>
+typedef QList<IPv4Range> IPv4RangeList;
+
+class IPv4RangeListMap : public QMap<QString, IPv4RangeList>
 {
-	QString m_name;
-
 public:
-	const QString &name() const			{ return m_name;	}
-	void setName(const QString name)	{ m_name = name;	}
-
-	void addRange(const IPv4Range &ipv4Range)			{ insert(ipv4Range.name(), ipv4Range);	}
-	IPv4Range range(const QString &ipv4RangeName) const	{ return value(ipv4RangeName);			}
-
-	void delRange(const QString &ipv4RangeName)			{ remove(ipv4RangeName);	}
+	IPv4RangeList rangeList(const QString &name)			{ return value(name, IPv4RangeList());	}
+	void insert( const QString &name, const IPv4RangeList &ipv4RangeList)	{ QMap::insert(name, ipv4RangeList);	}
+	void append( const QString &name, const IPv4RangeList &ipv4RangeList)	{ insert(name, IPv4RangeList() << rangeList(name) << ipv4RangeList);}
+	void append( const QString &name, const IPv4Range &ipv4Range )			{ insert(name, IPv4RangeList() << rangeList(name) << ipv4Range);	}
 
 	void save(QIniData &iniData) const;
 	void load(const QIniData &iniData);
-	QString rangeName(const IPv4 &ipv4) const;
-	bool inRange(const IPv4 &ipv4) const { return !rangeName(ipv4).isEmpty(); }
 };
-typedef QMapIterator<QString,IPv4Range> IPv4RangeMapIterator;
+typedef QMapIterator<QString,IPv4RangeList> IPv4RangeListMapIterator;
 
-typedef QList<IPv4Range> IPv4RangeList;
 
 #endif // IPV4RANGE_H
