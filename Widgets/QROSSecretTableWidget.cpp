@@ -8,6 +8,8 @@
 #include "../ConfigData/ClientProfile.h"
 #include "../ROSMultiConnectorManager.h"
 
+#include "QClientProfileComboBoxDelegate.h"
+
 void QStyledWidgetItem::updateStyle()
 {
 	m_cellLook = getCellLook();
@@ -91,7 +93,6 @@ void QSelectableStaticIPDelegate::updateEditorGeometry(QWidget *editor, const QS
 
 }
 
-
 QROSSecretTableWidget::QROSSecretTableWidget(QWidget *papi) : QTableWidget(papi)
 {
 	setColumnCount(TotalColumns);
@@ -111,6 +112,7 @@ QROSSecretTableWidget::QROSSecretTableWidget(QWidget *papi) : QTableWidget(papi)
 							   << tr("Email")
 							   << tr("Notas") );
 	Q_ASSERT( columnCount() == TotalColumns );
+	setItemDelegateForColumn( Columns::UserProfile, new QClientProfileComboBoxDelegate(gGlobalConfig, this) );
 }
 
 bool QROSSecretTableWidget::shouldBeVisible(int row)

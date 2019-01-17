@@ -86,7 +86,7 @@ public:
 		if( index.data().toString().count() )
 		{
 			QComboBox *cb = static_cast<QComboBox*>(editor);
-			int i = cb->findData( index.data().toString() );
+			int i = cb->findData( index.data().toString(), Qt::DisplayRole );
 
 			if( i == -1 )
 			{
