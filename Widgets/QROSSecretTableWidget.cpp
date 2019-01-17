@@ -9,6 +9,7 @@
 #include "../ROSMultiConnectorManager.h"
 
 #include "QClientProfileComboBoxDelegate.h"
+#include "QStaticIPv4ComboBoxDelegate.h"
 
 void QStyledWidgetItem::updateStyle()
 {
@@ -51,48 +52,6 @@ const CellLook &QROSActiveStatusCellItem::getCellLook()
 	return gGlobalConfig.tableCellLook().m_disconnected;
 }
 
-
-QWidget *QSelectableStaticIPDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
-{
-	Q_UNUSED(option);
-	Q_UNUSED(index);
-	return new QComboBox(parent);
-}
-
-void QSelectableStaticIPDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
-{
-//	IPv4RangeMap ipv4Map = gGlobalConfig.staticIPv4Map();
-//#ifndef QT_NO_DEBUG
-//	QROSSecretTableWidget *usersTable = dynamic_cast<QROSSecretTableWidget *>(parent());
-//	Q_ASSERT( usersTable );
-//#else
-//	QROSSecretTableWidget *usersTable = static_cast<QROSSecretTableWidget *>(parent());
-//#endif
-
-//	QString profileName = usersTable->originalProfile(index.row());
-//	// This isn't an error actually. Maybe is a bad user configuration. But for debuging, I prefer it jumps to an error.
-//	Q_ASSERT( !profileName.isEmpty() );
-//	if( profileName.isEmpty() )
-//		return;
-//	const ClientProfileData *clientProfile = gGlobalConfig.clientProfileList().value(profileName);
-//	// This isn't an error actually. Maybe is a bad user configuration. But for debuging, I prefer it jumps to an error.
-//	Q_ASSERT( clientProfile );
-//	if( clientProfile == Q_NULLPTR )
-//		return;
-
-//	IPv4RangeList staticRanges = gGlobalConfig.staticIPv4Map().groupRanges(clientProfile->groupName());
-}
-
-void QSelectableStaticIPDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
-{
-
-}
-
-void QSelectableStaticIPDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const
-{
-
-}
-
 QROSSecretTableWidget::QROSSecretTableWidget(QWidget *papi) : QTableWidget(papi)
 {
 	setColumnCount(TotalColumns);
@@ -113,6 +72,7 @@ QROSSecretTableWidget::QROSSecretTableWidget(QWidget *papi) : QTableWidget(papi)
 							   << tr("Notas") );
 	Q_ASSERT( columnCount() == TotalColumns );
 	setItemDelegateForColumn( Columns::UserProfile, new QClientProfileComboBoxDelegate(gGlobalConfig, this) );
+	setItemDelegateForColumn( Columns::RemoteIP, new QStaticIPv4ComboBoxDelegate(gGlobalConfig, this) );
 }
 
 bool QROSSecretTableWidget::shouldBeVisible(int row)
@@ -157,6 +117,7 @@ void QROSSecretTableWidget::clear()
 	m_activeIDMap.clear();
 	m_secretIDMap.clear();
 	m_userNameMap.clear();
+	m_usedStaticIPList.clear();
 }
 
 QString QROSSecretTableWidget::createObjectIDKey(const ROSPPPSecret &rosPPPSecret)

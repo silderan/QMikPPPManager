@@ -126,7 +126,8 @@ HEADERS  += QMikPPPManager.h \
     UnitTests.h \
     Dialogs/DlgConfigPrivate.h \
     Widgets/QComboBoxItemDelegate.h \
-    Widgets/QClientProfileComboBoxDelegate.h
+    Widgets/QClientProfileComboBoxDelegate.h \
+    Widgets/QStaticIPv4ComboBoxDelegate.h
 
 FORMS    += QMikPPPManager.ui \
 	DlgNuevoUsuario.ui \

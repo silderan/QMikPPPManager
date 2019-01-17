@@ -82,6 +82,27 @@ void IPv4Range::load(const QIniData &iniData)
 	fromLoadString( iniData[KEY_IPV4RANGE] );
 }
 
+QStringList IPv4Range::rangeStringList() const
+{
+	QStringList rtn;
+	for( IPv4 ip = first(); ip <= last(); ++ip )
+		rtn.append(ip.toString());
+	return rtn;
+}
+
+QStringList IPv4RangeListMap::staticIPv4StringList() const
+{
+	QStringList rtn;
+	foreach( const IPv4RangeList ipv4RangeList, *this )
+	{
+		foreach( const IPv4Range &ipv4Range, ipv4RangeList )
+		{
+			rtn.append( ipv4Range.rangeStringList() );
+		}
+	}
+	return rtn;
+}
+
 void IPv4RangeListMap::save(QIniData &iniData) const
 {
 	IPv4RangeListMapIterator it(*this);

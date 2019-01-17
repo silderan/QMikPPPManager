@@ -134,6 +134,7 @@ public:
 
 	void save(QIniData &iniData) const;
 	void load(const QIniData &iniData);
+	QStringList rangeStringList()const;
 
 	template <class T>
 	bool inRange(const T &ipv4) const	{ return ipv4 >= m_first && ipv4 <= m_last; }
@@ -148,6 +149,7 @@ public:
 	void insert( const QString &name, const IPv4RangeList &ipv4RangeList)	{ QMap::insert(name, ipv4RangeList);	}
 	void append( const QString &name, const IPv4RangeList &ipv4RangeList)	{ insert(name, IPv4RangeList() << rangeList(name) << ipv4RangeList);}
 	void append( const QString &name, const IPv4Range &ipv4Range )			{ insert(name, IPv4RangeList() << rangeList(name) << ipv4Range);	}
+	QStringList staticIPv4StringList() const;
 
 	void save(QIniData &iniData) const;
 	void load(const QIniData &iniData);
