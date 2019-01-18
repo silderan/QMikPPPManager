@@ -12,7 +12,7 @@ public:
 	QClientProfileComboBoxDelegate(QConfigData &configData, QObject *papi) : QComboBoxItemDelegated(Q_NULLPTR, false, Q_NULLPTR, papi)
 	  , m_configData(configData)
 	{	}
-	QStringList comboBoxItemList() const Q_DECL_OVERRIDE
+	QStringList addList(const QModelIndex &index) const Q_DECL_OVERRIDE
 	{
 		return m_configData.clientProfileMap().regularProfileNames();
 	}

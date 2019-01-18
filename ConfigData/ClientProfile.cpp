@@ -87,6 +87,16 @@ ClientProfileData QClientProfileMap::serviceCanceledProfile() const
 	return ClientProfileData("");
 }
 
+QString QClientProfileMap::groupName(const QString &clientProfileName) const
+{
+	foreach( const ClientProfileData &clientProfileData, *this )
+	{
+		if( clientProfileData.profileName() == clientProfileName )
+			return clientProfileData.groupName();
+	}
+	return QString();
+}
+
 QStringList QClientProfileMap::profileNames() const
 {
 	QStringList rtn;

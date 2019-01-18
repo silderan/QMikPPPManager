@@ -3,18 +3,34 @@
 
 #include "../ConfigData/QConfigData.h"
 #include "QComboBoxItemDelegate.h"
+#include "QRemoteIPCellItem.h"
 
 class QStaticIPv4ComboBoxDelegate : public QComboBoxItemDelegated
 {
-	QConfigData &m_configData;
+	const QConfigData &m_configData;
+	int m_originalClientProfileColumn;
+	int m_staticIPColumn;
 
 public:
-	QStaticIPv4ComboBoxDelegate(QConfigData &configData, const QStringList *usedStaticIPList, QObject *papi) : QComboBoxItemDelegated(Q_NULLPTR, false, usedStaticIPList, papi)
+	QStaticIPv4ComboBoxDelegate(const QConfigData &configData, int staticIPColumn, int originalClientProfileColumn, QObject *papi) : QComboBoxItemDelegated(Q_NULLPTR, false, staticIPColumn, papi)
 	  , m_configData(configData)
+	  , m_originalClientProfileColumn(originalClientProfileColumn)
+	  , m_staticIPColumn(staticIPColumn)
 	{	}
-	QStringList comboBoxItemList() const Q_DECL_OVERRIDE
+	QStringList comboBoxItemList(const QModelIndex &index) const Q_DECL_OVERRIDE
 	{
-		return QStringList() << tr("Dinámica") << m_configData.staticIPv4RangeListMap().staticIPv4StringList();
+		Q_UNUSED(index);
+
+		QString clientProfileName = index.model()->index(index.row(), m_originalClientProfileColumn).data(Qt::EditRole).toString();
+		QString clientProfileGroup = m_configData.clientProfileMap().groupName(clientProfileName);
+		QStringList staticIPList = m_configData.staticIPv4RangeListMap().staticIPv4StringList(clientProfileGroup);
+
+		QStringList usedIPs;
+		for( int row = index.model()->rowCount(); row >= 0; --row )
+		{
+			Q_ASSERT( static_cast<QRemoteIPCellItem*>(index.model()->item) );
+		}
+		return QStringList() << ( tr("Dinámica") ) << staticIPList;
 	}
 };
 

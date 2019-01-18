@@ -27,9 +27,10 @@ public:
 
 	}
 
-	virtual QStringList comboBoxItemList() const Q_DECL_OVERRIDE
+	virtual QStringList addList(const QModelIndex &index) const Q_DECL_OVERRIDE
 	{
-		return QStringList() << ClientProfileData::serviceCanceledGroupName() << QProfileGroupNameDelegate::comboBoxItemList();
+		Q_UNUSED(index)
+		return QStringList() << ClientProfileData::serviceCanceledGroupName() << QProfileGroupNameDelegate::addList(index);
 	}
 };
 

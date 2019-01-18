@@ -149,6 +149,7 @@ public:
 	void insert( const QString &name, const IPv4RangeList &ipv4RangeList)	{ QMap::insert(name, ipv4RangeList);	}
 	void append( const QString &name, const IPv4RangeList &ipv4RangeList)	{ insert(name, IPv4RangeList() << rangeList(name) << ipv4RangeList);}
 	void append( const QString &name, const IPv4Range &ipv4Range )			{ insert(name, IPv4RangeList() << rangeList(name) << ipv4Range);	}
+	QStringList staticIPv4StringList(const QString &name) const;
 	QStringList staticIPv4StringList() const;
 
 	void save(QIniData &iniData) const;

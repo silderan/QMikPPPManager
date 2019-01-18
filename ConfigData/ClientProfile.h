@@ -52,6 +52,7 @@ public:
 	void insert(const ClientProfileData &clientProfileData);
 	ClientProfileData serviceCanceledProfile() const;
 
+	QString groupName(const QString &clientProfileName)const;
 	QStringList profileNames() const;
 	QStringList groupNames() const;
 

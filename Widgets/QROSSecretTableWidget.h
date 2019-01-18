@@ -128,6 +128,7 @@ public:
 	void setupCellItem(int row, Columns col, const QString &cellText);
 	void setupServiceCellItem(int row, ROSPPPSecret::ServiceState st);
 	void setupActiveStatusCellItem(int row, const QDateTime &uptime, const QDateTime &downtime);
+	void setupRemoteIPCellItem(int row, const IPv4 &remoteIP, const IPv4 &staticIP);
 
 	QTableWidgetItem *item(int row, Columns col)				{ return QTableWidget::item(row, static_cast<int>(col));	}
 	static void setupCellItemStyle(QTableWidgetItem *item, const CellLook &cellLook);

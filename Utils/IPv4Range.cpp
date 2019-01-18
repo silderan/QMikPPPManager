@@ -90,6 +90,21 @@ QStringList IPv4Range::rangeStringList() const
 	return rtn;
 }
 
+QStringList IPv4RangeListMap::staticIPv4StringList(const QString &name) const
+{
+	QStringList rtn;
+	if( contains(name) )
+	{
+		const IPv4RangeList &ipv4RangeList = value(name);
+
+		foreach( const IPv4Range &ipv4Range, ipv4RangeList )
+		{
+			rtn.append( ipv4Range.rangeStringList() );
+		}
+	}
+	return rtn;
+}
+
 QStringList IPv4RangeListMap::staticIPv4StringList() const
 {
 	QStringList rtn;

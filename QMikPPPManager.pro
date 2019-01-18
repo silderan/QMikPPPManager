@@ -127,7 +127,8 @@ HEADERS  += QMikPPPManager.h \
     Dialogs/DlgConfigPrivate.h \
     Widgets/QComboBoxItemDelegate.h \
     Widgets/QClientProfileComboBoxDelegate.h \
-    Widgets/QStaticIPv4ComboBoxDelegate.h
+    Widgets/QStaticIPv4ComboBoxDelegate.h \
+    Widgets/QRemoteIPCellItem.h
 
 FORMS    += QMikPPPManager.ui \
 	DlgNuevoUsuario.ui \

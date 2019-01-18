@@ -105,7 +105,8 @@ public:
 	void setAnchoPantalla(int a)		{ m_anchoPantalla = a;	}
 	void setAltoPantalla(int a)			{ m_altoPantalla = a;	}
 
-	QClientProfileMap &clientProfileMap()			{ return m_clientProfileMap;	}
+	QClientProfileMap &clientProfileMap()				{ return m_clientProfileMap;	}
+	const QClientProfileMap &clientProfileMap()	const	{ return m_clientProfileMap;	}
 
 //	void addRange(const IPv4Range &ipv4Range)		{ m_staticIPv4Map.addRange(ipv4Range);			}
 //	void delRange(const QString &ipv4RangeName)		{ m_staticIPv4Map.delRange(ipv4RangeName);		}
