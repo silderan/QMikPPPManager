@@ -32,7 +32,6 @@ SOURCES += main.cpp\
     ROSData/ROSIPAddress.cpp \
     ROSData/ROSIPPool.cpp \
 	Widgets/QIPv4RangeComboBox.cpp \
-    Widgets/QStaticIPComboBox.cpp \
     Widgets/QROSAPIUserTableWidget.cpp \
     Widgets/QROSAPIUserLevelComboBox.cpp \
     Widgets/QROSAPIUsersGroupTableWidget.cpp \
@@ -94,7 +93,6 @@ HEADERS  += QMikPPPManager.h \
     ConfigData/ClientProfile.h \
     ConfigData/QConfigData.h \
     Widgets/QIPv4RangeComboBox.h \
-    Widgets/QStaticIPComboBox.h \
     Widgets/QROSAPIUserTableWidget.h \
     Widgets/QROSAPIUserLevelComboBox.h \
     Widgets/QROSAPIUsersGroupTableWidget.h \
@@ -124,10 +122,7 @@ HEADERS  += QMikPPPManager.h \
     ROSDataManager/ROSPPPActiveManager.h \
     ROSDataManager/ROSIPPoolManager.h \
     UnitTests.h \
-    Dialogs/DlgConfigPrivate.h \
     Widgets/QComboBoxItemDelegate.h \
-    Widgets/QClientProfileComboBoxDelegate.h \
-    Widgets/QStaticIPv4ComboBoxDelegate.h \
     Widgets/QRemoteIPCellItem.h
 
 FORMS    += QMikPPPManager.ui \

@@ -3,6 +3,8 @@
 
 #include <QTime>
 #include <QDateTime>
+#include <QTableWidget>
+#include <QAbstractItemModel>
 
 #include "../UnitTests.h"
 
@@ -19,6 +21,8 @@ QTime fromStringTime(const QString &time);
 QString toStringDate(const QDate &date);
 QDateTime fromROSStringDateTime(const QString &rosDateTime);
 qint64 fromROSStringTimeToSecs(const QString &rosTime);
+
+QStringList allColumnTexts(const QAbstractItemModel *model, int col, Qt::ItemDataRole role = Qt::EditRole);
 
 #ifdef UNIT_TESTS_UTILS
 	void UTests();

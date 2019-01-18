@@ -5,7 +5,11 @@
 #include <QLineEdit>
 #include <QMessageBox>
 
-#include "DlgConfigPrivate.h"
+//#include "DlgConfigPrivate.h"
+
+#include "../Widgets/QComboBoxItemDelegate.h"
+#include "../ROSMultiConnectorManager.h"
+#include "../Utils/Utils.h"
 
 DlgConfiguracion::DlgConfiguracion(const QStringList &installerList, const QStringList &comercialList, const IPv4RangeListMap &staticIPv4RangeListMap, const QClientProfileMap &clientProfileMap, ROSMultiConnectManager &multiConManager, QWidget *papi) :
 	QDialog(papi), ui(new Ui::DlgConfiguracion)
@@ -18,10 +22,24 @@ DlgConfiguracion::DlgConfiguracion(const QStringList &installerList, const QStri
 	int row;
 	ui->setupUi(this);
 
-	ui->profilesTable->setItemDelegateForColumn( 0, new QROSProfileNameDelegate(&m_multiConManager, &m_selectedProfiles,this ) );
-	ui->profilesTable->setItemDelegateForColumn( 1, new QProfileTypeDelegate(&m_groupNames, this) );
+	multiConnectionManager.requestAll(DataTypeID::PPPProfile);
+	ui->profilesTable->setItemDelegateForColumn( 0,
+												 new QComboBoxItemDelegatedBase( this, "", false,
+													   /*add list*/				 [] (int)			{ return multiConnectionManager.pppProfileNameList();	},
+													   /*skip list*/			 [this] (int)		{ return Utils::allColumnTexts(ui->profilesTable->model(), 0); },
+													   /*selected data*/		 [this] (int row)	{ return ui->profilesTable->item(row, 0)->text(); } ) );
 
-	ui->staticIPv4Table->setItemDelegateForColumn( 2, new QProfileGroupNameDelegate( &m_groupNames, false, Q_NULLPTR, this ) );
+	ui->profilesTable->setItemDelegateForColumn( 1,
+												 new QComboBoxItemDelegatedBase( this, "", true,
+													   /*add list*/				 [this] (int row)	{ return selectableGroupNames(row);	},
+													   /*skip list*/			 [] (int)			{ return QStringList(); },
+													   /*selected data*/		 [this] (int row)	{ return ui->profilesTable->item(row, 1)->text(); } ) );
+
+	ui->staticIPv4Table->setItemDelegateForColumn( 2,
+												   new QComboBoxItemDelegatedBase( this, "", false,
+														 /*add list*/			   [this] (int)		{ return Utils::allColumnTexts(ui->profilesTable->model(), 1);	},
+														 /*skip list*/			   [] (int)			{ return QStringList() << ClientProfileData::serviceCanceledGroupName(); },
+														 /*selected data*/		   [this] (int row)	{ return ui->staticIPv4Table->item(row, 2)->text(); } ) );
 
 	if( staticIPv4RangeListMap.count() )
 	{
@@ -74,6 +92,19 @@ DlgConfiguracion::DlgConfiguracion(const QStringList &installerList, const QStri
 DlgConfiguracion::~DlgConfiguracion()
 {
 	delete ui;
+}
+
+QStringList DlgConfiguracion::selectableGroupNames(int row) const
+{
+	QStringList rtn = Utils::allColumnTexts(ui->profilesTable->model(), 1);
+	if( (ui->profilesTable->item(row, 1)->text() != ClientProfileData::serviceCanceledGroupName()) )
+	{
+		if( !rtn.contains(ClientProfileData::serviceCanceledGroupName()) )
+			rtn.prepend(ClientProfileData::serviceCanceledGroupName());
+		else
+			rtn.removeOne(ClientProfileData::serviceCanceledGroupName());
+	}
+	return rtn;
 }
 
 void DlgConfiguracion::addProfileTableRow(const ClientProfileData &clientProfileData)

@@ -7,10 +7,93 @@
 #include "../ROSMultiConnectorManager.h"
 #include "../ConfigData/QConfigData.h"
 
+class QDelegableComboBox  : public QComboBox
+{
+
+public:
+	QDelegableComboBox(QWidget *papi)	: QComboBox(papi)
+	{	}
+	virtual void setup(const QString &defaultValue, const QStringList &addList, const QStringList &skipList, const QString &currentSelected)
+	{
+		clear();
+		if( !defaultValue.isEmpty() )
+			addItem( defaultValue );
+		int i = -1;
+		foreach( QString ip, addList )
+		{
+			if( !skipList.contains(ip) )
+				addItem(ip);
+			else
+			if( currentSelected == ip )
+			{
+				addItem(ip);
+			}
+			if( ip == currentSelected )
+				i = count() - 1;
+		}
+		if( count() )
+		{
+			if( i == -1 )
+			{
+				if( !defaultValue.isEmpty() )
+					i = 0;
+				else
+				{
+					i = count();
+					addItem(currentSelected);
+				}
+			}
+		}
+		setCurrentIndex(i);
+	}
+};
+
+class QComboBoxItemDelegatedBase : public QStyledItemDelegate
+{
+	QString m_defaultValue;
+	bool m_comboBoxEditable;
+	std::function<QStringList(int)> m_getAddList;
+	std::function<QStringList(int)> m_getSkipList;
+	std::function<QString(int)> m_getCurrentSelected;
+
+public:
+	QComboBoxItemDelegatedBase(	QObject *papi, QString defaultValue, bool comboBoxEditable,
+								std::function<QStringList(int)> getAddList,
+								std::function<QStringList(int)> getSkipList,
+								std::function<QString(int)> getCurrentSelected) : QStyledItemDelegate(papi)
+	  , m_defaultValue(defaultValue)
+	  , m_comboBoxEditable(comboBoxEditable)
+	  , m_getAddList(getAddList)
+	  , m_getSkipList(getSkipList)
+	  , m_getCurrentSelected(getCurrentSelected)
+	{	}
+
+	QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const Q_DECL_OVERRIDE
+	{
+		Q_UNUSED(option);
+		Q_UNUSED(index);
+		QDelegableComboBox *cb = new QDelegableComboBox(parent);
+		cb->setEditable(m_comboBoxEditable);
+		return cb;
+	}
+	void setEditorData(QWidget *editor, const QModelIndex &index) const Q_DECL_OVERRIDE
+	{
+		static_cast<QDelegableComboBox*>(editor)->setup( m_defaultValue, m_getAddList(index.row()), m_getSkipList(index.row()), m_getCurrentSelected(index.row()) );
+	}
+	void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const Q_DECL_OVERRIDE
+	{
+		if( index.data(Qt::EditRole).toString() != static_cast<QDelegableComboBox*>(editor)->currentText() )
+			model->setData(index, static_cast<QDelegableComboBox*>(editor)->currentText());
+	}
+	void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const Q_DECL_OVERRIDE
+	{
+		Q_UNUSED(index);
+		editor->setGeometry(option.rect);
+	}
+};
 
 class QComboBoxItemDelegated : public QStyledItemDelegate
 {
-	Q_OBJECT
 
 protected:
 	const QStringList *m_addList;

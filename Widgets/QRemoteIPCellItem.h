@@ -41,6 +41,10 @@ public:
 	{
 		updateData();
 	}
+
+	const IPv4 &staticIP() const	{ return m_staticIP;	}
+	const IPv4 &currentIP() const	{ return m_currentIP;	}
+
 	void setCurrentIP(const IPv4 ipv4)
 	{
 		m_currentIP = ipv4;

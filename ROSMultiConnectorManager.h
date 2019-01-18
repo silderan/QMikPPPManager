@@ -40,14 +40,15 @@ public:
 	void sendSentence(const QString &routerName, const ROS::QSentence &s);
 	void sendSentence(const QString &routerName, const QString &s, const QString &tag, const QStringList attrib = QStringList());
 
-	ROSDataBasePList rosDataList(DataTypeID dataTypeID, const QString &routerName = QString()) const;
-	QStringList rosAPIUsersGrupList()const;
-
 	static void requestAll(ROSPPPoEManager *rosPPPoEManager, DataTypeID dataTypeID);
 	static void requestAll(ROSPPPoEManagerPList rosPPPoEManagerPList, DataTypeID dataTypeID);
 
 	void requestAll(const QString &routerName, DataTypeID dataTypeID);
 	void requestAll(DataTypeID dataTypeID);
+
+	ROSDataBasePList rosDataList(DataTypeID dataTypeID, const QString &routerName = QString()) const;
+	QStringList rosAPIUsersGrupList() const;
+	QStringList pppProfileNameList() const;
 
 #ifdef SIMULATE_ROS_INPUTS
 	void simulateROSConnection();

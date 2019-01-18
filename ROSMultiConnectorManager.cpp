@@ -98,6 +98,17 @@ QStringList ROSMultiConnectManager::rosAPIUsersGrupList() const
 	return rtn;
 }
 
+QStringList ROSMultiConnectManager::pppProfileNameList() const
+{
+	QStringList rtn;
+	foreach( const ROSDataBase *rosData, rosDataList(DataTypeID::PPPProfile) )
+	{
+		if( !rtn.contains( static_cast<const ROSPPPProfile*>(rosData)->profileName()) )
+			rtn.append( static_cast<const ROSPPPProfile*>(rosData)->profileName() );
+	}
+	return rtn;
+}
+
 void ROSMultiConnectManager::sendCancel(const QString &tag, const QString &routerName)
 {
 	ROSPPPoEManagerIterator it(m_rosPppoeManagerMap);

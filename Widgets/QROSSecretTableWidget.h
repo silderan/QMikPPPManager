@@ -131,6 +131,7 @@ public:
 	void setupRemoteIPCellItem(int row, const IPv4 &remoteIP, const IPv4 &staticIP);
 
 	QTableWidgetItem *item(int row, Columns col)				{ return QTableWidget::item(row, static_cast<int>(col));	}
+	const QTableWidgetItem *item(int row, Columns col) const	{ return QTableWidget::item(row, static_cast<int>(col));	}
 	static void setupCellItemStyle(QTableWidgetItem *item, const CellLook &cellLook);
 	void setupCellItemStyle(int row, Columns col, const CellLook &cellLook);
 
@@ -141,13 +142,18 @@ public:
 	explicit QROSSecretTableWidget(QWidget *papi = Q_NULLPTR);
 	void applyFilter();
 
-	QString originalProfile(int row)	{ return row < rowCount() ? item(row, UserProfile)->text() : QString(); }
+	QString cellText(int row, Columns col) const;
+	QString originalProfile(int row) const	{ return cellText(row, UserProfile); }
+	QString currentIP(int row);
 
 	void clear();
 	void onROSModReply(const ROSDataBase &rosData);
 	void onROSDelReply(const QString &routerName, DataTypeID dataTypeID, const QString &rosObjectID);
 	void onROSDone(const QString &routerName, DataTypeID dataTypeID);
 	void updateConfig();
+
+	QStringList usedStaticIPs() const;
+	QStringList staticIPs(int row) const;
 };
 
 #endif // QROSSECRETTABLEWIDGET_H

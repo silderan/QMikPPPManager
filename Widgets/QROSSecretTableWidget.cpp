@@ -10,8 +10,7 @@
 
 #include "QRemoteIPCellItem.h"
 
-#include "QClientProfileComboBoxDelegate.h"
-#include "QStaticIPv4ComboBoxDelegate.h"
+#include "QComboBoxItemDelegate.h"
 
 void QStyledWidgetItem::updateStyle()
 {
@@ -37,6 +36,8 @@ const CellLook &QROSServiceStatusCellItem::getCellLook()
 	case ROSPPPSecret::CanceledRetired:		return gGlobalConfig.tableCellLook().m_disabledDevicesRetired;
 	case ROSPPPSecret::CanceledUndefined:	return gGlobalConfig.tableCellLook().m_disabledUndefined;
 	}
+	Q_ASSERT(false);
+	return gGlobalConfig.tableCellLook().m_enabled;
 }
 
 void QROSActiveStatusCellItem::updateText()
@@ -73,8 +74,16 @@ QROSSecretTableWidget::QROSSecretTableWidget(QWidget *papi) : QTableWidget(papi)
 							   << tr("Email")
 							   << tr("Notas") );
 	Q_ASSERT( columnCount() == TotalColumns );
-	setItemDelegateForColumn( Columns::UserProfile, new QClientProfileComboBoxDelegate(gGlobalConfig, this) );
-	setItemDelegateForColumn( Columns::RemoteIP, new QStaticIPv4ComboBoxDelegate(gGlobalConfig, Columns::RemoteIP, Columns::UserProfile, this) );
+	setItemDelegateForColumn( Columns::UserProfile,
+							  new QComboBoxItemDelegatedBase( this, "", false,
+									/*add list*/			  [] (int)			{ return gGlobalConfig.clientProfileMap().regularProfileNames();	},
+									/*skip list*/			  [] (int)			{ return QStringList(); },
+									/*selected data*/		  [this] (int row)	{ return originalProfile(row); } ) );
+	setItemDelegateForColumn( Columns::RemoteIP,
+							  new QComboBoxItemDelegatedBase( this, tr("IP dinámica"), false,
+															  [this](int row)	{ return staticIPs(row); },
+															  [this](int)		{ return usedStaticIPs(); },
+															  [this](int row)	{ return currentIP(row); } ) );
 }
 
 bool QROSSecretTableWidget::shouldBeVisible(int row)
@@ -93,6 +102,15 @@ void QROSSecretTableWidget::applyFilter()
 {
 	for( int row = rowCount()-1; row >= 0; --row )
 		showRowIfValid(row);
+}
+
+QString QROSSecretTableWidget::cellText(int row, QROSSecretTableWidget::Columns col) const
+{
+	Q_ASSERT(row >= 0);
+	Q_ASSERT(row < rowCount());
+	Q_ASSERT(col >= 0);
+	Q_ASSERT(col < columnCount() );
+	return item(row, col) ? item(row, col)->text() : QString();
 }
 
 void QROSSecretTableWidget::setupCellItemStyle(QTableWidgetItem *item, const CellLook &cellLook)
@@ -351,3 +369,32 @@ void QROSSecretTableWidget::updateConfig()
 	}
 }
 
+QString QROSSecretTableWidget::currentIP(int row)
+{
+	if( item(row, Columns::RemoteIP) )
+	{
+		Q_ASSERT( static_cast<QRemoteIPCellItem*>(item(row, Columns::RemoteIP)) );
+		if( static_cast<QRemoteIPCellItem*>(item(row, Columns::RemoteIP))->staticIP().isValid() )
+			return static_cast<QRemoteIPCellItem*>(item(row, Columns::RemoteIP))->staticIP().toString();
+	}
+	return QString();
+}
+
+QStringList QROSSecretTableWidget::usedStaticIPs() const
+{
+	QStringList rtn;
+
+	for( int row = rowCount(); row >= 0; --row )
+	{
+		if( static_cast<const QRemoteIPCellItem*>(item(row, Columns::RemoteIP)) && static_cast<const QRemoteIPCellItem*>(item(row, Columns::RemoteIP))->staticIP().isValid() )
+			rtn.append(static_cast<const QRemoteIPCellItem*>(item(row, Columns::RemoteIP))->staticIP().toString() );
+	}
+	return rtn;
+}
+
+QStringList QROSSecretTableWidget::staticIPs(int row) const
+{
+	QString clientProfileName = item(row, Columns::UserProfile)->text();
+	QString clientProfileGroup = gGlobalConfig.clientProfileMap().groupName(clientProfileName);
+	return gGlobalConfig.staticIPv4RangeListMap().staticIPv4StringList(clientProfileGroup);
+}

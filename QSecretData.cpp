@@ -1,6 +1,6 @@
 #include "QSecretData.h"
 
-#include "Widgets/QStaticIPComboBox.h"
+//#include "Widgets/QStaticIPComboBox.h"
 
 void QSecretData::parseComment(const QString &comment)
 {
@@ -339,12 +339,12 @@ QWidget *QSecretDataDelegate::createEditor(QWidget *parent,
 		return Q_NULLPTR;
 	case QSecretDataModel::ColPerfil:
 		return gGlobalConfig.setupCBPerfilesUsables(new QComboBox(parent), QString());
-	case QSecretDataModel::ColIP:
-	{
-		QStaticIPComboBox *staticIPComboBox = new QStaticIPComboBox(parent);
-//		staticIPComboBox->setup(gGlobalConfig.staticIPv4Map(), static_cast<const QSecretDataModel*>(index.model())->ipsEstaticasUsadas());
-		return staticIPComboBox;
-	}
+//	case QSecretDataModel::ColIP:
+//	{
+////		QStaticIPComboBox *staticIPComboBox = new QStaticIPComboBox(parent);
+////		staticIPComboBox->setup(gGlobalConfig.staticIPv4Map(), static_cast<const QSecretDataModel*>(index.model())->ipsEstaticasUsadas());
+//		return staticIPComboBox;
+//	}
 	case QSecretDataModel::ColContrato:
 	  {
 		QComboBox *cb = new QComboBox(parent);

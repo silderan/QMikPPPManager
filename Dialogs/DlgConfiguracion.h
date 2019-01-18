@@ -47,6 +47,8 @@ public:
 	IPv4RangeListMap staticIPv4RangeListMap() const		{ return m_staticIPv4RangeListMap;	}
 	QClientProfileMap clientProfileList() const			{ return m_clientProfileMap;		}
 
+	QStringList selectableGroupNames(int row) const;
+
 private slots:
 	void on_btAceptar_clicked();
 	void on_btCancelar_clicked();

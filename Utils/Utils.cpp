@@ -112,6 +112,23 @@ qint64 Utils::fromROSStringTimeToSecs(const QString &rosTime)
 	return t + n;
 }
 
+QStringList Utils::allColumnTexts(const QAbstractItemModel *model, int col, Qt::ItemDataRole role)
+{
+	QStringList rtn;
+	if( col < model->columnCount() )
+	{
+		rtn.reserve(model->rowCount());
+		QString s;
+		for( int row = model->rowCount(); row >= 0; --row )
+		{
+			s = model->index(row, col).data(role).toString();
+			if( !s.isEmpty() && !rtn.contains(s) )
+				rtn.append(s);
+		}
+	}
+	return rtn;
+}
+
 #ifdef UNIT_TESTS_UTILS
 void Utils::UTests()
 {
