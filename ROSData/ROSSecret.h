@@ -7,6 +7,7 @@
 #include "ROSDataBasics.h"
 #include "../UnitTests.h"
 #include "../Utils/IPv4Range.h"
+#include "../Utils/PortForward.h"
 
 class ROSPPPSecret : public ROSDataBase
 {
@@ -30,6 +31,7 @@ private:
 	QString m_profile;		// User's current profile. Can be a profile without Internet access for people with canceled service.
 	QDateTime m_lastLogOff;
 	QString m_commentString;
+	QString m_ontSN;
 
 	// Data encoded in comment ROS data field.
 	QString m_originalProfile;	// That's the client's desired profile. Needs to be saved as client can pause their payment and current profile can change.
@@ -41,17 +43,26 @@ private:
 	QString m_phones;
 	QString m_comercial;
 	QString m_email;
-	QString m_SSID;
-	QString m_WPass;
-	QString m_notes;
+	QString m_WiFi2SSID;
+	QString m_WiFi2WPA;
+	QString m_WiFi5SSID;
+	QString m_WiFi5WPA;
+	QString m_clientNotes;
+	QString m_installNotes;
+	QString m_voipPhoneNumber;
+	QString m_voipSIPUserName;
+	QString m_voipSIPUserPass;
+	IPv4 m_installLANIP;
+	IPv4 m_installLANDMZ;
+	QPortForwardList m_portForwardList;
 	IPv4 m_staticIP;
 	ServiceState m_serviceState;
 	bool m_needsPublicIP;
 
 	void fromCommentString(const QString &commentString);
-	void updateNonROSMember( QString &member, const QString &newData )	{ if(member != newData) { member = newData; m_commentString.clear(); }	}
-	void updateNonROSMember( bool &member, bool newData )	{ if(member != newData) { member = newData; m_commentString.clear(); }	}
-	void updateNonROSMember( IPv4 &member, const IPv4 &newData )	{ if( !(member == newData) ) { member = newData; m_commentString.clear(); }	}
+
+	template<typename T>
+	void updateNonROSMember( T &member, const T &newData )				{ if(member != newData) { member = newData; m_commentString.clear(); }	}
 
 public:
 	explicit ROSPPPSecret(const QString &routerName) : ROSDataBase(DataTypeID::PPPSecret, routerName),
@@ -65,7 +76,7 @@ public:
 	void setUserPass(const QString &userPass)	{ m_userPass = userPass;}
 
 	const QString & profile() const				{ return m_profile;		}
-	void setProfile(const QString &profile)		{ m_profile = profile;	}
+	void setPPPProfile(const QString &profile)	{ m_profile = profile;	}
 
 	const QDateTime &lastLogOff() const			{ return m_lastLogOff;	}
 	void setLastLogOff(const QDateTime &l)		{ m_lastLogOff = l;		}
@@ -85,35 +96,66 @@ public:
 	const QString & clientName() const			{ return m_clientName;		}
 	void setClientName(const QString &cn)		{ updateNonROSMember(m_clientName, cn);}
 
-	const QString & address() const				{ return m_address;		}
-	void setAddress(const QString &address)		{ updateNonROSMember(m_address, address);	}
+	const QString & clientAddress() const			{ return m_address;		}
+	void setClientAddress(const QString &address)	{ updateNonROSMember(m_address, address);	}
 
-	const QString & city() const				{ return m_city;	}
-	void setCity(const QString &city)			{ updateNonROSMember(m_city, city);	}
+	const QString & clientCity() const				{ return m_city;	}
+	void setClientCity(const QString &city)			{ updateNonROSMember(m_city, city);	}
 
-	const QString & phones() const				{ return m_phones;		}
-	void setPhones(const QString &phones)		{ updateNonROSMember(m_phones, phones);	}
+	const QString & clientPhones() const			{ return m_phones;		}
+	void setClientPhones(const QString &phones)		{ updateNonROSMember(m_phones, phones);	}
 
-	const QString & comercial() const			{ return m_comercial;		}
-	void setComercial(const QString &comercial)	{ updateNonROSMember(m_comercial, comercial);	}
+	const QString & comercial() const				{ return m_comercial;		}
+	void setComercial(const QString &comercial)		{ updateNonROSMember(m_comercial, comercial);	}
 
-	const QString & email() const				{ return m_email;	}
-	void setEmail(const QString &email)			{ updateNonROSMember(m_email, email);	}
+	const QString & clientEmail() const				{ return m_email;	}
+	void setClientEmail(const QString &email)		{ updateNonROSMember(m_email, email);	}
 
-	const QString & SSID() const				{ return m_SSID;	}
-	void setSSID(const QString &SSID)			{ updateNonROSMember(m_SSID, SSID);	}
+	const QString & wifi2SSID() const				{ return m_WiFi2SSID;	}
+	void setWiFi2SSID(const QString &SSID)			{ updateNonROSMember(m_WiFi2SSID, SSID);	}
 
-	const QString & wPass() const				{ return m_WPass;	}
-	void setWPass(const QString &WPass)			{ updateNonROSMember(m_WPass, WPass);	}
+	const QString & wifi2WPA() const				{ return m_WiFi2WPA;	}
+	void setWiFi2WPA(const QString &WPass)			{ updateNonROSMember(m_WiFi2WPA, WPass);	}
 
-	const QString & notes() const				{ return m_notes;	}
-	void setNotes(const QString &notes)			{ updateNonROSMember(m_notes, notes);	}
+	const QString & wifi5SSID() const				{ return m_WiFi5SSID;	}
+	void setWiFi5SSID(const QString &SSID)			{ updateNonROSMember(m_WiFi5SSID, SSID);	}
 
-	const IPv4 &staticIP() const				{ return m_staticIP;	}
-	void setStaticIP(const IPv4 &staticIP)		{ updateNonROSMember(m_staticIP, staticIP);}
+	const QString & wifi5WPA() const				{ return m_WiFi5WPA;	}
+	void setWiFi5WPA(const QString &WPass)			{ updateNonROSMember(m_WiFi5WPA, WPass);	}
+
+	const QString & clientNotes() const				{ return m_clientNotes;	}
+	void setClientNotes(const QString &notes)		{ updateNonROSMember(m_clientNotes, notes);	}
+
+	const QString & installNotes() const			{ return m_installNotes;	}
+	void setInstallNotes(const QString &notes)		{ updateNonROSMember(m_installNotes, notes);	}
+
+	const IPv4 &staticIP() const					{ return m_staticIP;	}
+	void setStaticIP(const IPv4 &staticIP)			{ updateNonROSMember(m_staticIP, staticIP);}
+
+	const QString &voipPhoneNumber() const			{ return m_voipPhoneNumber;	}
+	void setVoIPPhoneNumber(const QString &p)		{ updateNonROSMember(m_voipPhoneNumber, p);	}
+
+	const QString &voipSIPUserName() const			{ return m_voipSIPUserName;	}
+	void setVoIPSIPUserName(const QString &p)		{ updateNonROSMember(m_voipSIPUserName, p);	}
+
+	const QString &voipSIPUserPass() const			{ return m_voipSIPUserPass;	}
+	void setVoIPSIPUserPass(const QString &p)		{ updateNonROSMember(m_voipSIPUserPass, p);	}
+
+	const IPv4 &installLANIP() const				{ return m_installLANIP;	}
+	void setInstallLANIP(const IPv4 &ip)			{ updateNonROSMember(m_installLANIP, ip);	}
+
+	const IPv4 &installLANDMZ() const				{ return m_installLANDMZ;	}
+	void setInstallLANDMZ(const IPv4 &ip)			{ updateNonROSMember(m_installLANDMZ, ip);	}
+
+	const QPortForwardList &portForwardList() const			{ return m_portForwardList;	}
+	QPortForwardList &portForwardList()						{ return m_portForwardList;	}
+	void setPortForwardList(const QPortForwardList &ports)	{ updateNonROSMember(m_portForwardList, ports);	}
 
 	bool needsPublicIP() const					{ return m_needsPublicIP;			}
 	void setNeedsPublicIP(bool needsPublicIP)	{ updateNonROSMember(m_needsPublicIP, needsPublicIP);	}
+
+	const QString &ontSN() const				{ return m_ontSN;	}
+	void setONTSN(const QString &ontSN)			{ updateNonROSMember(m_ontSN, ontSN);	}
 
 	void setServiceState(const QString &c);
 	void setServiceState(ServiceState st);
@@ -122,6 +164,7 @@ public:
 	static QString serviceStateString(ServiceState st);
 	QString serviceStateString() const;
 	ServiceState serviceState() const			{ return m_serviceState;	}
+	static QStringList serviceStateNames();
 
 	void fromSentence(const QString &routerName, const ROS::QSentence &s) override;
 	ROS::QSentence &toSentence(ROS::QSentence &sentence) const override;

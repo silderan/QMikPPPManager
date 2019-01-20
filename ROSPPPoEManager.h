@@ -38,6 +38,7 @@ private:
 	ROSPPPActiveManager  m_rosActiveManager;
 
 	ROSDataManagerBase &rosDataManager(DataTypeID dataTypeID);
+	const ROSDataManagerBase &rosDataManager(DataTypeID dataTypeID) const;
 
 public:
 	ROSPPPoEManager(QObject *papi);
@@ -46,7 +47,7 @@ public:
 	ROSAPIUserManager &rosApiUserManager()				{ return m_rosAPIUserManager;		}
 	ROSAPIUsersGroupManager &rosApiUsersGroupManager()	{ return m_rosAPIUsersGroupManager;	}
 	ROSPPPProfileManager &rosPPPProfileManager()		{ return m_rosPPPProfileManager;	}
-	ROSDataBasePList rosDataList(DataTypeID dataTypeID);
+	ROSDataBasePList rosDataList(DataTypeID dataTypeID) const;
 
 	void requestRemoteData(DataTypeID dataTypeID);
 	void updateRemoteData(const ROSDataBase &newROSData, const QString &rosObjectID);

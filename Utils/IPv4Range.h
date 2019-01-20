@@ -56,6 +56,10 @@ public:
 	bool operator ==(const quint32 &ipv4) const	{ return this->m_ip == ipv4;		}
 	bool operator ==(const QString &ipv4) const	{ return this->m_ip == IPv4::FromString(ipv4).m_ip;	}
 
+	bool operator !=(const IPv4 &ipv4) const	{ return this->m_ip != ipv4.m_ip;	}
+	bool operator !=(const quint32 &ipv4) const	{ return this->m_ip != ipv4;		}
+	bool operator !=(const QString &ipv4) const	{ return this->m_ip != IPv4::FromString(ipv4).m_ip;	}
+
 	bool operator >=(const IPv4 &ipv4) const	{ return this->m_ip >= ipv4.m_ip;	}
 	bool operator >=(const quint32 &ipv4) const	{ return this->m_ip >= ipv4;		}
 	bool operator >=(const QString &ipv4) const	{ return this->m_ip >= IPv4::FromString(ipv4).m_ip;	}

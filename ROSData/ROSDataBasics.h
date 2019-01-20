@@ -14,6 +14,7 @@ class ROSDataBase
 	DataTypeID m_dataTypeID;
 	QString m_routerName;
 	QString m_rosObjectID;
+	QString m_comment;
 	bool m_delete;
 
 public:
@@ -28,10 +29,13 @@ public:
 	DataTypeID dataTypeID() const	{	return m_dataTypeID;	}
 
 	const QString &rosObjectID()	const		{ return m_rosObjectID;	}
-	void setROSObjectID(const QString &id)	{ m_rosObjectID = id;	}
+	void setROSObjectID(const QString &id)		{ m_rosObjectID = id;	}
 
 	const QString &routerName() const				{ return m_routerName;		}
 	void setRouterName(const QString &routerName)	{ m_routerName = routerName;}
+
+	const QString &comment() const			{ return m_comment;	}
+	void setComment(const QString &c)		{ m_comment = c;	}
 
 	bool deleting()const					{ return m_delete;	}
 	void setDeleting(bool d)				{ m_delete = d;		}

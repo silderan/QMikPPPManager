@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QList>
 
+#include "../ConfigData/QConfigData.h"
 #include "../ROSData/DataTypeID.h"
 #include "../ROSData/ROSDataBasics.h"
 #include "../ROSMultiConnectorManager.h"
@@ -14,13 +15,20 @@ class DlgDataBase : public QDialog
 
 	ROSMultiConnectManager &m_rosMultiConnectManager;
 	DataTypeIDList m_dataTypeIDList;
+	QConfigData m_configData;
 
 protected:
 	virtual void updateMultipleData(DataTypeIDList dataTypeIDList, const QString &routerName = QString());
 
 public:
-	explicit DlgDataBase(QWidget *parent, ROSMultiConnectManager &rosMultiConnectManager);
+	DlgDataBase(QWidget *parent, ROSMultiConnectManager &rosMultiConnectManager);
 
+	ROSMultiConnectManager &rosMultiConnectManager()	{ return m_rosMultiConnectManager;	}
+
+	void setConfigData(QConfigData &configData);
+	QConfigData &configData() { return m_configData;	}
+
+	virtual void onConfigDataChanged()	{	}
 	virtual void onROSModReply(const ROSDataBase &rosData) = 0;
 	virtual void onROSDelReply(const QString &routerName, DataTypeID dataTypeID, const QString &rosObjectID) = 0;
 	virtual void onROSDone(const QString &routerName, DataTypeID dataTypeID) = 0;

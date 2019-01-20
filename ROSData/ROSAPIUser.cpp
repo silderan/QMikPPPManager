@@ -29,7 +29,7 @@ void ROSAPIUser::fromSentence(const QString &routerName, const ROS::QSentence &s
 	ROSDataBase::fromSentence(routerName, sentence);
 	m_uname = sentence.attribute("name");
 	m_group = sentence.attribute("group");
-	m_level = static_cast<Level>(ROSAPIUser::levelNames().indexOf(sentence.attribute("comment").toLower()));
+	m_level = static_cast<Level>(ROSAPIUser::levelNames().indexOf(comment().toLower()));
 	if( m_level < NoRights )
 		m_level = NoRights;
 }
@@ -38,7 +38,6 @@ ROS::QSentence &ROSAPIUser::toSentence(ROS::QSentence &sentence) const
 {
 	sentence.addAttribute( "name", m_uname );
 	sentence.addAttribute( "group", m_group );
-	sentence.addAttribute( "comment", levelName() );
 
 	// User replies never includes password.
 	// So, it's usually empty meaning that you don't want to change password.
@@ -55,6 +54,7 @@ bool ROSAPIUser::hasSameData(const ROSDataBase &rosAPIUser) const
 			(m_level == static_cast<const ROSAPIUser&>(rosAPIUser).m_level);
 }
 
+#ifdef SIMULATE_ROS_INPUTS
 QList<ROS::QSentence> ROSAPIUser::simulatedStepSentences(const QString &routerName, quint32 random, int step)
 {
 	ROSAPIUser apiUser(routerName);
@@ -101,3 +101,4 @@ QList<ROS::QSentence> ROSAPIUser::simulatedStepSentences(const QString &routerNa
 
 	return rtn;
 }
+#endif

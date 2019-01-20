@@ -69,6 +69,8 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 //	connect( ui->twUsuarios, SIGNAL(dobleClicUsuario(QSecretData)), this, SLOT(onDobleClicUsuario(QSecretData)) );
 //	connect( ui->twUsuarios, SIGNAL(clicUsuario(QSecretData)), this, SLOT(onClicUsuario(QSecretData)) );
 
+	connect( ui->usersTable, SIGNAL(editPPPUser(QMap<QString,ROSPPPSecret>,ROSPPPActive)),
+			 this,		  SLOT(onPPPEditRequest(QMap<QString,ROSPPPSecret>,ROSPPPActive)) );
 	setNivelUsuario(QConfigData::SinPermisos);
 	ui->cbFiltro->addItem( "Cualquiera", 0 );
 	ui->cbFiltro->addItem( "Nombre", FILTRO_NOMBRE );
@@ -84,6 +86,7 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 	ui->cbFiltro->addItem( "Baja", FILTRO_BAJA );
 
 	onAllRoutersDisconnected();
+	ui->usersTable->horizontalHeader()->setFixedHeight(20);
 }
 
 QMikPPPManager::~QMikPPPManager()
@@ -858,4 +861,17 @@ void QMikPPPManager::on_pppProfilesButton_clicked()
 	}
 
 	dlgPPPProfiles->show();
+}
+
+
+void QMikPPPManager::onPPPEditRequest(const QMap<QString, ROSPPPSecret> &pppSecretMap, const ROSPPPActive &pppActive)
+{
+	static DlgPPPUser *dlgPPPUser;
+
+	if( !dlgPPPUser )
+	{
+		dlgPPPUser = new DlgPPPUser(this, multiConnectionManager, gGlobalConfig);
+		m_dialogList.append(dlgPPPUser);
+	}
+	dlgPPPUser->onEditUserRequest(pppSecretMap, pppActive);
 }

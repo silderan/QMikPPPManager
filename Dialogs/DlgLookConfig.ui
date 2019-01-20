@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>748</width>
-    <height>324</height>
+    <width>831</width>
+    <height>408</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,10 +20,10 @@
       <string>Apariencia</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>Tamaño texto</string>
+      <item row="0" column="1">
+       <widget class="QSpinBox" name="textSizeSpinBox">
+        <property name="minimum">
+         <number>3</number>
         </property>
        </widget>
       </item>
@@ -41,10 +41,10 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QSpinBox" name="textSizeSpinBox">
-        <property name="minimum">
-         <number>3</number>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Tamaño texto</string>
         </property>
        </widget>
       </item>

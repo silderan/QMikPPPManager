@@ -61,7 +61,10 @@ SOURCES += main.cpp\
     ROSData/ROSSecret.cpp \
     ROSDataManager/ROSSecretManager.cpp \
     Utils/Utils.cpp \
-    Widgets/QROSSecretTableWidget.cpp
+    Widgets/QROSSecretTableWidget.cpp \
+    Dialogs/DlgPPPUser.cpp \
+    Widgets/QFancyComboBox.cpp \
+    Utils/PortForward.cpp
 
 HEADERS  += QMikPPPManager.h \
     Utils/IPv4Range.h \
@@ -123,7 +126,10 @@ HEADERS  += QMikPPPManager.h \
     ROSDataManager/ROSIPPoolManager.h \
     UnitTests.h \
     Widgets/QComboBoxItemDelegate.h \
-    Widgets/QRemoteIPCellItem.h
+    Widgets/QRemoteIPCellItem.h \
+    Dialogs/DlgPPPUser.h \
+    Widgets/QFancyComboBox.h \
+    Utils/PortForward.h
 
 FORMS    += QMikPPPManager.ui \
 	DlgNuevoUsuario.ui \
@@ -135,7 +141,8 @@ FORMS    += QMikPPPManager.ui \
     Dialogs/DlgROSAPIUsers.ui \
     Dialogs/DlgROSAPIUser.ui \
     Dialogs/DlgPPPProfiles.ui \
-    Dialogs/DlgROSIPPool.ui
+    Dialogs/DlgROSIPPool.ui \
+    Dialogs/DlgPPPUser.ui
 
 DISTFILES += \
     ToDo.txt

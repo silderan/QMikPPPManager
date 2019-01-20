@@ -74,21 +74,40 @@ QROSSecretTableWidget::QROSSecretTableWidget(QWidget *papi) : QTableWidget(papi)
 							   << tr("Email")
 							   << tr("Notas") );
 	Q_ASSERT( columnCount() == TotalColumns );
+
 	setItemDelegateForColumn( Columns::UserProfile,
-							  new QComboBoxItemDelegatedBase( this, "", false,
+							  new QComboBoxItemDelegated( this, "", false,
 									/*add list*/			  [] (int)			{ return gGlobalConfig.clientProfileMap().regularProfileNames();	},
 									/*skip list*/			  [] (int)			{ return QStringList(); },
 									/*selected data*/		  [this] (int row)	{ return originalProfile(row); } ) );
+
 	setItemDelegateForColumn( Columns::RemoteIP,
-							  new QComboBoxItemDelegatedBase( this, tr("IP dinámica"), false,
+							  new QComboBoxItemDelegated( this, tr("IP dinámica"), false,
 															  [this](int row)	{ return staticIPs(row); },
 															  [this](int)		{ return usedStaticIPs(); },
 															  [this](int row)	{ return currentIP(row); } ) );
+
+	setItemDelegateForColumn( Columns::Installer,
+							  new QComboBoxItemDelegated( this, gGlobalConfig.userName(), false,
+															  [](int)			{ return gGlobalConfig.instaladores(); },
+															  [](int)			{ return QStringList(); },
+															  [this](int row)	{ return item(row, Columns::Installer)->text(); } ) );
+
+	setItemDelegateForColumn( Columns::ServiceStatus,
+							  new QComboBoxItemDelegated( this, "", false,
+															  [](int)			{ return ROSPPPSecret::serviceStateNames(); },
+															  [](int)			{ return QStringList(); },
+															  [this](int row)	{ return item(row, Columns::ServiceStatus)->text(); } ) );
+
+	setSortingEnabled(true);
+	horizontalHeader()->setSectionsMovable(true);
+//	horizontalHeader()->saveState();
+	connect( this, SIGNAL(itemDoubleClicked(QTableWidgetItem *)), this, SLOT(onCellDobleClic(QTableWidgetItem *)) );
 }
 
 bool QROSSecretTableWidget::shouldBeVisible(int row)
 {
-	if( !gGlobalConfig.clientProfileMap().containsProfileName(userNameWidgetItem(row)->rosPPPSecret.profile()) )
+	if( !gGlobalConfig.clientProfileMap().containsProfileName(userNameWidgetItem(row)->rosCachedPPPSecret.profile()) )
 		return false;
 	return true;
 }
@@ -189,6 +208,7 @@ QROSUserNameWidgetItem *QROSSecretTableWidget::addNewRow(const QString &userName
 	QROSUserNameWidgetItem *userNameItem = new QROSUserNameWidgetItem();
 	// Put it on user name column.
 	setItem(row, Columns::UserName, userNameItem);
+	item(row, Columns::UserName)->setFlags(item(row, Columns::UserName)->flags() & ~Qt::ItemIsEditable);
 	userNameItem->setText( userName );
 
 	m_userNameMap[userName] = userNameItem;
@@ -216,7 +236,8 @@ void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &rosPPPSecret
 		if( (userNameItem = m_userNameMap.value(rosPPPSecret.userName(), Q_NULLPTR)) == Q_NULLPTR )
 			userNameItem = addNewRow(rosPPPSecret.userName());
 
-		userNameItem->rosPPPSecret = rosPPPSecret;
+		userNameItem->rosCachedPPPSecret = rosPPPSecret;
+		userNameItem->rosPPPSecretMap.insert(rosPPPSecret.routerName(), rosPPPSecret);
 		m_secretIDMap[createObjectIDKey(rosPPPSecret)] = userNameItem;
 	}
 
@@ -231,12 +252,12 @@ void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &rosPPPSecret
 	setupCellItem( userNameItem->row(), Columns::ClientCode,		rosPPPSecret.clientCode() );
 	setupCellItem( userNameItem->row(), Columns::UserProfile,		rosPPPSecret.originalProfile() );
 	setupCellItem( userNameItem->row(), Columns::ClientName,		rosPPPSecret.clientName() );
-	setupCellItem( userNameItem->row(), Columns::ClientAddress,		rosPPPSecret.address() );
-	setupCellItem( userNameItem->row(), Columns::ClientCity,		rosPPPSecret.city() );
-	setupCellItem( userNameItem->row(), Columns::ClientPhone,		rosPPPSecret.phones() );
-	setupCellItem( userNameItem->row(), Columns::ClientInstaller,	rosPPPSecret.installerName() );
-	setupCellItem( userNameItem->row(), Columns::ClientEmail,		rosPPPSecret.email() );
-	setupCellItem( userNameItem->row(), Columns::ClientAnnotations,	rosPPPSecret.notes() );
+	setupCellItem( userNameItem->row(), Columns::ClientAddress,		rosPPPSecret.clientAddress() );
+	setupCellItem( userNameItem->row(), Columns::ClientCity,		rosPPPSecret.clientCity() );
+	setupCellItem( userNameItem->row(), Columns::ClientPhone,		rosPPPSecret.clientPhones() );
+	setupCellItem( userNameItem->row(), Columns::Installer,			rosPPPSecret.installerName() );
+	setupCellItem( userNameItem->row(), Columns::ClientEmail,		rosPPPSecret.clientEmail() );
+	setupCellItem( userNameItem->row(), Columns::ClientAnnotations,	rosPPPSecret.clientNotes() );
 
 	// This columns can be filled by active data before the secred was reported. So, here will set data only if they're empty.
 	// TODO: Last logg off must show the last (date-nearest) value because every router will has diferent time-stamp.
@@ -247,7 +268,7 @@ void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &rosPPPSecret
 	if( item(userNameItem->row(), Columns::ActiveRouter) == Q_NULLPTR )
 		setupCellItem( userNameItem->row(), Columns::ActiveRouter,	tr("Ninguno") );
 
-	setupRemoteIPCellItem(userNameItem->row(), userNameItem->rosPPPActive.currentIPv4(), userNameItem->rosPPPSecret.staticIP() );
+	setupRemoteIPCellItem(userNameItem->row(), userNameItem->rosPPPActive.currentIPv4(), userNameItem->rosCachedPPPSecret.staticIP() );
 
 	// Quite a long statement... just to pass a CanceledUndefined parameter if client has service canceled but their state does not match.
 	setupServiceCellItem( userNameItem->row(),
@@ -300,7 +321,7 @@ void QROSSecretTableWidget::onROSActiveModReply(const ROSPPPActive &rosPPPActive
 	m_activeIDMap[rosPPPActive.rosObjectID()] = userNameItem;
 
 	setupActiveStatusCellItem( userNameItem->row(), rosPPPActive.uptime(), QDateTime() );
-	setupRemoteIPCellItem(userNameItem->row(), userNameItem->rosPPPActive.currentIPv4(), userNameItem->rosPPPSecret.staticIP() );
+	setupRemoteIPCellItem(userNameItem->row(), userNameItem->rosPPPActive.currentIPv4(), userNameItem->rosCachedPPPSecret.staticIP() );
 	setupCellItem( userNameItem->row(), Columns::ActiveRouter, rosPPPActive.routerName() );
 	blockSignals(false);
 }
@@ -319,7 +340,7 @@ void QROSSecretTableWidget::onROSActiveDelReply(const QString &routerName, const
 			blockSignals(true);
 			setupActiveStatusCellItem( userNameItem->row(), QDateTime(), QDateTime::currentDateTime() );
 			setupCellItem( userNameItem->row(), Columns::ActiveRouter, tr("Ninguno") );
-			setupRemoteIPCellItem(userNameItem->row(), userNameItem->rosPPPActive.currentIPv4(), userNameItem->rosPPPSecret.staticIP() );
+			setupRemoteIPCellItem(userNameItem->row(), userNameItem->rosPPPActive.currentIPv4(), userNameItem->rosCachedPPPSecret.staticIP() );
 			m_activeIDMap.remove(rosObjectID);
 			blockSignals(false);
 		}
@@ -397,4 +418,13 @@ QStringList QROSSecretTableWidget::staticIPs(int row) const
 	QString clientProfileName = item(row, Columns::UserProfile)->text();
 	QString clientProfileGroup = gGlobalConfig.clientProfileMap().groupName(clientProfileName);
 	return gGlobalConfig.staticIPv4RangeListMap().staticIPv4StringList(clientProfileGroup);
+}
+
+void QROSSecretTableWidget::onCellDobleClic(QTableWidgetItem *item)
+{
+	if( item->column() == static_cast<int>(Columns::UserName) )
+	{
+		QROSUserNameWidgetItem *userNameItem = static_cast<QROSUserNameWidgetItem*>(item);
+		emit editPPPUser( userNameItem->rosPPPSecretMap, userNameItem->rosPPPActive );
+	}
 }

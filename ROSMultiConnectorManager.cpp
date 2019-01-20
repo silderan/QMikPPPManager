@@ -75,13 +75,11 @@ bool ROSMultiConnectManager::areAllConnected() const
 ROSDataBasePList ROSMultiConnectManager::rosDataList(DataTypeID dataTypeID, const QString &routerName) const
 {
 	ROSDataBasePList rtn;
-	ROSPPPoEManagerIterator pppoeManagerIterator(m_rosPppoeManagerMap);
 
-	while( pppoeManagerIterator.hasNext() )
+	foreach( ROSPPPoEManager *pppoeManager, m_rosPppoeManagerMap)
 	{
-		pppoeManagerIterator.next();
-		if( routerName.isEmpty() || (routerName == pppoeManagerIterator.value()->routerName()) )
-			rtn.append( pppoeManagerIterator.value()->rosDataList(dataTypeID) );
+		if( routerName.isEmpty() || (routerName == pppoeManager->routerName()) )
+			rtn.append( pppoeManager->rosDataList(dataTypeID) );
 	}
 	return rtn;
 }
@@ -89,10 +87,12 @@ ROSDataBasePList ROSMultiConnectManager::rosDataList(DataTypeID dataTypeID, cons
 QStringList ROSMultiConnectManager::rosAPIUsersGrupList() const
 {
 	QStringList rtn;
+	QString t;
 	foreach( const ROSDataBase *rosData, rosDataList(DataTypeID::APIUsersGroup) )
 	{
-		if( !rtn.contains( static_cast<const ROSAPIUsersGroup*>(rosData)->groupName()) )
-			rtn.append( static_cast<const ROSAPIUsersGroup*>(rosData)->groupName() );
+		t = static_cast<const ROSAPIUsersGroup*>(rosData)->groupName();
+		if( !t.isEmpty() && !rtn.contains(t) )
+			rtn.append( t );
 	}
 
 	return rtn;
@@ -101,10 +101,38 @@ QStringList ROSMultiConnectManager::rosAPIUsersGrupList() const
 QStringList ROSMultiConnectManager::pppProfileNameList() const
 {
 	QStringList rtn;
+	QString t;
 	foreach( const ROSDataBase *rosData, rosDataList(DataTypeID::PPPProfile) )
 	{
-		if( !rtn.contains( static_cast<const ROSPPPProfile*>(rosData)->profileName()) )
-			rtn.append( static_cast<const ROSPPPProfile*>(rosData)->profileName() );
+		t = static_cast<const ROSPPPProfile*>(rosData)->profileName();
+		if( !t.isEmpty() && !rtn.contains(t) )
+			rtn.append( t );
+	}
+	return rtn;
+}
+
+QStringList ROSMultiConnectManager::clientCities() const
+{
+	QStringList rtn;
+	QString t;
+	foreach( const ROSDataBase *rosData, rosDataList(DataTypeID::PPPSecret) )
+	{
+		t = static_cast<const ROSPPPSecret*>(rosData)->clientCity();
+		if( !t.isEmpty() && !rtn.contains(t) )
+			rtn.append( t );
+	}
+	return rtn;
+}
+
+QStringList ROSMultiConnectManager::staticIPv4List() const
+{
+	QStringList rtn;
+	QString t;
+	foreach( const ROSDataBase *rosData, rosDataList(DataTypeID::PPPSecret) )
+	{
+		t = static_cast<const ROSPPPSecret*>(rosData)->staticIP().toString();
+		if( !t.isEmpty() && !rtn.contains(t) )
+			rtn.append( t );
 	}
 	return rtn;
 }

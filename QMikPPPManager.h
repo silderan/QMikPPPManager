@@ -27,6 +27,7 @@
 #include "Dialogs/DlgDataBase.h"
 #include "Dialogs/DlgROSAPIUsers.h"
 #include "Dialogs/DlgPPPProfiles.h"
+#include "Dialogs/DlgPPPUser.h"
 
 namespace Ui
 {
@@ -100,6 +101,8 @@ private slots:
 
 	void on_apiUsersButton_clicked();
 	void on_pppProfilesButton_clicked();
+
+	void onPPPEditRequest(const QMap<QString, ROSPPPSecret> &pppSecretMap, const ROSPPPActive &pppActive);
 
 public slots:
 	void updateConfig();

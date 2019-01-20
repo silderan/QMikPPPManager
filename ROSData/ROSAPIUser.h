@@ -45,7 +45,7 @@ public:
 	void setGroupName(const QString group)	{ m_group = group;	}
 
 	Level userLevel()const					{ return m_level;	}
-	void setUserLevel(Level level)			{ m_level = level;	}
+	void setUserLevel(Level level)			{ m_level = level; setComment(levelName());	}
 
 	virtual void fromSentence(const QString &routerName, const ROS::QSentence &sentence);
 	virtual ROS::QSentence &toSentence(ROS::QSentence &sentence) const;

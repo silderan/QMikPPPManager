@@ -11,16 +11,16 @@ const QString &ROSPPPSecret::commentString() const
 			QString("%1$%2$%3$%4$%5$%6$%7$%8$%9$%10$%11$%12$%13$%14$%15")
 				.arg(originalProfile())
 				.arg(clientName())
-				.arg(address())
-				.arg(city())
-				.arg(phones())
+				.arg(clientAddress())
+				.arg(clientCity())
+				.arg(clientPhones())
 				.arg(installerName())
 				.arg(comercial())
-				.arg(email())
+				.arg(clientEmail())
 				.arg(needsPublicIP())
-				.arg(notes())
-				.arg(SSID())
-				.arg(wPass())
+				.arg(clientNotes())
+				.arg(wifi2SSID())
+				.arg(wifi2WPA())
 				.arg(clientCode())
 				.arg("")	// Old EB/AP field.
 				.arg(serviceStateROSString());
@@ -41,16 +41,16 @@ void ROSPPPSecret::setCommentString(const QString &commentString)
 		case 15:	setServiceState( fields[--i] );				[[clang::fallthrough]];
 		case 14:	--i;/*There was EB/AP, now is deprecated*/	[[clang::fallthrough]];
 		case 13:	setClientCode( fields[--i] );				[[clang::fallthrough]];
-		case 12:	setWPass( fields[--i] );					[[clang::fallthrough]];
-		case 11:	setSSID( fields[--i] );						[[clang::fallthrough]];
-		case 10:	setNotes( fields[--i] );					[[clang::fallthrough]];
+		case 12:	setWiFi2WPA( fields[--i] );					[[clang::fallthrough]];
+		case 11:	setWiFi2SSID( fields[--i] );				[[clang::fallthrough]];
+		case 10:	setClientNotes( fields[--i] );				[[clang::fallthrough]];
 		case 9:		setNeedsPublicIP( !fields[--i].isEmpty() );	[[clang::fallthrough]];
-		case 8:		setEmail( fields[--i] );					[[clang::fallthrough]];
+		case 8:		setClientEmail( fields[--i] );				[[clang::fallthrough]];
 		case 7:		setComercial( fields[--i] );				[[clang::fallthrough]];
 		case 6:		setInstallerName( fields[--i] );			[[clang::fallthrough]];
-		case 5:		setPhones( fields[--i] );					[[clang::fallthrough]];
-		case 4:		setCity( fields[--i] );						[[clang::fallthrough]];
-		case 3:		setAddress( fields[--i] );					[[clang::fallthrough]];
+		case 5:		setClientPhones( fields[--i] );				[[clang::fallthrough]];
+		case 4:		setClientCity( fields[--i] );				[[clang::fallthrough]];
+		case 3:		setClientAddress( fields[--i] );			[[clang::fallthrough]];
 		case 2:		setClientName( fields[--i] );
 					setOriginalProfile( fields[--i] );
 			break;
@@ -80,6 +80,7 @@ QString ROSPPPSecret::serviceStateROSString(ServiceState st)
 	case ROSPPPSecret::CanceledRetired:		return "CR";
 	case ROSPPPSecret::CanceledUndefined:	return "CU";
 	}
+	return QString();
 }
 QString ROSPPPSecret::serviceStateROSString() const
 {
@@ -90,18 +91,31 @@ QString ROSPPPSecret::serviceStateString(ROSPPPSecret::ServiceState st)
 {
 	switch( st )
 	{
-	case ROSPPPSecret::ActiveTemporally:	return QObject::tr("Activo temporal");
-	case ROSPPPSecret::ActiveUndefined:		return QObject::tr("Activo");
-	case ROSPPPSecret::CanceledNoPay:		return QObject::tr("Cancelado: debe facturas");
-	case ROSPPPSecret::CanceledTemporally:	return QObject::tr("Cancelado temporal");
-	case ROSPPPSecret::CanceledTechnically:	return QObject::tr("Cancelado técnico");
-	case ROSPPPSecret::CanceledRetired:		return QObject::tr("Cancelado: equipos retirados");
-	case ROSPPPSecret::CanceledUndefined:	return QObject::tr("Cancelado ...");
+	case ServiceState::ActiveTemporally:	return QObject::tr("Activo temporal");
+	case ServiceState::ActiveUndefined:		return QObject::tr("Activo");
+	case ServiceState::CanceledNoPay:		return QObject::tr("Cancelado: debe facturas");
+	case ServiceState::CanceledTemporally:	return QObject::tr("Cancelado temporal");
+	case ServiceState::CanceledTechnically:	return QObject::tr("Cancelado técnico");
+	case ServiceState::CanceledRetired:		return QObject::tr("Cancelado: equipos retirados");
+	case ServiceState::CanceledUndefined:	return QObject::tr("Cancelado ...");
 	}
+	return QString();
 }
 QString ROSPPPSecret::serviceStateString() const
 {
 	return ROSPPPSecret::serviceStateString(m_serviceState);
+}
+
+QStringList ROSPPPSecret::serviceStateNames()
+{
+	QStringList rtn;
+	QString s;
+	int i = 0;
+
+	while( !(s = ROSPPPSecret::serviceStateString(static_cast<ServiceState>(i++))).isEmpty() )
+		rtn.append(s);
+
+	return rtn;
 }
 
 
@@ -165,19 +179,19 @@ ROS::QSentence &ROSPPPSecret::toSentence(ROS::QSentence &sentence) const
 {
 	Q_ASSERT( !m_profile.isEmpty() );
 
-	ROS::QSentence *s = &sentence;
-	s->addAttribute( "name", m_userName );
-	s->addAttribute( "password", m_userPass );
-	s->addAttribute( "profile", m_profile );
-	s->addAttribute( "service", "pppoe" );
+	sentence.addAttribute( "name", m_userName );
+	sentence.addAttribute( "password", m_userPass );
+	sentence.addAttribute( "profile", m_profile );
+	sentence.addAttribute( "service", "pppoe" );
 	if( m_staticIP.isValid() )
-		s->addAttribute( "remote-address", m_staticIP.toString() );
+		sentence.addAttribute( "remote-address", m_staticIP.toString() );
 	else
-		s->addAttribute( "!remote-address", "" );
+		sentence.addAttribute( "!remote-address", "" );
 
-	s->addAttribute( "comment", commentString() );
-
-	return ROSDataBase::toSentence(sentence);
+	ROSDataBase::toSentence(sentence);
+	// This must be after base toSentence because it sets the comment attribute.
+	sentence.addAttribute( "comment", commentString() );
+	return sentence;
 }
 
 bool ROSPPPSecret::hasSameData(const ROSDataBase &rosData) const
@@ -246,14 +260,14 @@ QList<ROS::QSentence> ROSPPPSecret::simulatedStepSentences(const QString &router
 		ROSPPPSecret secret(routerName);
 		secret.setUserName( SIMULATED_USER_NAME(i) );
 		secret.setUserPass( "PASS" );
-		secret.setCity( "Ciudad" );
-		secret.setAddress( "dirección" );
-		secret.setSSID( QString("SSID-%1").arg(i) );
-		secret.setEmail( QString("Email-%1").arg(i) );
-		secret.setNotes( QString("Notas %1").arg(i) );
-		secret.setWPass( QString("WPASS%1").arg(i) );
-		secret.setPhones( QString("96441234%1").arg(i) );
-		secret.setProfile( (i < 3) ? "Basico" : (i < 6) ? "Medio" : "Alto" );
+		secret.setClientCity( "Ciudad" );
+		secret.setClientAddress( "dirección" );
+		secret.setWiFi2SSID( QString("SSID-%1").arg(i) );
+		secret.setClientEmail( QString("Email-%1").arg(i) );
+		secret.setClientNotes( QString("Notas %1").arg(i) );
+		secret.setWiFi2WPA( QString("WPASS%1").arg(i) );
+		secret.setClientPhones( QString("96441234%1").arg(i) );
+		secret.setPPPProfile( (i < 3) ? "Basico" : (i < 6) ? "Medio" : "Alto" );
 		secret.setStaticIP( (i == 3) ? IPv4("192.168.1.3") : (i == 6) ? IPv4("192.168.1.6") : IPv4() );
 		secret.setComercial( "Comercial" );
 		secret.setClientCode( QString("1234%1").arg(i) );
@@ -296,14 +310,14 @@ QList<ROS::QSentence> ROSPPPSecret::simulatedStepSentences(const QString &router
 			ROSPPPSecret secret(routerName);
 			secret.fromSentence(routerName, sentence);
 			if( !(rC & 2) )
-				secret.setAddress( QString("Dirección %1").arg(random) );
+				secret.setClientAddress( QString("Dirección %1").arg(random) );
 			else
 			{
 				secret.setServiceState( static_cast<ServiceState>(rD % 7) );
 				if( secret.serviceState() < ServiceState::CanceledNoPay )
-					secret.setProfile( secret.originalProfile() );
+					secret.setPPPProfile( secret.originalProfile() );
 				else
-					secret.setProfile("SinServicio");
+					secret.setPPPProfile("SinServicio");
 			}
 			secret.toSentence(sentence);
 			currentMapList[routerName][i] = sentence;

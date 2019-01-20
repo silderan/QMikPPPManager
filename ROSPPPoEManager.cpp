@@ -72,7 +72,12 @@ ROSDataManagerBase &ROSPPPoEManager::rosDataManager(DataTypeID dataTypeID)
 	return m_rosAPIUserManager;
 }
 
-ROSDataBasePList ROSPPPoEManager::rosDataList(DataTypeID dataTypeID)
+const ROSDataManagerBase &ROSPPPoEManager::rosDataManager(DataTypeID dataTypeID) const
+{
+	return const_cast<ROSPPPoEManager*>(this)->rosDataManager(dataTypeID);
+}
+
+ROSDataBasePList ROSPPPoEManager::rosDataList(DataTypeID dataTypeID) const
 {
 	return rosDataManager(dataTypeID).rosDataList();
 }

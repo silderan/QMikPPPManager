@@ -1,6 +1,7 @@
 #ifndef QROSSECRETTABLEWIDGET_H
 #define QROSSECRETTABLEWIDGET_H
 
+#include <QMap>
 #include <QTableWidget>
 #include <QTableWidgetItem>
 
@@ -28,10 +29,11 @@ class QROSUserNameWidgetItem : public QTableWidgetItem
 {
 
 public:
-	QROSUserNameWidgetItem() : rosPPPSecret(""), rosPPPActive("")
+	QROSUserNameWidgetItem() : rosCachedPPPSecret(""), rosPPPActive("")
 	{	}
 
-	ROSPPPSecret rosPPPSecret;
+	QMap<QString, ROSPPPSecret> rosPPPSecretMap;
+	ROSPPPSecret rosCachedPPPSecret;
 	ROSPPPActive rosPPPActive;
 	QRouterIDMap rosPPPSecretIDMap;
 };
@@ -58,6 +60,7 @@ class QROSActiveStatusCellItem : public QStyledWidgetItem
 	QDateTime m_downtime;
 
 	void updateText();
+
 public:
 	QROSActiveStatusCellItem() : QStyledWidgetItem()
 	{	}
@@ -108,16 +111,14 @@ public:
 		ClientAddress,
 		ClientCity,
 		ClientPhone,
-		ClientInstaller,
+		Installer,
 		ClientEmail,
 		ClientAnnotations,
 		TotalColumns
 	};
-	QROSUserNameWidgetItem *addNewRow(const QString &userName);
 
-	QROSUserNameWidgetItem *userNameWidgetItem(int row);
-	static QString createObjectIDKey(const ROSPPPSecret &rosPPPSecret);
-	static QString createObjectIDKey(const QString &routerName, const QString &rosObjectID);
+private:
+	QROSUserNameWidgetItem *addNewRow(const QString &userName);
 
 	void onROSSecretModReply(const ROSPPPSecret &rosPPPSecret);
 	void onROSSecretDelReply(const QString &routerName, const QString &rosObjectID);
@@ -142,6 +143,10 @@ public:
 	explicit QROSSecretTableWidget(QWidget *papi = Q_NULLPTR);
 	void applyFilter();
 
+	QROSUserNameWidgetItem *userNameWidgetItem(int row);
+	static QString createObjectIDKey(const ROSPPPSecret &rosPPPSecret);
+	static QString createObjectIDKey(const QString &routerName, const QString &rosObjectID);
+
 	QString cellText(int row, Columns col) const;
 	QString originalProfile(int row) const	{ return cellText(row, UserProfile); }
 	QString currentIP(int row);
@@ -154,6 +159,12 @@ public:
 
 	QStringList usedStaticIPs() const;
 	QStringList staticIPs(int row) const;
+
+private slots:
+	void onCellDobleClic(QTableWidgetItem *item);
+
+signals:
+	void editPPPUser(const QMap<QString, ROSPPPSecret> &pppSecretMap, const ROSPPPActive &pppActive);
 };
 
 #endif // QROSSECRETTABLEWIDGET_H

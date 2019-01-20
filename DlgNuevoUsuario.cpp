@@ -27,15 +27,11 @@ DlgNuevoUsuario::DlgNuevoUsuario(ROS::Comm *api, const QSecretData &sd, QSecretD
 	ui->leTelefonos->setText(sd.telefonos());
 	ui->leWPass->setText(sd.wPass());
 
-	ui->chVozIP->setChecked(sd.usaIPPublica(IPPUBLICA_VOZIP));
-	ui->chDVR->setChecked(sd.usaIPPublica(IPPUBLICA_DVR));
-	ui->chPuertos->setChecked(sd.usaIPPublica(IPPUBLICA_PUERTOS));
-	ui->chOtros->setChecked(sd.usaIPPublica(IPPUBLICA_OTROS));
-	ui->leUser->setFocus();
-	ui->leUser->selectAll();
+//	ui->leUser->setFocus();
+//	ui->leUser->selectAll();
 
-	if( gGlobalConfig.nivelUsuario() < QConfigData::Instalador )
-		this->setDisabled(true);
+//	if( gGlobalConfig.nivelUsuario() < QConfigData::Instalador )
+//		this->setDisabled(true);
 	updateDialog();
 }
 
@@ -344,25 +340,25 @@ QString DlgNuevoUsuario::contactInfo()
 	else
 		txt.append( tr("Instalado por %1.\n").arg(ui->cbInstalador->currentText()) );
 
-	if( ui->chDVR->isChecked() ||
-		ui->chVozIP->isChecked() ||
-		ui->chOtros->isChecked() ||
-		ui->chPuertos->isChecked() )
-	{
-		txt.append( tr("El cliente requiere IP pública porque:\n") );
-		if( ui->chDVR->isChecked() )
-			txt.append( tr("Tiene equipos DVR.\n") );
-		if( ui->chVozIP->isChecked() )
-			txt.append( tr("Tiene telefonía VoIP.\n") );
-		if( ui->chPuertos->isChecked() )
-			txt.append( tr("Tiene puertos redirigidos.\n") );
-		if( ui->chOtros->isChecked() )
-			txt.append( tr("Razón desconocida.\n") );
-	}
-	if( ui->leSSID->text().isEmpty() )
-		txt.append( tr("No tenemos información sobre su red WiFi\n") );
-	else
-		txt.append( tr("WiFi: SSID=%1 PASS=%2\n").arg(ui->leSSID->text(), ui->leWPass->text()) );
+////	if( ui->chDVR->isChecked() ||
+////		ui->chVozIP->isChecked() ||
+////		ui->chOtros->isChecked() ||
+////		ui->chPuertos->isChecked() )
+////	{
+////		txt.append( tr("El cliente requiere IP pública porque:\n") );
+////		if( ui->chDVR->isChecked() )
+////			txt.append( tr("Tiene equipos DVR.\n") );
+////		if( ui->chVozIP->isChecked() )
+////			txt.append( tr("Tiene telefonía VoIP.\n") );
+////		if( ui->chPuertos->isChecked() )
+////			txt.append( tr("Tiene puertos redirigidos.\n") );
+////		if( ui->chOtros->isChecked() )
+////			txt.append( tr("Razón desconocida.\n") );
+////	}
+//	if( ui->leSSID->text().isEmpty() )
+//		txt.append( tr("No tenemos información sobre su red WiFi\n") );
+//	else
+//		txt.append( tr("WiFi: SSID=%1 PASS=%2\n").arg(ui->leSSID->text(), ui->leWPass->text()) );
 	txt.append( ui->leNotas->text() );
 	return txt;
 }
@@ -421,10 +417,10 @@ void DlgNuevoUsuario::on_btCrear_clicked()
 	m_secret.setTelefonos(ui->leTelefonos->text());
 	m_secret.setSSID(ui->leSSID->text());
 	m_secret.setWPass(ui->leWPass->text());
-	m_secret.setFlagUsaIPPublica(ui->chVozIP->isChecked(), IPPUBLICA_VOZIP);
-	m_secret.setFlagUsaIPPublica(ui->chPuertos->isChecked(), IPPUBLICA_PUERTOS);
-	m_secret.setFlagUsaIPPublica(ui->chDVR->isChecked(), IPPUBLICA_DVR);
-	m_secret.setFlagUsaIPPublica(ui->chOtros->isChecked(), IPPUBLICA_OTROS);
+//	m_secret.setFlagUsaIPPublica(ui->chVozIP->isChecked(), IPPUBLICA_VOZIP);
+//	m_secret.setFlagUsaIPPublica(ui->chPuertos->isChecked(), IPPUBLICA_PUERTOS);
+//	m_secret.setFlagUsaIPPublica(ui->chDVR->isChecked(), IPPUBLICA_DVR);
+//	m_secret.setFlagUsaIPPublica(ui->chOtros->isChecked(), IPPUBLICA_OTROS);
 	m_secret.setComercial(ui->cbComercial->currentText());
 	if( !ui->leNotas->text().isEmpty() )
 		m_secret.setNotas(ui->leNotas->text());

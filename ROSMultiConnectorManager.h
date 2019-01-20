@@ -49,6 +49,8 @@ public:
 	ROSDataBasePList rosDataList(DataTypeID dataTypeID, const QString &routerName = QString()) const;
 	QStringList rosAPIUsersGrupList() const;
 	QStringList pppProfileNameList() const;
+	QStringList clientCities() const;
+	QStringList staticIPv4List() const;
 
 #ifdef SIMULATE_ROS_INPUTS
 	void simulateROSConnection();

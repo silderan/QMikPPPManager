@@ -108,12 +108,6 @@ public:
 	QClientProfileMap &clientProfileMap()				{ return m_clientProfileMap;	}
 	const QClientProfileMap &clientProfileMap()	const	{ return m_clientProfileMap;	}
 
-//	void addRange(const IPv4Range &ipv4Range)		{ m_staticIPv4Map.addRange(ipv4Range);			}
-//	void delRange(const QString &ipv4RangeName)		{ m_staticIPv4Map.delRange(ipv4RangeName);		}
-//	void delRange(const IPv4Range &ipv4Range)		{ m_staticIPv4Map.delRange(ipv4Range.name());	}
-
-//	bool esIPEstatica(const IPv4 &ipv4) const		{ return m_staticIPv4Map.inRange(ipv4);	}
-
 	void setInstaladores(const QStringList &l)		{ m_instaladores = l;	}
 	void addInstalador(const QString &instalador)	{ if( !m_instaladores.contains(instalador) ) m_instaladores.append(instalador); }
 	const QStringList &instaladores() const			{ return m_instaladores;}

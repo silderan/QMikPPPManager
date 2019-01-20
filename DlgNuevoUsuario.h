@@ -34,6 +34,7 @@ class DlgNuevoUsuario : public QDialog
 
 	void updateDialog();
 	QString contactInfo();
+
 public:
 	explicit DlgNuevoUsuario(ROS::Comm *api, const QSecretData &sd, QSecretDataModel &secrets, QWidget *parent = Q_NULLPTR);
 	~DlgNuevoUsuario();
