@@ -359,58 +359,16 @@ bool DlgPPPUser::getLocalDMZ()
 
 bool DlgPPPUser::getLocalPorts()
 {
-	m_pppSecret.portForwardList().clear();
 	if( !ui->lanGroupBox->isChecked() )
-		return true;
-	for( int row = 0; row < ui->lanPortsTableWidget->rowCount(); ++row )
 	{
-		QString prot = static_cast<QComboBox*>(ui->lanPortsTableWidget->cellWidget(row, 0))->currentText();
-		quint16 publicPortFrom = static_cast<quint16>(static_cast<QSpinBox*>(ui->lanPortsTableWidget->cellWidget(row, 1))->value());
-		quint16 publicPortTo = static_cast<quint16>(static_cast<QSpinBox*>(ui->lanPortsTableWidget->cellWidget(row, 2))->value());
-		quint16 privatePortFrom = static_cast<quint16>(static_cast<QSpinBox*>(ui->lanPortsTableWidget->cellWidget(row, 3))->value());
-		quint16 privatePortTo = static_cast<quint16>(static_cast<QSpinBox*>(ui->lanPortsTableWidget->cellWidget(row, 4))->value());
-		IPv4 destIP( ui->lanPortsTableWidget->item(row, 5)->text() );
-
-		if( !destIP.isValid() )
-		{
-			raiseWarning( tr("La IP destino para la redirección de puertos de la linea %1 no es válida").arg(row) );
-			return false;
-		}
-		if( (publicPortTo == 0) && (publicPortFrom == 0) )
-		{
-			raiseWarning( tr("Los puertos públicos 'Desde' y 'hasta' son 0").arg(row) );
-			return false;
-		}
-		if( publicPortTo == 0 )
-			publicPortTo = publicPortFrom;
-
-		if( publicPortFrom == 0 )
-			publicPortFrom = publicPortTo;
-
-		if( publicPortFrom < publicPortTo )
-		{
-			raiseWarning( tr("El puerto público 'Desde' de la linea %1 es mayor que el puerto 'hasta'").arg(row) );
-			return false;
-		}
-		if( (privatePortTo == 0) && (privatePortFrom == 0) )
-		{
-			privatePortTo = publicPortTo;
-			privatePortFrom = publicPortFrom;
-		}
-		else
-		{
-			if( privatePortTo == 0 )
-				privatePortTo = privatePortFrom;
-
-			if( privatePortFrom == 0 )
-				privatePortFrom = privatePortTo;
-		}
-		if( (publicPortTo - publicPortFrom) != (privatePortTo - privatePortFrom) )
-		{
-			raiseWarning( tr("El rango de puertos públicos y privados en la fila no coinciden").arg(row) );
-			return false;
-		}
-		m_pppSecret.portForwardList().append( PortForward( IPProtocol::fromString(prot), publicPortFrom, publicPortTo, privatePortFrom, privatePortTo, destIP) );
+		m_pppSecret.portForwardList().clear();
+		return true;
+	}
+	m_pppSecret.setPortForwardList( ui->lanPortsTableWidget->portForwardList() );
+	if( !ui->lanPortsTableWidget->lastError().isEmpty() )
+	{
+		raiseWarning( ui->lanPortsTableWidget->lastError() );
+		return false;
 	}
 	return true;
 }
@@ -481,13 +439,23 @@ void DlgPPPUser::updateUserData()
 	ui->clientPhonesLineEdit->setText( m_pppSecret.clientPhones() );
 	ui->clientEmailLineEdit->setText( m_pppSecret.clientEmail() );
 	ui->clientNotesLineEdit->setText( m_pppSecret.clientNotes() );
+	ui->installNotesLineEdit->setText( m_pppSecret.installNotes() );
 
 	ui->wifiGroupBox->setChecked( !m_pppSecret.wifi2SSID().isEmpty() );
 	ui->wifi2SSIDLineEdit->setText( m_pppSecret.wifi2SSID() );
 	ui->wifi2WPALineEdit->setText( m_pppSecret.wifi2WPA() );
+	ui->wifi5SSIDLineEdit->setText( m_pppSecret.wifi5SSID() );
+	ui->wifi5WPALineEdit->setText( m_pppSecret.wifi5WPA() );
 
-//	ui->wifi5SSIDLineEdit->setText( pppSecret.wifi5SSID() );
-//	ui->wifi5WPALineEdit->setText( pppSecret.wifi5Pass() );
+	ui->voipGroupBox->setChecked( !m_pppSecret.voipSIPUserName().isEmpty() );
+	ui->voipPhoneNumber->setText( m_pppSecret.voipPhoneNumber() );
+	ui->voipUserName->setText( m_pppSecret.voipSIPUserName() );
+	ui->voipUserPass->setText( m_pppSecret.voipSIPUserPass() );
+
+	ui->lanGroupBox->setChecked( m_pppSecret.installLANIP().isValid() || m_pppSecret.installLANDMZ().isValid() || !m_pppSecretMap.isEmpty() );
+	ui->lanIPLineEdit->setText( m_pppSecret.installLANIP().toString() );
+	ui->lanDMZLineEdit->setText( m_pppSecret.installLANDMZ().toString() );
+	ui->lanPortsTableWidget->setup( m_pppSecret.portForwardList() );
 }
 
 void DlgPPPUser::updateDialogInfo()
@@ -643,4 +611,14 @@ void DlgPPPUser::on_applyDataButton_clicked()
 		}
 		multiConnectionManager.updateRemoteData(m_pppSecret, routerMapIP);
 	}
+}
+
+void DlgPPPUser::on_addPortButton_clicked()
+{
+	ui->lanPortsTableWidget->addPortForwardRow( PortForward() );
+}
+
+void DlgPPPUser::on_delPortButton_clicked()
+{
+	ui->lanPortsTableWidget->removeRow(ui->lanPortsTableWidget->currentRow());
 }

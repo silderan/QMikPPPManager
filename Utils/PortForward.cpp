@@ -25,6 +25,53 @@ IPProtocol::Type IPProtocol::fromString(const QString protocol)
 	return IPProtocol::Unkown;
 }
 
+
+QIPProtocolComboBox::QIPProtocolComboBox(QWidget *papi) : QComboBox(papi)
+{
+	addItems( QStringList() << "unknown" << "tcp" << "udp" << "tcp/udp" );
+}
+
+QIPProtocolComboBox::QIPProtocolComboBox(const QString &protoName, QWidget *papi) : QComboBox(papi)
+{
+	addItems( QStringList() << "unknown" << "tcp" << "udp" << "tcp/udp" );
+	setProtocol(protoName);
+}
+
+QIPProtocolComboBox::QIPProtocolComboBox(IPProtocol::Type type, QWidget *papi) : QComboBox(papi)
+{
+	addItems( QStringList() << "unknown" << "tcp" << "udp" << "tcp/udp" );
+	setProtocol(type);
+}
+
+void QIPProtocolComboBox::setProtocol(const QString &protoName)
+{
+	setCurrentIndex( findData(protoName, Qt::EditRole) );
+}
+
+void QIPProtocolComboBox::setProtocol(IPProtocol::Type type)
+{
+	Q_ASSERT( type <= IPProtocol::Both );
+	setCurrentIndex( static_cast<int>(type) );
+}
+
+IPProtocol::Type QIPProtocolComboBox::protocol() const
+{
+	return static_cast<IPProtocol::Type>(currentIndex());
+}
+
+QPortSpinBox::QPortSpinBox(QWidget *papi) : QSpinBox(papi)
+{
+	setMinimum(1);
+	setMaximum(0xFFFF);
+}
+
+QPortSpinBox::QPortSpinBox(quint16 port, QWidget *papi) : QSpinBox(papi)
+{
+	setMinimum(1);
+	setMaximum(0xFFFF);
+	setValue(port);
+}
+
 QString PortForward::toString() const
 {
 	QString rtn;

@@ -78,6 +78,10 @@ private slots:
 
 	void on_applyDataButton_clicked();
 
+	void on_addPortButton_clicked();
+
+	void on_delPortButton_clicked();
+
 public slots:
 	void onEditUserRequest(const QMap<QString, ROSPPPSecret> &pppSecretMap, const ROSPPPActive &pppActive);
 

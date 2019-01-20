@@ -2,6 +2,9 @@
 #define PORTFORWARD_H
 
 #include <QString>
+#include <QComboBox>
+#include <QSpinBox>
+
 #include "IPv4Range.h"
 
 class IPProtocol
@@ -16,6 +19,28 @@ public:
 	};
 	static QString toString(IPProtocol::Type type);
 	static IPProtocol::Type fromString(const QString type);
+};
+
+class QIPProtocolComboBox : public QComboBox
+{
+
+public:
+	QIPProtocolComboBox(QWidget *papi = Q_NULLPTR);
+	QIPProtocolComboBox(const QString &protoName, QWidget *papi = Q_NULLPTR);
+	QIPProtocolComboBox(IPProtocol::Type type, QWidget *papi = Q_NULLPTR);
+	void setProtocol(const QString &protoName);
+	void setProtocol(IPProtocol::Type type);
+	IPProtocol::Type protocol() const;
+};
+
+class QPortSpinBox : public QSpinBox
+{
+
+public:
+	QPortSpinBox(QWidget *papi = Q_NULLPTR);
+	QPortSpinBox(quint16 port, QWidget *papi = Q_NULLPTR);
+	quint16 port() const	{ return static_cast<quint16>( value() );	}
+	void setPort(quint16 p)	{ setValue(p);	}
 };
 
 class PortForward
@@ -53,9 +78,17 @@ public:
 	  , m_destIP(destIP)
 	{	}
 
-	const IPProtocol::Type &protocol() const	{ return m_protocol;	}
+	const IPProtocol::Type &protocol() const			{ return m_protocol;	}
 	void setProtocol(const IPProtocol::Type &protocol)	{ m_protocol = protocol;  }
 	void setProtocol(const QString &protocol)			{ setProtocol( IPProtocol::fromString(protocol) ); }
+
+	quint16 publicPortFrom() const		{ return m_publicPortFrom;	}
+	quint16 publicPortTo() const		{ return m_publicPortTo;	}
+
+	quint16 privatePortFrom() const		{ return m_publicPortFrom;	}
+	quint16 privatePortTo() const		{ return m_publicPortTo;	}
+
+	IPv4 destIP() const					{ return m_destIP;	}
 
 	QString toString() const;
 	void fromString(const QString &saveString);

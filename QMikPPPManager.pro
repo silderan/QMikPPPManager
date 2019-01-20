@@ -64,7 +64,8 @@ SOURCES += main.cpp\
     Widgets/QROSSecretTableWidget.cpp \
     Dialogs/DlgPPPUser.cpp \
     Widgets/QFancyComboBox.cpp \
-    Utils/PortForward.cpp
+    Utils/PortForward.cpp \
+    Widgets/QPortForwardTableWidget.cpp
 
 HEADERS  += QMikPPPManager.h \
     Utils/IPv4Range.h \
@@ -129,7 +130,8 @@ HEADERS  += QMikPPPManager.h \
     Widgets/QRemoteIPCellItem.h \
     Dialogs/DlgPPPUser.h \
     Widgets/QFancyComboBox.h \
-    Utils/PortForward.h
+    Utils/PortForward.h \
+    Widgets/QPortForwardTableWidget.h
 
 FORMS    += QMikPPPManager.ui \
 	DlgNuevoUsuario.ui \

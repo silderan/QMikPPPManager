@@ -32,9 +32,6 @@
    </item>
    <item row="3" column="3" rowspan="3" colspan="3">
     <widget class="QGroupBox" name="lanGroupBox">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
      <property name="title">
       <string>Red Local</string>
      </property>
@@ -42,13 +39,10 @@
       <bool>true</bool>
      </property>
      <layout class="QGridLayout" name="gridLayout_6">
-      <item row="0" column="2">
-       <widget class="QLabel" name="label_20">
+      <item row="1" column="5">
+       <widget class="QToolButton" name="delPortButton">
         <property name="text">
-         <string>DMZ</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         <string> - </string>
         </property>
        </widget>
       </item>
@@ -68,8 +62,8 @@
       <item row="0" column="3">
        <widget class="QLineEdit" name="lanDMZLineEdit"/>
       </item>
-      <item row="2" column="0" colspan="4">
-       <widget class="QTableWidget" name="lanPortsTableWidget">
+      <item row="2" column="0" colspan="6">
+       <widget class="QPortForwardTableWidget" name="lanPortsTableWidget">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
           <horstretch>0</horstretch>
@@ -98,13 +92,36 @@
         </column>
        </widget>
       </item>
+      <item row="0" column="2">
+       <widget class="QLabel" name="label_20">
+        <property name="text">
+         <string>DMZ</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
       <item row="1" column="0" colspan="4">
        <widget class="QLabel" name="label_19">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="text">
          <string>Puertos</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="4">
+       <widget class="QToolButton" name="addPortButton">
+        <property name="text">
+         <string>+</string>
         </property>
        </widget>
       </item>
@@ -738,6 +755,11 @@
    <class>QFancyComboBox</class>
    <extends>QComboBox</extends>
    <header>Widgets/QFancyComboBox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QPortForwardTableWidget</class>
+   <extends>QTableWidget</extends>
+   <header>Widgets/QPortForwardTableWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources>
