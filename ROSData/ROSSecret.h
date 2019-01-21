@@ -38,14 +38,14 @@ private:
 	QString m_clientCode;		// Client code for join this data to contable.
 	QString m_installerName;
 	QString m_clientName;
-	QString m_address;
-	QString m_city;
-	QString m_phones;
-	QString m_email;
-	QString m_WiFi2SSID;
-	QString m_WiFi2WPA;
-	QString m_WiFi5SSID;
-	QString m_WiFi5WPA;
+	QString m_clientAddress;
+	QString m_clientCity;
+	QString m_clientPhones;
+	QString m_clientEmail;
+	QString m_wifi2SSID;
+	QString m_wifi2WPA;
+	QString m_wifi5SSID;
+	QString m_wifi5WPA;
 	QString m_clientNotes;
 	QString m_installNotes;
 	QString m_voipPhoneNumber;
@@ -95,29 +95,29 @@ public:
 	const QString & clientName() const			{ return m_clientName;		}
 	void setClientName(const QString &cn)		{ updateNonROSMember(m_clientName, cn);}
 
-	const QString & clientAddress() const			{ return m_address;		}
-	void setClientAddress(const QString &address)	{ updateNonROSMember(m_address, address);	}
+	const QString & clientAddress() const			{ return m_clientAddress;		}
+	void setClientAddress(const QString &address)	{ updateNonROSMember(m_clientAddress, address);	}
 
-	const QString & clientCity() const				{ return m_city;	}
-	void setClientCity(const QString &city)			{ updateNonROSMember(m_city, city);	}
+	const QString & clientCity() const				{ return m_clientCity;	}
+	void setClientCity(const QString &city)			{ updateNonROSMember(m_clientCity, city);	}
 
-	const QString & clientPhones() const			{ return m_phones;		}
-	void setClientPhones(const QString &phones)		{ updateNonROSMember(m_phones, phones);	}
+	const QString & clientPhones() const			{ return m_clientPhones;		}
+	void setClientPhones(const QString &phones)		{ updateNonROSMember(m_clientPhones, phones);	}
 
-	const QString & clientEmail() const				{ return m_email;	}
-	void setClientEmail(const QString &email)		{ updateNonROSMember(m_email, email);	}
+	const QString & clientEmail() const				{ return m_clientEmail;	}
+	void setClientEmail(const QString &email)		{ updateNonROSMember(m_clientEmail, email);	}
 
-	const QString & wifi2SSID() const				{ return m_WiFi2SSID;	}
-	void setWiFi2SSID(const QString &SSID)			{ updateNonROSMember(m_WiFi2SSID, SSID);	}
+	const QString & wifi2SSID() const				{ return m_wifi2SSID;	}
+	void setWiFi2SSID(const QString &SSID)			{ updateNonROSMember(m_wifi2SSID, SSID);	}
 
-	const QString & wifi2WPA() const				{ return m_WiFi2WPA;	}
-	void setWiFi2WPA(const QString &WPass)			{ updateNonROSMember(m_WiFi2WPA, WPass);	}
+	const QString & wifi2WPA() const				{ return m_wifi2WPA;	}
+	void setWiFi2WPA(const QString &WPass)			{ updateNonROSMember(m_wifi2WPA, WPass);	}
 
-	const QString & wifi5SSID() const				{ return m_WiFi5SSID;	}
-	void setWiFi5SSID(const QString &SSID)			{ updateNonROSMember(m_WiFi5SSID, SSID);	}
+	const QString & wifi5SSID() const				{ return m_wifi5SSID;	}
+	void setWiFi5SSID(const QString &SSID)			{ updateNonROSMember(m_wifi5SSID, SSID);	}
 
-	const QString & wifi5WPA() const				{ return m_WiFi5WPA;	}
-	void setWiFi5WPA(const QString &WPass)			{ updateNonROSMember(m_WiFi5WPA, WPass);	}
+	const QString & wifi5WPA() const				{ return m_wifi5WPA;	}
+	void setWiFi5WPA(const QString &WPass)			{ updateNonROSMember(m_wifi5WPA, WPass);	}
 
 	const QString & clientNotes() const				{ return m_clientNotes;	}
 	void setClientNotes(const QString &notes)		{ updateNonROSMember(m_clientNotes, notes);	}

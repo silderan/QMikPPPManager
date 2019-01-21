@@ -39,6 +39,7 @@ public:
 	}
 
 	bool isValid() const	{ return m_ip != 0;	}
+	void clear()			{ m_ip = 0; }
 
 	QString toString() const						{ return UINT_TO_SIPV4(m_ip);	}
 	static QString toString(const quint32 &ipv4)	{ return UINT_TO_SIPV4(ipv4);	}
