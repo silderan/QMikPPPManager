@@ -75,35 +75,38 @@ QROSSecretTableWidget::QROSSecretTableWidget(QWidget *papi) : QTableWidget(papi)
 							   << tr("Notas") );
 	Q_ASSERT( columnCount() == TotalColumns );
 
+	setItemDelegate( new QLineEditItemDelegated( this,
+												 [this] (const QModelIndex &index,const QString &newText)	{ return allowCellChange(index, newText); } ) );
+
 	setItemDelegateForColumn( Columns::UserProfile,
 							  new QComboBoxItemDelegated( this, "", false,
-									/*add list*/			  [] (int)			{ return gGlobalConfig.clientProfileMap().regularProfileNames();	},
-									/*skip list*/			  [] (int)			{ return QStringList(); },
-									/*selected data*/		  [this] (int row)	{ return originalProfile(row); } ) );
+		/*add list*/			  [] (int)			{ return gGlobalConfig.clientProfileMap().regularProfileNames();	},
+		/*skip list*/			  [] (int)			{ return QStringList(); },
+		/*allow change*/		  [this] (const QModelIndex &index,const QString &newText)	{ return allowCellChange(index, newText); } ) );
 
 	setItemDelegateForColumn( Columns::RemoteIP,
 							  new QComboBoxItemDelegated( this, tr("IP dinámica"), false,
-															  [this](int row)	{ return staticIPs(row); },
-															  [this](int)		{ return usedStaticIPs(); },
-															  [this](int row)	{ return currentIP(row); } ) );
+								  [this] (int row)	{ return staticIPs(row); },
+								  [this] (int)		{ return usedStaticIPs(); },
+		/*allow change*/		  [this] (const QModelIndex &index,const QString &newText)	{ return allowCellChange(index, newText); },
+		/*initial text*/		  [this] (const QModelIndex &index)	{ return currentIP(index.row()); } ) );
 
 	setItemDelegateForColumn( Columns::Installer,
 							  new QComboBoxItemDelegated( this, gGlobalConfig.userName(), false,
-															  [](int)			{ return gGlobalConfig.instaladores(); },
-															  [](int)			{ return QStringList(); },
-															  [this](int row)	{ return item(row, Columns::Installer)->text(); } ) );
+								  [] (int)			{ return gGlobalConfig.instaladores(); },
+								  [] (int)			{ return QStringList(); },
+		/*allow change*/		  [this] (const QModelIndex &index,const QString &newText)	{ return allowCellChange(index, newText); } ) );
 
 	setItemDelegateForColumn( Columns::ServiceStatus,
 							  new QComboBoxItemDelegated( this, "", false,
-															  [](int)			{ return ROSPPPSecret::serviceStateNames(); },
-															  [](int)			{ return QStringList(); },
-															  [this](int row)	{ return item(row, Columns::ServiceStatus)->text(); } ) );
+								  [] (int)			{ return ROSPPPSecret::serviceStateNames(); },
+								  [] (int)			{ return QStringList(); },
+		/*allow change*/		  [this] (const QModelIndex &index,const QString &newText)	{ return allowCellChange(index, newText); } ) );
 
 	setSortingEnabled(true);
 	horizontalHeader()->setSectionsMovable(true);
 //	horizontalHeader()->saveState();
 	connect( this, SIGNAL(itemDoubleClicked(QTableWidgetItem *)), this, SLOT(onCellDobleClic(QTableWidgetItem *)) );
-	connect( this, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(onCellChanged(QTableWidgetItem*)) );
 }
 
 bool QROSSecretTableWidget::shouldBeVisible(const QROSUserNameWidgetItem *userNameItem)
@@ -427,6 +430,76 @@ QStringList QROSSecretTableWidget::staticIPs(int row) const
 	return gGlobalConfig.staticIPv4RangeListMap().staticIPv4StringList(clientProfileGroup);
 }
 
+bool QROSSecretTableWidget::allowCellChange(const QModelIndex &index, const QString &newText)
+{
+	QROSUserNameWidgetItem *userNameItem = userNameWidgetItem(index.row());
+	Q_ASSERT(userNameItem);
+	ROSPPPSecret newSecret = userNameItem->rosPPPSecretMap.first();
+	QRouterIDMap routerIDMap;
+	foreach( const ROSPPPSecret &secret, userNameItem->rosPPPSecretMap )
+		routerIDMap[secret.routerName()] = secret.rosObjectID();
+
+	if( userNameItem )
+	{
+		switch( static_cast<Columns>(index.column()) )
+		{
+		case QROSSecretTableWidget::UserName:
+			break;
+		case QROSSecretTableWidget::ClientCode:
+			newSecret.setClientCode(newText);
+			multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
+			break;
+		case QROSSecretTableWidget::ServiceStatus:
+			break;
+		case QROSSecretTableWidget::UserProfile:
+			newSecret.setOriginalProfile(newText);
+			if( newSecret.pppProfile() != gGlobalConfig.clientProfileMap().serviceCanceledProfile().profileName() )
+				newSecret.setPPPProfile(newText);
+			multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
+			break;
+		case QROSSecretTableWidget::ActiveUserStatus:
+			break;
+		case QROSSecretTableWidget::ActiveRouter:
+			Q_ASSERT(false);
+			break;
+		case QROSSecretTableWidget::RemoteIP:
+			break;
+		case QROSSecretTableWidget::ClientName:
+			newSecret.setClientName(newText);
+			multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
+			break;
+		case QROSSecretTableWidget::ClientAddress:
+			newSecret.setClientAddress(newText);
+			multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
+			break;
+		case QROSSecretTableWidget::ClientCity:
+			newSecret.setClientCity(newText);
+			multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
+			break;
+		case QROSSecretTableWidget::ClientPhone:
+			newSecret.setClientPhones(newText);
+			multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
+			break;
+		case QROSSecretTableWidget::Installer:
+			newSecret.setInstallerName(newText);
+			multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
+			break;
+		case QROSSecretTableWidget::ClientEmail:
+			newSecret.setClientEmail(newText);
+			multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
+			break;
+		case QROSSecretTableWidget::ClientAnnotations:
+			newSecret.setClientNotes(newText);
+			multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
+			break;
+		case QROSSecretTableWidget::TotalColumns:
+			Q_ASSERT(false);
+			break;
+		}
+	}
+	return false;
+}
+
 void QROSSecretTableWidget::onCellDobleClic(QTableWidgetItem *item)
 {
 	if( item->column() == static_cast<int>(Columns::UserName) )
@@ -436,66 +509,3 @@ void QROSSecretTableWidget::onCellDobleClic(QTableWidgetItem *item)
 	}
 }
 
-void QROSSecretTableWidget::onCellChanged(QTableWidgetItem *item)
-{
-	QROSUserNameWidgetItem *userNameItem = userNameWidgetItem(item->row());
-	Q_ASSERT(userNameItem);
-	if( userNameItem )
-	{
-		QString newText = item->text();
-		switch( static_cast<Columns>(item->column()) )
-		{
-		case QROSSecretTableWidget::UserName:
-			if( userNameItem->rosPPPSecretMap.first().userName() != item->text() )
-			{
-				blockSignals(true);
-				item->setText(userNameItem->rosPPPSecretMap.first().userName());
-				blockSignals(false);
-			}
-			break;
-		case QROSSecretTableWidget::ClientCode:
-			break;
-		case QROSSecretTableWidget::ServiceStatus:
-			break;
-		case QROSSecretTableWidget::UserProfile:
-			if( userNameItem->rosPPPSecretMap.first().originalProfile() != item->text() )
-			{
-				blockSignals(true);
-				item->setText(userNameItem->rosPPPSecretMap.first().originalProfile());
-				blockSignals(false);
-				ROSPPPSecret newSecret = userNameItem->rosPPPSecretMap.first();
-				newSecret.setOriginalProfile(newText);
-				if( newSecret.pppProfile() != gGlobalConfig.clientProfileMap().serviceCanceledProfile().profileName() )
-					newSecret.setPPPProfile(newText);
-				QRouterIDMap routerIDMap;
-				foreach( const ROSPPPSecret &secret, userNameItem->rosPPPSecretMap )
-					routerIDMap[secret.routerName()] = secret.rosObjectID();
-
-				multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
-			}
-			break;
-		case QROSSecretTableWidget::ActiveUserStatus:
-			break;
-		case QROSSecretTableWidget::ActiveRouter:
-			break;
-		case QROSSecretTableWidget::RemoteIP:
-			break;
-		case QROSSecretTableWidget::ClientName:
-			break;
-		case QROSSecretTableWidget::ClientAddress:
-			break;
-		case QROSSecretTableWidget::ClientCity:
-			break;
-		case QROSSecretTableWidget::ClientPhone:
-			break;
-		case QROSSecretTableWidget::Installer:
-			break;
-		case QROSSecretTableWidget::ClientEmail:
-			break;
-		case QROSSecretTableWidget::ClientAnnotations:
-			break;
-		case QROSSecretTableWidget::TotalColumns:
-			break;
-		}
-	}
-}

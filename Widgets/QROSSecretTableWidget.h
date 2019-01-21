@@ -162,9 +162,10 @@ public:
 	QStringList usedStaticIPs() const;
 	QStringList staticIPs(int row) const;
 
+	bool allowCellChange(const QModelIndex &index,const QString &newText);
+
 private slots:
 	void onCellDobleClic(QTableWidgetItem *item);
-	void onCellChanged(QTableWidgetItem *item);
 
 signals:
 	void editPPPUser(const QMap<QString, ROSPPPSecret> &pppSecretMap, const ROSPPPActive &pppActive);
