@@ -91,14 +91,14 @@ void ROSPPPoEManager::updateRemoteData(const ROSDataBase &newROSData, const QStr
 	if( rosObjectID.isEmpty() )	// Adding new one.
 	{
 		sentence.setCommand( rosDataManagerBase.addCommand() );
-		sendSentence( newROSData.toSentence(sentence) );
+		sendSentence( newROSData.toSentence(sentence), false );
 	}
 	else
 	if( newROSData.deleting() )
 	{
 		sentence.setCommand( rosDataManagerBase.removeCommand() );
 		sentence.setID( rosObjectID );
-		sendSentence(sentence);
+		sendSentence( sentence, false );
 	}
 	else
 	{
@@ -112,7 +112,7 @@ void ROSPPPoEManager::updateRemoteData(const ROSDataBase &newROSData, const QStr
 			sentence.setCommand( rosDataManagerBase.setCommand() );
 			newROSData.toSentence(sentence);
 			sentence.setID( rosObjectID );
-			sendSentence( sentence );
+			sendSentence( sentence, false );
 		}
 	}
 }

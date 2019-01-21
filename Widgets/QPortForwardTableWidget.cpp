@@ -49,7 +49,7 @@ PortForward QPortForwardTableWidget::portForwardRow(int row)
 		if( publicPortFrom == 0 )
 			publicPortFrom = publicPortTo;
 
-		if( publicPortFrom < publicPortTo )
+		if( publicPortFrom > publicPortTo )
 			m_lastError = tr("El puerto público 'Desde' de la linea %1 es mayor que el puerto 'hasta'").arg(row);
 		else
 		{

@@ -29,11 +29,11 @@ class QROSUserNameWidgetItem : public QTableWidgetItem
 {
 
 public:
-	QROSUserNameWidgetItem() : rosCachedPPPSecret(""), rosPPPActive("")
+	QROSUserNameWidgetItem() : /*rosCachedPPPSecret(""), */rosPPPActive("")
 	{	}
 
 	QMap<QString, ROSPPPSecret> rosPPPSecretMap;
-	ROSPPPSecret rosCachedPPPSecret;
+//	ROSPPPSecret rosCachedPPPSecret;
 	ROSPPPActive rosPPPActive;
 	QRouterIDMap rosPPPSecretIDMap;
 };
@@ -130,14 +130,15 @@ private:
 	void setupServiceCellItem(int row, ROSPPPSecret::ServiceState st);
 	void setupActiveStatusCellItem(int row, const QDateTime &uptime, const QDateTime &downtime);
 	void setupRemoteIPCellItem(int row, const IPv4 &remoteIP, const IPv4 &staticIP);
+	void setupRemoteIPCellItem(const QROSUserNameWidgetItem *userNameItem );
 
 	QTableWidgetItem *item(int row, Columns col)				{ return QTableWidget::item(row, static_cast<int>(col));	}
 	const QTableWidgetItem *item(int row, Columns col) const	{ return QTableWidget::item(row, static_cast<int>(col));	}
 	static void setupCellItemStyle(QTableWidgetItem *item, const CellLook &cellLook);
 	void setupCellItemStyle(int row, Columns col, const CellLook &cellLook);
 
-	bool shouldBeVisible(int row);
-	void showRowIfValid(int row);
+	bool shouldBeVisible(const QROSUserNameWidgetItem *userNameItem);
+	void showRowIfValid(const QROSUserNameWidgetItem *userNameItem);
 
 public:
 	explicit QROSSecretTableWidget(QWidget *papi = Q_NULLPTR);

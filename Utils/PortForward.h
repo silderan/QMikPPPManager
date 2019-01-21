@@ -71,12 +71,16 @@ public:
 	{	}
 	PortForward(const IPProtocol::Type &protocol, quint16 publicPortFrom, quint16 publicPortTo, quint16 privatePortFrom, quint16 privatePortTo, IPv4 destIP) :
 		m_protocol( protocol )
-	  , m_publicPortFrom(publicPortTo)
-	  , m_publicPortTo(publicPortFrom)
-	  , m_privatePortFrom(privatePortTo)
-	  , m_privatePortTo(privatePortFrom)
+	  , m_publicPortFrom(publicPortFrom)
+	  , m_publicPortTo(publicPortTo)
+	  , m_privatePortFrom(privatePortFrom)
+	  , m_privatePortTo(privatePortTo)
 	  , m_destIP(destIP)
 	{	}
+	explicit PortForward(const QString &saveString)
+	{
+		fromSaveString(saveString);
+	}
 
 	const IPProtocol::Type &protocol() const			{ return m_protocol;	}
 	void setProtocol(const IPProtocol::Type &protocol)	{ m_protocol = protocol;  }
@@ -85,20 +89,24 @@ public:
 	quint16 publicPortFrom() const		{ return m_publicPortFrom;	}
 	quint16 publicPortTo() const		{ return m_publicPortTo;	}
 
-	quint16 privatePortFrom() const		{ return m_publicPortFrom;	}
-	quint16 privatePortTo() const		{ return m_publicPortTo;	}
+	quint16 privatePortFrom() const		{ return m_privatePortFrom;	}
+	quint16 privatePortTo() const		{ return m_privatePortTo;	}
 
 	IPv4 destIP() const					{ return m_destIP;	}
 
-	QString toString() const;
-	void fromString(const QString &saveString);
+	QString toSaveString() const;
+	void fromSaveString(const QString &saveString);
 	bool operator ==(const PortForward &other)const;
 	bool operator !=(const PortForward &other)const;
 };
 
 class QPortForwardList : public QList<PortForward>
 {
+
 public:
+	QString toSaveString()const;
+	void fromSaveString(const QString &saveString);
+
 	bool operator==(const QPortForwardList &other) const;
 	bool operator!=(const QPortForwardList &other) const;
 };

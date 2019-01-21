@@ -72,7 +72,7 @@ QPortSpinBox::QPortSpinBox(quint16 port, QWidget *papi) : QSpinBox(papi)
 	setValue(port);
 }
 
-QString PortForward::toString() const
+QString PortForward::toSaveString() const
 {
 	QString rtn;
 	// tcp:8080>192.168.1.1
@@ -90,9 +90,9 @@ QString PortForward::toString() const
 											 QString::number(m_privatePortFrom), QString::number(m_privatePortTo) );
 }
 
-void PortForward::fromString(const QString &saveString)
+void PortForward::fromSaveString(const QString &saveString)
 {
-	QStringList data = saveString.split( QRegExp("[:->]") );
+	QStringList data = saveString.split( QRegExp("[:\\->]") );
 	if( data.count() == 3 )
 	{
 		setProtocol( data[0] );
@@ -140,6 +140,24 @@ bool PortForward::operator !=(const PortForward &other) const
 			(m_privatePortTo != other.m_privatePortTo) ||
 			(m_privatePortFrom != other.m_privatePortFrom) ||
 			(m_protocol != other.m_protocol);
+}
+
+QString QPortForwardList::toSaveString() const
+{
+	QString rtn;
+	foreach( const PortForward &port, *this )
+	{
+		Q_ASSERT( !port.toSaveString().contains(',') );
+		rtn.append( QString("%1,").arg(port.toSaveString()) );
+	}
+	return  rtn;
+}
+
+void QPortForwardList::fromSaveString(const QString &saveString)
+{
+	clear();
+	foreach( QString portSaveString, saveString.split(',', QString::SkipEmptyParts) )
+		append( PortForward(portSaveString) );
 }
 
 bool QPortForwardList::operator==(const QPortForwardList &other) const

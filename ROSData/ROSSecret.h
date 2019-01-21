@@ -41,7 +41,6 @@ private:
 	QString m_address;
 	QString m_city;
 	QString m_phones;
-	QString m_comercial;
 	QString m_email;
 	QString m_WiFi2SSID;
 	QString m_WiFi2WPA;
@@ -104,9 +103,6 @@ public:
 
 	const QString & clientPhones() const			{ return m_phones;		}
 	void setClientPhones(const QString &phones)		{ updateNonROSMember(m_phones, phones);	}
-
-	const QString & comercial() const				{ return m_comercial;		}
-	void setComercial(const QString &comercial)		{ updateNonROSMember(m_comercial, comercial);	}
 
 	const QString & clientEmail() const				{ return m_email;	}
 	void setClientEmail(const QString &email)		{ updateNonROSMember(m_email, email);	}

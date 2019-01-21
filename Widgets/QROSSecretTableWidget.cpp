@@ -105,22 +105,23 @@ QROSSecretTableWidget::QROSSecretTableWidget(QWidget *papi) : QTableWidget(papi)
 	connect( this, SIGNAL(itemDoubleClicked(QTableWidgetItem *)), this, SLOT(onCellDobleClic(QTableWidgetItem *)) );
 }
 
-bool QROSSecretTableWidget::shouldBeVisible(int row)
+bool QROSSecretTableWidget::shouldBeVisible(const QROSUserNameWidgetItem *userNameItem)
 {
-	if( !gGlobalConfig.clientProfileMap().containsProfileName(userNameWidgetItem(row)->rosCachedPPPSecret.profile()) )
-		return false;
-	return true;
+	foreach( const ROSPPPSecret &rosPPPSecret, userNameItem->rosPPPSecretMap )
+		if( gGlobalConfig.clientProfileMap().containsProfileName(rosPPPSecret.profile()) )
+			return true;
+	return false;
 }
 
-void QROSSecretTableWidget::showRowIfValid(int row)
+void QROSSecretTableWidget::showRowIfValid(const QROSUserNameWidgetItem *userNameItem)
 {
-	shouldBeVisible(row) ? showRow(row) : hideRow(row);
+	shouldBeVisible(userNameItem) ? showRow(userNameItem->row()) : hideRow(userNameItem->row());
 }
 
 void QROSSecretTableWidget::applyFilter()
 {
 	for( int row = rowCount()-1; row >= 0; --row )
-		showRowIfValid(row);
+		showRowIfValid( userNameWidgetItem(row) );
 }
 
 QString QROSSecretTableWidget::cellText(int row, QROSSecretTableWidget::Columns col) const
@@ -199,6 +200,11 @@ void QROSSecretTableWidget::setupRemoteIPCellItem(int row, const IPv4 &remoteIP,
 		static_cast<QRemoteIPCellItem*>(item(row, Columns::RemoteIP))->setRemoteIPs(remoteIP, staticIP);
 }
 
+void QROSSecretTableWidget::setupRemoteIPCellItem(const QROSUserNameWidgetItem *userNameItem)
+{
+	setupRemoteIPCellItem( userNameItem->row(), userNameItem->rosPPPActive.currentIPv4(), userNameItem->rosPPPSecretMap.isEmpty() ? IPv4() : userNameItem->rosPPPSecretMap.first().staticIP() );
+}
+
 QROSUserNameWidgetItem *QROSSecretTableWidget::addNewRow(const QString &userName)
 {
 	int row = rowCount();
@@ -236,10 +242,10 @@ void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &rosPPPSecret
 		if( (userNameItem = m_userNameMap.value(rosPPPSecret.userName(), Q_NULLPTR)) == Q_NULLPTR )
 			userNameItem = addNewRow(rosPPPSecret.userName());
 
-		userNameItem->rosCachedPPPSecret = rosPPPSecret;
-		userNameItem->rosPPPSecretMap.insert(rosPPPSecret.routerName(), rosPPPSecret);
+//		userNameItem->rosCachedPPPSecret = rosPPPSecret;
 		m_secretIDMap[createObjectIDKey(rosPPPSecret)] = userNameItem;
 	}
+	userNameItem->rosPPPSecretMap.insert(rosPPPSecret.routerName(), rosPPPSecret);
 
 	// As username is key for this map, has special code.
 	if( item(userNameItem->row(), Columns::UserName)->text() != rosPPPSecret.userName() )
@@ -248,6 +254,8 @@ void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &rosPPPSecret
 		m_userNameMap[rosPPPSecret.userName()] = m_userNameMap.take( item(userNameItem->row(), Columns::UserName)->text() );
 		setupCellItem(userNameItem->row(), UserName,				rosPPPSecret.userName() );
 	}
+
+	userNameItem->rosPPPSecretIDMap[rosPPPSecret.routerName()] = rosPPPSecret.rosObjectID();
 
 	setupCellItem( userNameItem->row(), Columns::ClientCode,		rosPPPSecret.clientCode() );
 	setupCellItem( userNameItem->row(), Columns::UserProfile,		rosPPPSecret.originalProfile() );
@@ -268,7 +276,7 @@ void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &rosPPPSecret
 	if( item(userNameItem->row(), Columns::ActiveRouter) == Q_NULLPTR )
 		setupCellItem( userNameItem->row(), Columns::ActiveRouter,	tr("Ninguno") );
 
-	setupRemoteIPCellItem(userNameItem->row(), userNameItem->rosPPPActive.currentIPv4(), userNameItem->rosCachedPPPSecret.staticIP() );
+	setupRemoteIPCellItem( userNameItem );
 
 	// Quite a long statement... just to pass a CanceledUndefined parameter if client has service canceled but their state does not match.
 	setupServiceCellItem( userNameItem->row(),
@@ -276,9 +284,7 @@ void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &rosPPPSecret
 //						  ? ROSPPPSecret::ServiceState::CanceledUndefined :
 							rosPPPSecret.serviceState() );
 
-	userNameItem->rosPPPSecretIDMap[rosPPPSecret.routerName()] = rosPPPSecret.rosObjectID();
-
-	showRowIfValid(userNameItem->row());
+	showRowIfValid( userNameItem );
 
 	blockSignals(false);
 }
@@ -321,7 +327,7 @@ void QROSSecretTableWidget::onROSActiveModReply(const ROSPPPActive &rosPPPActive
 	m_activeIDMap[rosPPPActive.rosObjectID()] = userNameItem;
 
 	setupActiveStatusCellItem( userNameItem->row(), rosPPPActive.uptime(), QDateTime() );
-	setupRemoteIPCellItem(userNameItem->row(), userNameItem->rosPPPActive.currentIPv4(), userNameItem->rosCachedPPPSecret.staticIP() );
+	setupRemoteIPCellItem( userNameItem );
 	setupCellItem( userNameItem->row(), Columns::ActiveRouter, rosPPPActive.routerName() );
 	blockSignals(false);
 }
@@ -340,7 +346,7 @@ void QROSSecretTableWidget::onROSActiveDelReply(const QString &routerName, const
 			blockSignals(true);
 			setupActiveStatusCellItem( userNameItem->row(), QDateTime(), QDateTime::currentDateTime() );
 			setupCellItem( userNameItem->row(), Columns::ActiveRouter, tr("Ninguno") );
-			setupRemoteIPCellItem(userNameItem->row(), userNameItem->rosPPPActive.currentIPv4(), userNameItem->rosCachedPPPSecret.staticIP() );
+			setupRemoteIPCellItem( userNameItem );
 			m_activeIDMap.remove(rosObjectID);
 			blockSignals(false);
 		}

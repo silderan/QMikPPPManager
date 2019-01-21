@@ -6,6 +6,23 @@ const QString &ROSPPPSecret::commentString() const
 {
 	if( m_commentString.isEmpty() )
 	{
+		QString wifiSaveString;
+		if( !wifi2SSID().isEmpty() )
+		{
+			wifiSaveString = QString("%1|%2").arg(wifi2SSID(),wifi2WPA());
+			if( !wifi5SSID().isEmpty() )
+				wifiSaveString += QString("|%1|%2").arg(wifi5SSID(),wifi5WPA());
+		}
+
+		QString lanSaveString;
+		if( installLANIP().isValid() )	lanSaveString += QString("i%1").arg( installLANIP().toString() );
+		if( installLANDMZ().isValid() )	lanSaveString += QString("d%1").arg( installLANDMZ().toString() );
+		if( portForwardList().count() ) lanSaveString += QString("p%1").arg( portForwardList().toSaveString() );
+
+		QString voipSaveString;
+		if( !voipPhoneNumber().isEmpty() )
+			voipSaveString = QString("%1 %2 %3").arg(voipPhoneNumber(), voipSIPUserName(), voipSIPUserPass());
+
 		const_cast<ROSPPPSecret*>(this)->
 		m_commentString =
 			QString("%1$%2$%3$%4$%5$%6$%7$%8$%9$%10$%11$%12$%13$%14$%15")
@@ -15,14 +32,14 @@ const QString &ROSPPPSecret::commentString() const
 				.arg(clientCity())
 				.arg(clientPhones())
 				.arg(installerName())
-				.arg(comercial())
+				.arg(clientNotes())
 				.arg(clientEmail())
 				.arg(needsPublicIP())
-				.arg(clientNotes())
-				.arg(wifi2SSID())
-				.arg(wifi2WPA())
+				.arg(installNotes())
+				.arg(wifiSaveString)
+				.arg(voipSaveString)
 				.arg(clientCode())
-				.arg("")	// Old EB/AP field.
+				.arg(lanSaveString)
 				.arg(serviceStateROSString());
 
 	}
@@ -34,19 +51,21 @@ void ROSPPPSecret::setCommentString(const QString &commentString)
 	QStringList fields = commentString.split('$');
 	if( fields.count() > 1 )
 	{
-
 		int i = fields.count();
+		QString wifiSaveString;
+		QString lanSaveString;
+		QString voipSaveString;
 		switch( i )
 		{
 		case 15:	setServiceState( fields[--i] );				[[clang::fallthrough]];
-		case 14:	--i;/*There was EB/AP, now is deprecated*/	[[clang::fallthrough]];
+		case 14:	lanSaveString = fields[--i];				[[clang::fallthrough]];
 		case 13:	setClientCode( fields[--i] );				[[clang::fallthrough]];
-		case 12:	setWiFi2WPA( fields[--i] );					[[clang::fallthrough]];
-		case 11:	setWiFi2SSID( fields[--i] );				[[clang::fallthrough]];
-		case 10:	setClientNotes( fields[--i] );				[[clang::fallthrough]];
+		case 12:	voipSaveString = fields[--i];				[[clang::fallthrough]];
+		case 11:	wifiSaveString = fields[--i];				[[clang::fallthrough]];
+		case 10:	setInstallNotes( fields[--i] );				[[clang::fallthrough]];
 		case 9:		setNeedsPublicIP( !fields[--i].isEmpty() );	[[clang::fallthrough]];
 		case 8:		setClientEmail( fields[--i] );				[[clang::fallthrough]];
-		case 7:		setComercial( fields[--i] );				[[clang::fallthrough]];
+		case 7:		setClientNotes( fields[--i] );				[[clang::fallthrough]];
 		case 6:		setInstallerName( fields[--i] );			[[clang::fallthrough]];
 		case 5:		setClientPhones( fields[--i] );				[[clang::fallthrough]];
 		case 4:		setClientCity( fields[--i] );				[[clang::fallthrough]];
@@ -54,6 +73,64 @@ void ROSPPPSecret::setCommentString(const QString &commentString)
 		case 2:		setClientName( fields[--i] );
 					setOriginalProfile( fields[--i] );
 			break;
+		}
+		if( !wifiSaveString.isEmpty() )
+		{
+			if( wifiSaveString.contains('|') )	// In this field is saved all 2,4 and 5 Ghz WiFi info.
+			{
+				QStringList data = wifiSaveString.split('|');
+				if( data.count() >= 2 )
+				{
+					setWiFi2SSID( data[0] );
+					setWiFi2WPA( data[1] );
+					if( data.count()  >= 4 )
+					{
+						setWiFi5SSID( data[2] );
+						setWiFi5WPA( data[3] );
+					}
+				}
+			}
+			else	// It's just SSID and next field is the WPA2.
+			{
+				setWiFi2SSID(wifiSaveString);
+				setWiFi2WPA(voipSaveString);
+			}
+		}
+		if( !voipSaveString.isEmpty() )
+		{
+			QStringList data = voipSaveString.split(' ');
+			if( data.count() == 3 )
+			{
+				setVoIPPhoneNumber(data[0]);
+				setVoIPSIPUserName(data[1]);
+				setVoIPSIPUserPass(data[2]);
+			}
+		}
+		if( !lanSaveString.isEmpty() )
+		{
+			int i, e;
+			for( i = 0; i < lanSaveString.count(); ++i )
+			{
+				switch( lanSaveString.at(i).toLatin1() )
+				{
+				case 'i':
+					for( e = ++i; (e < lanSaveString.count()) && (lanSaveString.at(e).isDigit() || (lanSaveString.at(e) == '.')); ++e )
+					   ;
+					setInstallLANIP( IPv4(lanSaveString.mid(i, e-i)) );
+					i = e-1;
+					break;
+				case 'd':
+					for( e = ++i; (e < lanSaveString.count()) && (lanSaveString.at(e).isDigit() || (lanSaveString.at(e) == '.')); ++e )
+					   ;
+					setInstallLANDMZ( IPv4(lanSaveString.mid(i, e-i)) );
+					i = e-1;
+					break;
+				case 'p':
+					portForwardList().fromSaveString( lanSaveString.mid(i+1) );
+					i = lanSaveString.count();	// To force for break.
+					break;
+				}
+			}
 		}
 	}
 	m_commentString = commentString;

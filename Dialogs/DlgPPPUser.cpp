@@ -310,7 +310,7 @@ bool DlgPPPUser::getWiFi5SSID()
 	if( ui->wifiGroupBox->isChecked() )
 	{
 		QString s = ui->wifi5SSIDLineEdit->text();
-		if( !checkWiFiSSID( tr("SSID para el Wifi local a 5Ghz"), m_pppSecret.wifi5SSID(), s) )
+		if( !s.isEmpty() && !checkWiFiSSID( tr("SSID para el Wifi local a 5Ghz"), m_pppSecret.wifi5SSID(), s) )
 			return false;
 		m_pppSecret.setWiFi5SSID(s);
 	}
@@ -324,7 +324,12 @@ bool DlgPPPUser::getWiFi5WPA()
 	if( ui->wifiGroupBox->isChecked() )
 	{
 		QString s = ui->wifi5WPALineEdit->text();
-		if( !checkWiFiWPA( tr("Contraseña WPA/WPA2 para el Wifi local a 5Ghz"), m_pppSecret.wifi5WPA(), s) )
+		if( !m_pppSecret.wifi5SSID().isEmpty() && s.isEmpty() )
+		{
+			raiseWarning( tr("Si pones el SSID de la red WiFi de 5Ghz, debes ponser también la contraseña WPA") );
+			return false;
+		}
+		if( !s.isEmpty() && !checkWiFiWPA( tr("Contraseña WPA/WPA2 para el Wifi local a 5Ghz"), m_pppSecret.wifi5WPA(), s) )
 			return false;
 		m_pppSecret.setWiFi5WPA( s );
 	}
@@ -452,9 +457,9 @@ void DlgPPPUser::updateUserData()
 	ui->voipUserName->setText( m_pppSecret.voipSIPUserName() );
 	ui->voipUserPass->setText( m_pppSecret.voipSIPUserPass() );
 
-	ui->lanGroupBox->setChecked( m_pppSecret.installLANIP().isValid() || m_pppSecret.installLANDMZ().isValid() || !m_pppSecretMap.isEmpty() );
-	ui->lanIPLineEdit->setText( m_pppSecret.installLANIP().toString() );
-	ui->lanDMZLineEdit->setText( m_pppSecret.installLANDMZ().toString() );
+	ui->lanGroupBox->setChecked( m_pppSecret.installLANIP().isValid() || m_pppSecret.installLANDMZ().isValid() || !m_pppSecret.portForwardList().isEmpty() );
+	ui->lanIPLineEdit->setText( m_pppSecret.installLANIP().isValid() ? m_pppSecret.installLANIP().toString() : QString() );
+	ui->lanDMZLineEdit->setText( m_pppSecret.installLANDMZ().isValid() ? m_pppSecret.installLANDMZ().toString() : QString() );
 	ui->lanPortsTableWidget->setup( m_pppSecret.portForwardList() );
 }
 
@@ -598,10 +603,10 @@ void DlgPPPUser::on_applyDataButton_clicked()
 		getClientCity() && getClientPhones() && getClientEMail() &&
 		getClientNotes() && getInstallNotes() &&
 		getONTSN() &&
-		getVoIPPhone() && getVoIPUserName() && 		getVoIPUserPass() &&
+		getVoIPPhone() && getVoIPUserName() && getVoIPUserPass() &&
 		getWiFi2SSID() && getWiFi2WPA() &&
 		getWiFi5SSID() && getWiFi5WPA() &&
-		getLocalIP() && getLocalDMZ() && getLocalDMZ() )
+		getLocalIP() && getLocalDMZ() && getLocalPorts() )
 
 	{
 		QRouterIDMap routerMapIP;
