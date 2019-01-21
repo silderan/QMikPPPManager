@@ -74,7 +74,7 @@ public:
 	const QString &userPass() const				{ return m_userPass;	}
 	void setUserPass(const QString &userPass)	{ m_userPass = userPass;}
 
-	const QString & profile() const				{ return m_profile;		}
+	const QString & pppProfile() const			{ return m_profile;		}
 	void setPPPProfile(const QString &profile)	{ m_profile = profile;	}
 
 	const QDateTime &lastLogOff() const			{ return m_lastLogOff;	}

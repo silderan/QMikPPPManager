@@ -18,9 +18,9 @@ class QComboBoxItemDelegated : public QStyledItemDelegate
 
 public:
 	QComboBoxItemDelegated(	QObject *papi, QString defaultValue, bool comboBoxEditable,
-								std::function<QStringList(int)> getAddList,
-								std::function<QStringList(int)> getSkipList,
-								std::function<QString(int)> getCurrentSelected) : QStyledItemDelegate(papi)
+							std::function<QStringList(int)> getAddList,
+							std::function<QStringList(int)> getSkipList,
+							std::function<QString(int)> getCurrentSelected) : QStyledItemDelegate(papi)
 	  , m_defaultValue(defaultValue)
 	  , m_comboBoxEditable(comboBoxEditable)
 	  , m_getAddList(getAddList)
@@ -43,7 +43,7 @@ public:
 	void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const Q_DECL_OVERRIDE
 	{
 		if( index.data(Qt::EditRole).toString() != static_cast<QFancyComboBox*>(editor)->currentText() )
-			model->setData(index, static_cast<QFancyComboBox*>(editor)->currentText());
+			model->setData(index, static_cast<QFancyComboBox*>(editor)->currentText(), Qt::EditRole);
 	}
 	void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const Q_DECL_OVERRIDE
 	{

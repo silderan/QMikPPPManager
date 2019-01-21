@@ -132,8 +132,9 @@ private:
 	void setupRemoteIPCellItem(int row, const IPv4 &remoteIP, const IPv4 &staticIP);
 	void setupRemoteIPCellItem(const QROSUserNameWidgetItem *userNameItem );
 
-	QTableWidgetItem *item(int row, Columns col)				{ return QTableWidget::item(row, static_cast<int>(col));	}
-	const QTableWidgetItem *item(int row, Columns col) const	{ return QTableWidget::item(row, static_cast<int>(col));	}
+	QTableWidgetItem *item(int row, Columns col)					{ return QTableWidget::item(row, static_cast<int>(col));	}
+	const QTableWidgetItem *item(int row, Columns col) const		{ return QTableWidget::item(row, static_cast<int>(col));	}
+	void setItem(int row, Columns col, QTableWidgetItem *cellItem)	{ QTableWidget::setItem(row, static_cast<int>(col), cellItem);	}
 	static void setupCellItemStyle(QTableWidgetItem *item, const CellLook &cellLook);
 	void setupCellItemStyle(int row, Columns col, const CellLook &cellLook);
 
@@ -163,6 +164,7 @@ public:
 
 private slots:
 	void onCellDobleClic(QTableWidgetItem *item);
+	void onCellChanged(QTableWidgetItem *item);
 
 signals:
 	void editPPPUser(const QMap<QString, ROSPPPSecret> &pppSecretMap, const ROSPPPActive &pppActive);

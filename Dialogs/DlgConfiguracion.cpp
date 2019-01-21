@@ -161,7 +161,7 @@ bool DlgConfiguracion::checkValidGroupName(const QString &groupName, int row)
 	if( groupName == ClientProfileData::serviceCanceledGroupName() )
 		return true;
 	else
-	if( groupName.contains( QRegExp("[^a-zA-Z0-9\\/\\-]")) )
+	if( groupName.contains( QRegExp("[^a-zA-Z0-9\\/\\-]") ) )
 		raisesWarning( tr("El grupo %1 de la fila %2 contiene caracteres no válidos").arg(groupName).arg(row+1) );
 	else
 		return true;
@@ -184,7 +184,7 @@ void DlgConfiguracion::on_btAceptar_clicked()
 			return raisesWarning( tr("El nombre del perfil en la fila %1 está vacío").arg(row+1) );
 		if( m_clientProfileMap.containsProfileName(clientProfileData.profileName()) )
 			return raisesWarning( tr("El perfil %1 de la fila %2 está duplicado").arg(clientProfileData.profileName()).arg(row+1) );
-		if( clientProfileData.profileName().contains(QRegExp("[^a-zA-Z0-9\\/\\-]")))
+		if( clientProfileData.profileName().contains( QRegExp("[[^a-zA-Z0-9\\/\\- \\()]]") ) )
 			return raisesWarning( tr("El perfil %1 de la fila %2 contiene caracteres no válidos").arg(clientProfileData.profileName()).arg(row+1) );
 
 		if( !checkValidGroupName(clientProfileData.groupName(), row) )
