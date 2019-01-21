@@ -242,6 +242,9 @@ void ROSPPPSecret::setServiceState(const QString &c)
 		}
 	}
 	else
+	if( c.count() == 0 )
+		m_serviceState = ServiceState::ActiveUndefined;
+	else
 	{
 		if( c.contains("lta") )
 			m_serviceState = ServiceState::ActiveUndefined;

@@ -18,32 +18,33 @@ ROSPPPoEManager::ROSPPPoEManager(QObject *papi) : Comm(papi),
 
 void ROSPPPoEManager::onDataReceived(ROS::QSentence &sentence)
 {
-	// Empty tags are from updates that won't be usefull as we are
-	// listeing for changes everywhere.
-	if( sentence.tag().isEmpty() )
-		return;
-	DataTypeID dataTypeID = static_cast<DataTypeID>(sentence.tag().toInt());
-
 	switch( sentence.getResultType() )
 	{
 	case ROS::QSentence::None:
 		break;
 	case ROS::QSentence::Done:
-		rosDataManager(dataTypeID).onROSDoneReply();
-		emit rosDone( routerName(), dataTypeID );
+		if( !sentence.tag().isEmpty() )
+		{
+			DataTypeID dataTypeID = static_cast<DataTypeID>(sentence.tag().toInt());
+			rosDataManager(dataTypeID).onROSDoneReply();
+			emit rosDone( routerName(), dataTypeID );
+		}
 		break;
 	case ROS::QSentence::Trap:
+	case ROS::QSentence::Fatal:
 		emit rosError( routerName(), sentence.attribute("message") );
 		break;
-	case ROS::QSentence::Fatal:
-		break;
 	case ROS::QSentence::Reply:
-		if( sentence.attribute(".dead").isEmpty() )
-			emit rosModReply( *rosDataManager(dataTypeID).onROSModReply(sentence) );
-		else
+		if( !sentence.tag().isEmpty() )
 		{
-			rosDataManager(dataTypeID).onROSDeadReply(sentence);
-			emit rosDelReply( routerName(), dataTypeID, sentence.getID() );
+			DataTypeID dataTypeID = static_cast<DataTypeID>(sentence.tag().toInt());
+			if( sentence.attribute(".dead").isEmpty() )
+				emit rosModReply( *rosDataManager(dataTypeID).onROSModReply(sentence) );
+			else
+			{
+				rosDataManager(dataTypeID).onROSDeadReply(sentence);
+				emit rosDelReply( routerName(), dataTypeID, sentence.getID() );
+			}
 		}
 		break;
 	}
