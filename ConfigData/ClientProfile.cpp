@@ -70,7 +70,7 @@ void QClientProfileMap::load(const QIniData &cnfgData)
 
 void QClientProfileMap::insert(const ClientProfileData &clientProfileData)
 {
-	QMap::insert(clientProfileData.profileName(), clientProfileData);
+	QMap::insert(clientProfileData.pppProfileName(), clientProfileData);
 }
 
 
@@ -91,7 +91,7 @@ QString QClientProfileMap::groupName(const QString &clientProfileName) const
 {
 	foreach( const ClientProfileData &clientProfileData, *this )
 	{
-		if( clientProfileData.profileName() == clientProfileName )
+		if( clientProfileData.pppProfileName() == clientProfileName )
 			return clientProfileData.groupName();
 	}
 	return QString();
@@ -106,7 +106,7 @@ QStringList QClientProfileMap::profileNames() const
 	while( it.hasNext() )
 	{
 		it.next();
-		rtn.append(it.value().profileName());
+		rtn.append(it.value().pppProfileName());
 	}
 
 	return rtn;
@@ -155,7 +155,7 @@ QStringList QClientProfileMap::regularProfileNames() const
 	{
 		it.next();
 		if( !it.value().isServiceCanceledProfile() )
-			rtn.append(it.value().profileName());
+			rtn.append(it.value().pppProfileName());
 	}
 	return rtn;
 }

@@ -9,13 +9,20 @@
 #include "ROSAPI/Comm.h"
 #include "DataTypeID.h"
 
+
 class ROSDataBase
 {
+	QString m_lastError;
+
 	DataTypeID m_dataTypeID;
 	QString m_routerName;
 	QString m_rosObjectID;
 	QString m_comment;
 	bool m_delete;
+
+protected:
+	bool checkValidData(const QString newData, const QString &charsRegExRange, int minLenght);
+	bool updateMember(QString &member, const QString &data, const QString &pattern, int minLenght);
 
 public:
 	ROSDataBase(DataTypeID dataTypeID, const QString &routerName) :
@@ -26,6 +33,18 @@ public:
 	virtual ~ROSDataBase()
 	{	}
 
+	static const char separatorCommentChar;
+	static const char *userNamePattern;
+	static const char *userPassPattern;
+	static const char *profilePattern;
+	static const char *emailPattern;
+	static const char *phonePattern;
+	static const char *urlPattern;
+	static const char *basicNonROSMemberPatern;
+	static const char *ssidPattern;
+	static const char *wpaPattern;
+
+	QString lastError() const	{ return m_lastError;	}
 	DataTypeID dataTypeID() const	{	return m_dataTypeID;	}
 
 	const QString &rosObjectID()	const		{ return m_rosObjectID;	}

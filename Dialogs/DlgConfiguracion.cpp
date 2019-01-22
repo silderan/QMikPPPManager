@@ -113,7 +113,7 @@ void DlgConfiguracion::addProfileTableRow(const ClientProfileData &clientProfile
 
 	ui->profilesTable->insertRow(row);
 
-	ui->profilesTable->setItem( row, 0, new QTableWidgetItem(clientProfileData.profileName()) );
+	ui->profilesTable->setItem( row, 0, new QTableWidgetItem(clientProfileData.pppProfileName()) );
 	QTableWidgetItem *item = new QTableWidgetItem(clientProfileData.groupName());
 	ui->profilesTable->setItem( row, 1, item );
 }
@@ -180,12 +180,12 @@ void DlgConfiguracion::on_btAceptar_clicked()
 		clientProfileData.setProfileName( ui->profilesTable->item(row, 0)->text().trimmed() );
 		clientProfileData.setGroupName( ui->profilesTable->item(row, 1)->text().trimmed() );
 
-		if( clientProfileData.profileName().isEmpty() )
+		if( clientProfileData.pppProfileName().isEmpty() )
 			return raisesWarning( tr("El nombre del perfil en la fila %1 está vacío").arg(row+1) );
-		if( m_clientProfileMap.containsProfileName(clientProfileData.profileName()) )
-			return raisesWarning( tr("El perfil %1 de la fila %2 está duplicado").arg(clientProfileData.profileName()).arg(row+1) );
-		if( clientProfileData.profileName().contains( QRegExp("[[^a-zA-Z0-9\\/\\- \\()]]") ) )
-			return raisesWarning( tr("El perfil %1 de la fila %2 contiene caracteres no válidos").arg(clientProfileData.profileName()).arg(row+1) );
+		if( m_clientProfileMap.containsProfileName(clientProfileData.pppProfileName()) )
+			return raisesWarning( tr("El perfil %1 de la fila %2 está duplicado").arg(clientProfileData.pppProfileName()).arg(row+1) );
+		if( clientProfileData.pppProfileName().contains( QRegExp("[[^a-zA-Z0-9\\/\\- \\()]]") ) )
+			return raisesWarning( tr("El perfil %1 de la fila %2 contiene caracteres no válidos").arg(clientProfileData.pppProfileName()).arg(row+1) );
 
 		if( !checkValidGroupName(clientProfileData.groupName(), row) )
 			return;

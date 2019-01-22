@@ -2,6 +2,7 @@
 
 #include <QFont>
 #include <QHeaderView>
+#include <QMessageBox>
 
 #include "../Utils/Utils.h"
 #include "../ConfigData/QConfigData.h"
@@ -28,13 +29,13 @@ const CellLook &QROSServiceStatusCellItem::getCellLook()
 {
 	switch( m_serviceState )
 	{
-	case ROSPPPSecret::ActiveUndefined:		return gGlobalConfig.tableCellLook().m_enabled;
-	case ROSPPPSecret::ActiveTemporally:	return gGlobalConfig.tableCellLook().m_enabled;
-	case ROSPPPSecret::CanceledNoPay:		return gGlobalConfig.tableCellLook().m_disabledNoPay;
-	case ROSPPPSecret::CanceledTemporally:	return gGlobalConfig.tableCellLook().m_disabledTemporary;
-	case ROSPPPSecret::CanceledTechnically:	return gGlobalConfig.tableCellLook().m_disabledTechnically;
-	case ROSPPPSecret::CanceledRetired:		return gGlobalConfig.tableCellLook().m_disabledDevicesRetired;
-	case ROSPPPSecret::CanceledUndefined:	return gGlobalConfig.tableCellLook().m_disabledUndefined;
+	case ServiceState::ActiveUndefined:		return gGlobalConfig.tableCellLook().m_enabled;
+	case ServiceState::ActiveTemporally:	return gGlobalConfig.tableCellLook().m_enabled;
+	case ServiceState::CanceledNoPay:		return gGlobalConfig.tableCellLook().m_disabledNoPay;
+	case ServiceState::CanceledTemporally:	return gGlobalConfig.tableCellLook().m_disabledTemporary;
+	case ServiceState::CanceledTechnically:	return gGlobalConfig.tableCellLook().m_disabledTechnically;
+	case ServiceState::CanceledRetired:		return gGlobalConfig.tableCellLook().m_disabledDevicesRetired;
+	case ServiceState::CanceledUndefined:	return gGlobalConfig.tableCellLook().m_disabledUndefined;
 	}
 	Q_ASSERT(false);
 	return gGlobalConfig.tableCellLook().m_enabled;
@@ -99,7 +100,7 @@ QROSSecretTableWidget::QROSSecretTableWidget(QWidget *papi) : QTableWidget(papi)
 
 	setItemDelegateForColumn( Columns::ServiceStatus,
 							  new QComboBoxItemDelegated( this, "", false,
-								  [] (int)			{ return ROSPPPSecret::serviceStateNames(); },
+								  [] (int)			{ return ServiceState::serviceStateNameList(); },
 								  [] (int)			{ return QStringList(); },
 		/*allow change*/		  [this] (const QModelIndex &index,const QString &newText)	{ return allowCellChange(index, newText); } ) );
 
@@ -112,7 +113,7 @@ QROSSecretTableWidget::QROSSecretTableWidget(QWidget *papi) : QTableWidget(papi)
 bool QROSSecretTableWidget::shouldBeVisible(const QROSUserNameWidgetItem *userNameItem)
 {
 	foreach( const ROSPPPSecret &rosPPPSecret, userNameItem->rosPPPSecretMap )
-		if( gGlobalConfig.clientProfileMap().containsProfileName(rosPPPSecret.pppProfile()) )
+		if( gGlobalConfig.clientProfileMap().containsProfileName(rosPPPSecret.pppProfileName()) )
 			return true;
 	return false;
 }
@@ -120,6 +121,21 @@ bool QROSSecretTableWidget::shouldBeVisible(const QROSUserNameWidgetItem *userNa
 void QROSSecretTableWidget::showRowIfValid(const QROSUserNameWidgetItem *userNameItem)
 {
 	shouldBeVisible(userNameItem) ? showRow(userNameItem->row()) : hideRow(userNameItem->row());
+}
+
+void QROSSecretTableWidget::raiseWarning(const QString &info) const
+{
+	QMessageBox::warning( const_cast<QROSSecretTableWidget*>(this), tr("Datos usuario"), info );
+}
+
+bool QROSSecretTableWidget::checkStringData(ROSPPPSecret &pppSecret, const QString &fieldName, const QString &text, std::function<bool (ROSPPPSecret &, const QString &)> setFnc) const
+{
+	if( !setFnc(pppSecret, text) )
+	{
+		raiseWarning( tr("%1, %2").arg(fieldName, pppSecret.lastError()) );
+		return false;
+	}
+	return true;
 }
 
 void QROSSecretTableWidget::applyFilter()
@@ -181,7 +197,7 @@ void QROSSecretTableWidget::setupCellItem(int row, Columns col, const QString &c
 		item(row, col)->setText(cellText);
 }
 
-void QROSSecretTableWidget::setupServiceCellItem(int row, ROSPPPSecret::ServiceState st)
+void QROSSecretTableWidget::setupServiceCellItem(int row, ServiceState::Type st)
 {
 	if( item(row, Columns::ServiceStatus) == Q_NULLPTR )
 		setItem(row, Columns::ServiceStatus, new QROSServiceStatusCellItem());
@@ -232,7 +248,7 @@ QROSUserNameWidgetItem *QROSSecretTableWidget::userNameWidgetItem(int row)
 
 void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &rosPPPSecret)
 {
-	if( rosPPPSecret.pppProfile().isEmpty() )
+	if( rosPPPSecret.pppProfileName().isEmpty() )
 		return;
 
 	blockSignals(true);
@@ -439,64 +455,84 @@ bool QROSSecretTableWidget::allowCellChange(const QModelIndex &index, const QStr
 	foreach( const ROSPPPSecret &secret, userNameItem->rosPPPSecretMap )
 		routerIDMap[secret.routerName()] = secret.rosObjectID();
 
+	std::function<bool(ROSPPPSecret &, const QString &)> setFnc;
+	QString fieldName;
+
 	if( userNameItem )
 	{
 		switch( static_cast<Columns>(index.column()) )
 		{
 		case QROSSecretTableWidget::UserName:
+			Q_ASSERT(false);
 			break;
 		case QROSSecretTableWidget::ClientCode:
-			newSecret.setClientCode(newText);
-			multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
+			fieldName = tr("Código de cliente");
+			setFnc = &ROSPPPSecret::setClientCode;
 			break;
 		case QROSSecretTableWidget::ServiceStatus:
+			// This is not a string, so cannot be set by setFnc
+			newSecret.setServiceState( ServiceState::fromNameString(newText) );
+			if( ServiceState::isActiveState(newSecret.serviceState()) && (newSecret.pppProfileName() == gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName()) )
+				newSecret.setPPPProfileName(newSecret.originalProfile());
+			else
+			if( !ServiceState::isActiveState(newSecret.serviceState()) && (newSecret.pppProfileName() != gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName()) )
+				newSecret.setPPPProfileName(gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName());
+			multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
 			break;
 		case QROSSecretTableWidget::UserProfile:
+			// This is a special case where two fields changes at once.
 			newSecret.setOriginalProfile(newText);
-			if( newSecret.pppProfile() != gGlobalConfig.clientProfileMap().serviceCanceledProfile().profileName() )
-				newSecret.setPPPProfile(newText);
+			if( newSecret.pppProfileName() != gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName() )
+				newSecret.setPPPProfileName(newText);
 			multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
 			break;
 		case QROSSecretTableWidget::ActiveUserStatus:
+			Q_ASSERT(false);
 			break;
 		case QROSSecretTableWidget::ActiveRouter:
 			Q_ASSERT(false);
 			break;
 		case QROSSecretTableWidget::RemoteIP:
+			// This is not a string, so cannot be set by setFnc
+			newSecret.setStaticIP( IPv4(newText) );
+			multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
 			break;
 		case QROSSecretTableWidget::ClientName:
-			newSecret.setClientName(newText);
-			multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
+			fieldName = tr("Nombre del cliente");
+			setFnc = &ROSPPPSecret::setClientName;
 			break;
 		case QROSSecretTableWidget::ClientAddress:
-			newSecret.setClientAddress(newText);
-			multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
+			fieldName = tr("Dirección del cliente");
+			setFnc = &ROSPPPSecret::setClientAddress;
 			break;
 		case QROSSecretTableWidget::ClientCity:
-			newSecret.setClientCity(newText);
-			multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
+			fieldName = tr("Población del cliente");
+			setFnc = &ROSPPPSecret::setClientCity;
 			break;
 		case QROSSecretTableWidget::ClientPhone:
-			newSecret.setClientPhones(newText);
-			multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
+			fieldName = tr("Teléfonos de contacto del cliente");
+			setFnc = &ROSPPPSecret::setClientPhones;
 			break;
 		case QROSSecretTableWidget::Installer:
-			newSecret.setInstallerName(newText);
-			multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
+			fieldName = tr("Nombre del técnico que hizo la instalación");
+			setFnc = &ROSPPPSecret::setInstallerName;
 			break;
 		case QROSSecretTableWidget::ClientEmail:
-			newSecret.setClientEmail(newText);
-			multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
+			fieldName = tr("Dirección de correo electónico del cliente");
+			setFnc = &ROSPPPSecret::setClientEmail;
 			break;
 		case QROSSecretTableWidget::ClientAnnotations:
-			newSecret.setClientNotes(newText);
-			multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
+			fieldName = tr("Notas sobre el cliente");
+			setFnc = &ROSPPPSecret::setClientNotes;
 			break;
 		case QROSSecretTableWidget::TotalColumns:
 			Q_ASSERT(false);
 			break;
 		}
 	}
+
+	if( !fieldName.isEmpty() && checkStringData( newSecret, fieldName, newText, setFnc) )
+		multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
 	return false;
 }
 

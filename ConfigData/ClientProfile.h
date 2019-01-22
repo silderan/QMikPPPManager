@@ -17,7 +17,7 @@ public:
 		fromSaveString(saveString);
 	}
 
-	const QString &profileName() const				{ return m_name;		}
+	const QString &pppProfileName() const				{ return m_name;		}
 	void setProfileName(const QString &profileName)	{ m_name = profileName;	}
 
 	const QString &groupName() const			{ return m_group;	}
@@ -36,7 +36,7 @@ public:
 	}
 	bool operator==(const ClientProfileData &clientProfileData) const
 	{
-		return m_name == clientProfileData.profileName();
+		return m_name == clientProfileData.pppProfileName();
 	}
 
 	QString saveString()const;

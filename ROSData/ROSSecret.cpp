@@ -2,17 +2,115 @@
 
 #include "../Utils/Utils.h"
 
+bool ServiceState::isActiveState(ServiceState::Type type)
+{
+	return  type <= ServiceState::ActiveTemporally;
+}
+
+QString ServiceState::toSaveString(const ServiceState::Type type)
+{
+	switch( type )
+	{
+	case Type::ActiveTemporally:	return "AT";
+	case Type::ActiveUndefined:		return "AU";
+	case Type::CanceledNoPay:		return "CN";
+	case Type::CanceledTemporally:	return "CT";
+	case Type::CanceledTechnically:	return "CH";
+	case Type::CanceledRetired:		return "CR";
+	case Type::CanceledUndefined:	return "CU";
+	}
+	return QString();
+}
+
+ServiceState::Type ServiceState::fromSaveString(const QString &c)
+{
+	// c="[AU|AT|CN|CT|CH|CR|CU]"
+	if( c.count() == 2 )
+	{
+		QByteArray ba = c.toLatin1();
+		const char *data = ba.constData();
+		if( data[0] ==  'A' )
+		{
+			if( data[1] == 'T' )
+				return ServiceState::ActiveTemporally;
+			else
+				return ServiceState::ActiveUndefined;
+		}
+		else
+		if( data[0] == 'C' )
+		{
+			switch( data[1] )
+			{
+			case 'N':	return ServiceState::CanceledNoPay;
+			case 'T':	return ServiceState::CanceledTemporally;
+			case 'H':	return ServiceState::CanceledTechnically;
+			case 'R':	return ServiceState::CanceledRetired;
+			default:	return ServiceState::CanceledUndefined;
+			}
+		}
+	}
+	else
+	if( !c.isEmpty() )
+	{
+		if( c.contains("lta") )
+			return ServiceState::ActiveUndefined;
+		else
+		if( c.contains("emporal") )
+			return ServiceState::CanceledTemporally;
+		else
+		if( c.contains("retira") )
+			return ServiceState::CanceledRetired;
+		else
+		if( c.contains("debe") )
+			return ServiceState::CanceledNoPay;
+		return ServiceState::CanceledUndefined;
+	}
+	return ServiceState::ActiveUndefined;
+}
+
+QString ServiceState::readableString(const ServiceState::Type &type)
+{
+	switch( type )
+	{
+	case Type::ActiveTemporally:	return QObject::tr("Activo temporal");
+	case Type::ActiveUndefined:		return QObject::tr("Activo");
+	case Type::CanceledNoPay:		return QObject::tr("Cancelado: debe facturas");
+	case Type::CanceledTemporally:	return QObject::tr("Cancelado temporal");
+	case Type::CanceledTechnically:	return QObject::tr("Cancelado técnico");
+	case Type::CanceledRetired:		return QObject::tr("Cancelado: equipos retirados");
+	case Type::CanceledUndefined:	return QObject::tr("Cancelado ...");
+	}
+	return QString();
+}
+
+const QStringList &ServiceState::serviceStateNameList()
+{
+	static QStringList rtn;
+	if( rtn.isEmpty() )
+	{
+		QString s;
+		int i = 0;
+
+		while( !(s = readableString(static_cast<ServiceState::Type>(i++))).isEmpty() )
+			rtn.append(s);
+	}
+	return rtn;
+}
+
+ServiceState::Type ServiceState::fromNameString(const QString &nameString)
+{
+	return static_cast<ServiceState::Type>(serviceStateNameList().indexOf(nameString));
+}
+
 const QString &ROSPPPSecret::commentString() const
 {
 	if( m_commentString.isEmpty() )
 	{
 		QString wifiSaveString;
 		if( !wifi2SSID().isEmpty() )
-		{
 			wifiSaveString = QString("%1|%2").arg(wifi2SSID(),wifi2WPA());
-			if( !wifi5SSID().isEmpty() )
-				wifiSaveString += QString("|%1|%2").arg(wifi5SSID(),wifi5WPA());
-		}
+		if( !wifi5SSID().isEmpty() )
+			wifiSaveString += QString("|%1|%2").arg(wifi5SSID(),wifi5WPA());
 
 		QString lanSaveString;
 		if( installLANIP().isValid() )	lanSaveString += QString("i%1").arg( installLANIP().toString() );
@@ -21,7 +119,7 @@ const QString &ROSPPPSecret::commentString() const
 
 		QString voipSaveString;
 		if( !voipPhoneNumber().isEmpty() )
-			voipSaveString = QString("%1 %2 %3").arg(voipPhoneNumber(), voipSIPUserName(), voipSIPUserPass());
+			voipSaveString = QString("%1 %2 %3 %4").arg(voipPhoneNumber(), voipSIPServer(), voipSIPUserName(), voipSIPUserPass());
 
 		const_cast<ROSPPPSecret*>(this)->
 		m_commentString =
@@ -40,13 +138,13 @@ const QString &ROSPPPSecret::commentString() const
 				.arg(voipSaveString)
 				.arg(clientCode())
 				.arg(lanSaveString)
-				.arg(serviceStateROSString());
+				.arg(ServiceState::toSaveString(serviceState()) );
 
 	}
 	return m_commentString;
 }
 
-void ROSPPPSecret::setCommentString(const QString &commentString)
+void ROSPPPSecret::parseCommentString(const QString &commentString)
 {
 	QStringList fields = commentString.split('$');
 	if( fields.count() > 1 )
@@ -74,24 +172,31 @@ void ROSPPPSecret::setCommentString(const QString &commentString)
 					m_originalProfile	= fields[--i];
 			break;
 		}
+		m_wifi2SSID.clear();
+		m_wifi2WPA.clear();
+		m_wifi5SSID.clear();
+		m_wifi5WPA.clear();
 		if( !wifiSaveString.isEmpty() )
 		{
 			if( wifiSaveString.contains('|') )	// In this field is saved all 2,4 and 5 Ghz WiFi info.
 			{
-				QStringList data = wifiSaveString.split('|');
+				QStringList data = wifiSaveString.split('|'); // Don't skip empty because if there is only 5Ghz there are 3 elements and first is empty.
 				if( data.count() >= 2 )
 				{
-					m_wifi2SSID = data[0];
-					m_wifi2WPA = data[1];
-					if( data.count()  >= 4 )
+					if( data.count() == 3 )
 					{
-						m_wifi5SSID = data[2];
-						m_wifi5WPA = data[3];
+						m_wifi5SSID = data[1];
+						m_wifi5WPA = data[2];
 					}
 					else
 					{
-						m_wifi2SSID.clear();
-						m_wifi2WPA.clear();
+						m_wifi2SSID = data[0];
+						m_wifi2WPA = data[1];
+						if( data.count()  >= 4 )
+						{
+							m_wifi5SSID = data[2];
+							m_wifi5WPA = data[3];
+						}
 					}
 				}
 			}
@@ -99,25 +204,21 @@ void ROSPPPSecret::setCommentString(const QString &commentString)
 			{
 				m_wifi2SSID = wifiSaveString;
 				m_wifi2WPA = voipSaveString;
+				voipSaveString.clear();
 			}
 		}
-		else
-		{
-			m_wifi2SSID.clear();
-			m_wifi2WPA.clear();
-			m_wifi5SSID.clear();
-			m_wifi5WPA.clear();
-		}
 		QStringList data = voipSaveString.split(' ');
-		if( data.count() == 3 )
+		if( data.count() == 4 )
 		{
-			m_voipPhoneNumber = data[0];
-			m_voipSIPUserName = data[1];
-			m_voipSIPUserPass = data[2];
+			m_voipPhoneNumber	= data[0];
+			m_voipSIPServer		= data[1];
+			m_voipSIPUserName	= data[2];
+			m_voipSIPUserPass	= data[3];
 		}
 		else
 		{
 			m_voipPhoneNumber.clear();
+			m_voipSIPServer.clear();
 			m_voipSIPUserName.clear();
 			m_voipSIPUserPass.clear();
 		}
@@ -154,114 +255,6 @@ void ROSPPPSecret::setCommentString(const QString &commentString)
 	m_commentString = commentString;
 }
 
-void ROSPPPSecret::setServiceState(ROSPPPSecret::ServiceState st)
-{
-	if( m_serviceState != st )
-	{
-		m_serviceState = st;
-		m_commentString.clear();
-	}
-}
-
-QString ROSPPPSecret::serviceStateROSString(ServiceState st)
-{
-	switch( st )
-	{
-	case ROSPPPSecret::ActiveTemporally:	return "AT";
-	case ROSPPPSecret::ActiveUndefined:		return "AU";
-	case ROSPPPSecret::CanceledNoPay:		return "CN";
-	case ROSPPPSecret::CanceledTemporally:	return "CT";
-	case ROSPPPSecret::CanceledTechnically:	return "CH";
-	case ROSPPPSecret::CanceledRetired:		return "CR";
-	case ROSPPPSecret::CanceledUndefined:	return "CU";
-	}
-	return QString();
-}
-QString ROSPPPSecret::serviceStateROSString() const
-{
-	return ROSPPPSecret::serviceStateROSString(m_serviceState);
-}
-
-QString ROSPPPSecret::serviceStateString(ROSPPPSecret::ServiceState st)
-{
-	switch( st )
-	{
-	case ServiceState::ActiveTemporally:	return QObject::tr("Activo temporal");
-	case ServiceState::ActiveUndefined:		return QObject::tr("Activo");
-	case ServiceState::CanceledNoPay:		return QObject::tr("Cancelado: debe facturas");
-	case ServiceState::CanceledTemporally:	return QObject::tr("Cancelado temporal");
-	case ServiceState::CanceledTechnically:	return QObject::tr("Cancelado técnico");
-	case ServiceState::CanceledRetired:		return QObject::tr("Cancelado: equipos retirados");
-	case ServiceState::CanceledUndefined:	return QObject::tr("Cancelado ...");
-	}
-	return QString();
-}
-QString ROSPPPSecret::serviceStateString() const
-{
-	return ROSPPPSecret::serviceStateString(m_serviceState);
-}
-
-QStringList ROSPPPSecret::serviceStateNames()
-{
-	QStringList rtn;
-	QString s;
-	int i = 0;
-
-	while( !(s = ROSPPPSecret::serviceStateString(static_cast<ServiceState>(i++))).isEmpty() )
-		rtn.append(s);
-
-	return rtn;
-}
-
-
-void ROSPPPSecret::setServiceState(const QString &c)
-{
-	// c="[AU|AT|CN|CT|CH|CR|CU]"
-	if( c.count() == 2 )
-	{
-		QByteArray ba = c.toLatin1();
-		const char *data = ba.constData();
-		if( data[0] ==  'A' )
-		{
-			if( data[1] == 'T' )
-				m_serviceState = ServiceState::ActiveTemporally;
-			else
-				m_serviceState = ServiceState::ActiveUndefined;
-		}
-		else
-		if( data[0] == 'C' )
-		{
-			switch( data[1] )
-			{
-			case 'N': m_serviceState = ServiceState::CanceledNoPay;			break;
-			case 'T': m_serviceState = ServiceState::CanceledTemporally;	break;
-			case 'H': m_serviceState = ServiceState::CanceledTechnically;	break;
-			case 'R': m_serviceState = ServiceState::CanceledRetired;		break;
-			default: m_serviceState = ServiceState::CanceledUndefined;		break;
-			}
-		}
-	}
-	else
-	if( c.count() == 0 )
-		m_serviceState = ServiceState::ActiveUndefined;
-	else
-	{
-		if( c.contains("lta") )
-			m_serviceState = ServiceState::ActiveUndefined;
-		else
-		if( c.contains("emporal") )
-			m_serviceState = ServiceState::CanceledTemporally;
-		else
-		if( c.contains("retira") )
-			m_serviceState = ServiceState::CanceledRetired;
-		else
-		if( c.contains("debe") )
-			m_serviceState = ServiceState::CanceledNoPay;
-		else
-			m_serviceState = ServiceState::CanceledUndefined;
-	}
-}
-
 void ROSPPPSecret::fromSentence(const QString &routerName, const ROS::QSentence &s)
 {
 	ROSDataBase::fromSentence(routerName, s);
@@ -270,7 +263,7 @@ void ROSPPPSecret::fromSentence(const QString &routerName, const ROS::QSentence 
 	m_profile = s.attribute("profile");
 	m_staticIP = s.attribute("remote-address");
 	m_lastLogOff = Utils::fromROSStringDateTime(s.attribute("last-logged-out"));
-	setCommentString( s.attribute("comment") );
+	parseCommentString(s.attribute("comment"));
 }
 
 ROS::QSentence &ROSPPPSecret::toSentence(ROS::QSentence &sentence) const
@@ -473,3 +466,4 @@ QList<ROS::QSentence> ROSPPPActive::simulatedStepSentences(const QString &router
 	return rtn;
 }
 #endif
+

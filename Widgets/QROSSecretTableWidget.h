@@ -33,22 +33,21 @@ public:
 	{	}
 
 	QMap<QString, ROSPPPSecret> rosPPPSecretMap;
-//	ROSPPPSecret rosCachedPPPSecret;
 	ROSPPPActive rosPPPActive;
 	QRouterIDMap rosPPPSecretIDMap;
 };
 
 class QROSServiceStatusCellItem : public QStyledWidgetItem
 {
-	ROSPPPSecret::ServiceState m_serviceState;
+	ServiceState::Type m_serviceState;
 
 public:
 	QROSServiceStatusCellItem() : QStyledWidgetItem()
 	{	}
 
-	void setServiceState(ROSPPPSecret::ServiceState st)
+	void setServiceState(ServiceState::Type st)
 	{
-		setText( ROSPPPSecret::serviceStateString(m_serviceState = st) );
+		setText( ServiceState::readableString(m_serviceState = st) );
 		updateStyle();
 	}
 	virtual const CellLook &getCellLook()override;
@@ -127,7 +126,7 @@ private:
 	void onROSActiveDelReply(const QString &routerName, const QString &rosObjectID);
 
 	void setupCellItem(int row, Columns col, const QString &cellText);
-	void setupServiceCellItem(int row, ROSPPPSecret::ServiceState st);
+	void setupServiceCellItem(int row, ServiceState::Type st);
 	void setupActiveStatusCellItem(int row, const QDateTime &uptime, const QDateTime &downtime);
 	void setupRemoteIPCellItem(int row, const IPv4 &remoteIP, const IPv4 &staticIP);
 	void setupRemoteIPCellItem(const QROSUserNameWidgetItem *userNameItem );
@@ -140,6 +139,9 @@ private:
 
 	bool shouldBeVisible(const QROSUserNameWidgetItem *userNameItem);
 	void showRowIfValid(const QROSUserNameWidgetItem *userNameItem);
+
+	void raiseWarning( const QString &info ) const;
+	bool checkStringData(ROSPPPSecret &pppSecret, const QString &fieldName, const QString &text, std::function<bool(ROSPPPSecret &, const QString &)> setFnc) const;
 
 public:
 	explicit QROSSecretTableWidget(QWidget *papi = Q_NULLPTR);

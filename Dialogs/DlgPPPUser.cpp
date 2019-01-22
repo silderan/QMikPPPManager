@@ -56,51 +56,6 @@ bool DlgPPPUser::checkIPv4(const QString &fieldName, QString &ipString, bool obl
 	return false;
 }
 
-bool DlgPPPUser::getPPPUserName()
-{
-	QString s = ui->pppUserNameLineEdit->text().trimmed();
-	if( s.isEmpty() )
-		raiseWarning( tr("El nombre de usuario está vacío o solo contiene caracteres en blanco." ));
-	else
-	if( s.contains( QRegExp("[^a-zA-Z0-9\\/\\-_]")) )
-		raiseWarning( tr("El nombre de usuario contiene caracteres no válidos" ));
-	else
-	{
-		m_pppSecret.setUserName(s);
-		return true;
-	}
-	return false;
-}
-
-bool DlgPPPUser::getPPPUserPass()
-{
-	QString s = ui->pppUserPassLineEdit->text().trimmed();
-	if( s.count() < 8 )
-		raiseWarning( tr("La contraseña de usuario tiene demasiados pocos caracteres; debe tener más de 7." ));
-	else
-	if( s.contains( QRegExp("[^a-zA-Z0-9\\/\\-_]")) )
-		raiseWarning( tr("La contraseña de usuario contiene caracteres no válidos" ));
-	else
-	{
-		m_pppSecret.setUserPass(s);
-		return true;
-	}
-	return false;
-}
-
-bool DlgPPPUser::getPPPProfile()
-{
-	QString s = ui->pppProfileComboBox->currentText().trimmed();
-	if( s.isEmpty() )
-		raiseWarning( tr("Ningún perfil seleccionado") );
-	else
-	{
-		m_pppSecret.setOriginalProfile( s );
-		return true;
-	}
-	return false;
-}
-
 bool DlgPPPUser::getStaticIP()
 {
 	if( ui->staticIPComboBox->currentIndex() == 0 )
@@ -116,226 +71,140 @@ bool DlgPPPUser::getStaticIP()
 	return false;
 }
 
-bool DlgPPPUser::checkClientData(const QString &fieldName, const QString &originalText, QString &text, int minLenght, QRegExp invalidChars)
+bool DlgPPPUser::checkStringData(const QString &fieldName, const QString &originalText, const QString &text, std::function<bool(ROSPPPSecret&, const QString &)> setFnc)
 {
-	// With this, accepts already texts if it's the same.
+	// With this, accepts texts if it's the same than the secrets'.
 	// This makes things easier for automatically generated users without some data.
 	// So, it just forces to be all well formed for new users or when modifying field data.
 	if( !m_pppSecret.rosObjectID().isEmpty() && (originalText == text) )
 		return true;
-	text = text.trimmed();
-	if( text.count() < minLenght )
+	if( !setFnc(m_pppSecret, text) )
 	{
-		if( minLenght == 0 )
-			raiseWarning( tr("El campo '%1' no puede estar vacío.").arg(fieldName) );
-		else
-			raiseWarning( tr("El campo '%1' debe tener al menos %2 caracteres.").arg(fieldName).arg(minLenght) );
+		raiseWarning( tr("El campo '%1', %2").arg( fieldName, m_pppSecret.lastError()) );
+		return false;
+	}
+	return true;
+}
+
+bool DlgPPPUser::checkGroupedData(const QGroupBox *group, const QString &fieldName, const QString &originalText, QString text, std::function<bool (ROSPPPSecret &, const QString &)> setFnc)
+{
+	if( group->isChecked() )
+	{
+		if( text.isEmpty() )
+		{
+			raiseWarning( tr("El campo %1 no puede estar vacío si tienes el grupo habilitado").arg(fieldName) );
+			return false;
+		}
 	}
 	else
-	if( text.contains(invalidChars) )
-		raiseWarning( tr("El texto del campo '%1' contiene caracteres no válidos").arg(fieldName) );
-	else
-		return true;
-	return false;
+		text.clear();
+	return checkStringData( fieldName, originalText, text, setFnc );
+}
+
+bool DlgPPPUser::getPPPUserName()
+{
+	return checkStringData( tr("Nombre del usuario PPP"), m_pppSecret.userName(), ui->pppUserNameLineEdit->text(), &ROSPPPSecret::setUserName );
+}
+
+bool DlgPPPUser::getPPPUserPass()
+{
+	return checkStringData( tr("Contraseña del usuario PPP"), m_pppSecret.userPass(), ui->pppUserPassLineEdit->text(), &ROSPPPSecret::setUserPass );
+}
+
+bool DlgPPPUser::getPPPProfile()
+{
+	return checkStringData( tr("Contraseña del usuario PPP"), m_pppSecret.originalProfile(), ui->pppProfileComboBox->currentText(), &ROSPPPSecret::setOriginalProfile );
 }
 
 bool DlgPPPUser::getClientName()
 {
-	QString s = ui->clientNameLineEdit->text();
-	if( !checkClientData( tr("Nombre del cliente"), m_pppSecret.clientName(), s, 1 ) )
-		return false;
-	m_pppSecret.setClientName( s );
-	return true;
+	return checkStringData( tr("Nombre del cliente"), m_pppSecret.clientName(), ui->clientNameLineEdit->text(), &ROSPPPSecret::setClientName );
 }
 
 bool DlgPPPUser::getClientAddress()
 {
-	QString s = ui->clientAddressLineEdit->text();
-	if( !checkClientData( tr("Dirección de la instalación"), m_pppSecret.clientAddress(), s, 1 ) )
-		return false;
-	m_pppSecret.setClientAddress( s );
-	return true;
+	return checkStringData( tr("Dirección del cliente"), m_pppSecret.clientAddress(), ui->clientAddressLineEdit->text(), &ROSPPPSecret::setClientAddress );
 }
 
 bool DlgPPPUser::getClientInstaller()
 {
-	QString s = ui->installerComboBox->currentText();
-	if( !checkClientData( tr("Nombre del instalador"), m_pppSecret.installerName(), s, 1 ) )
-		return false;
-	m_pppSecret.setInstallerName( s );
-	return true;
+	return checkStringData( tr("Nombre del instalador"), m_pppSecret.installerName(), ui->installerComboBox->currentText(), &ROSPPPSecret::setInstallerName );
 }
 
 bool DlgPPPUser::getClientCity()
 {
-	QString s = ui->clientCityComboBox->currentText();
-	if( !checkClientData( tr("Población de la instalación"), m_pppSecret.clientCity(), s, 1 ) )
-		return false;
-	m_pppSecret.setClientCity( s );
-	return true;
+	return checkStringData( tr("Población de la instalación"), m_pppSecret.clientCity(), ui->clientCityComboBox->currentText(), &ROSPPPSecret::setClientCity );
 }
 
 bool DlgPPPUser::getClientPhones()
 {
-	QString s = ui->clientPhonesLineEdit->text();
-	if( !checkClientData( tr("Teléfonos de contacto"), m_pppSecret.clientPhones(), s, 1 ) )
-		return false;
-	m_pppSecret.setClientPhones( s );
-	return true;
+	return checkStringData( tr("Teléfonos de contacto"), m_pppSecret.clientPhones(), ui->clientPhonesLineEdit->text(), &ROSPPPSecret::setClientPhones );
 }
 
 bool DlgPPPUser::getClientEMail()
 {
-	QString s = ui->clientEmailLineEdit->text();
-	if( !checkClientData( tr("Correo electrónico"), m_pppSecret.clientEmail(), s, 1 ) )
-		return false;
-	m_pppSecret.setClientEmail( s );
-	return true;
+	return checkStringData( tr("Correo electrónico"), m_pppSecret.clientEmail(), ui->clientEmailLineEdit->text(), &ROSPPPSecret::setClientEmail );
 }
 
 bool DlgPPPUser::getClientNotes()
 {
-	QString s = ui->clientNotesLineEdit->text();
-	if( !checkClientData( tr("Anotaciones sobre el cliente"), m_pppSecret.clientNotes(), s, 0 ) )
-		return false;
-	m_pppSecret.setClientNotes( s );
-	return true;
+	return checkStringData( tr("Anotaciones sobre el cliente"), m_pppSecret.clientNotes(), ui->clientNotesLineEdit->text(), &ROSPPPSecret::setClientNotes );
 }
 
 bool DlgPPPUser::getInstallNotes()
 {
-	QString s = ui->installNotesLineEdit->text();
-	if( !checkClientData( tr("Anotaciones sobre la instalación"), m_pppSecret.installNotes(), s, 0 ) )
-		return false;
-	m_pppSecret.setInstallNotes( s );
-	return true;
+	return checkStringData( tr("Anotaciones sobre la instalación"), m_pppSecret.installNotes(), ui->installNotesLineEdit->text(), &ROSPPPSecret::setInstallNotes );
 }
 
 bool DlgPPPUser::getONTSN()
 {
-	if( ui->ftthCheckBox->isChecked() )
+	QString s = ui->ontSNComboBox->currentText();
+	if( ui->ftthCheckBox->isChecked() && s.isEmpty() )
 	{
-		QString s = ui->ontSNComboBox->currentText();
-		if( s.isEmpty() )
-			raiseWarning( tr("Debes seleccionar una ONT") );
-		m_pppSecret.setONTSN( s );
+		raiseWarning( tr("Debes seleccionar una ONT") );
+		return false;
 	}
-	else
-		m_pppSecret.setONTSN( QString() );
-	return true;
+	return checkStringData( tr("Número de serie de la ONT"), m_pppSecret.ontSN(), s, &ROSPPPSecret::setONTSN );
 }
 
 bool DlgPPPUser::getVoIPPhone()
 {
-	if( ui->voipGroupBox->isChecked() )
-	{
-		QString s = ui->voipPhoneNumber->text();
-		if( !checkClientData( tr("Número del teléfono IP"), m_pppSecret.voipPhoneNumber(), s, 9, QRegExp("[^0-9]") ) )
-			return false;
-		m_pppSecret.setVoIPPhoneNumber( s );
-	}
-	else
-		m_pppSecret.setVoIPPhoneNumber( QString() );
-	return true;
+	return checkGroupedData( ui->voipGroupBox, tr("Número de teléfono SIP"), m_pppSecret.voipPhoneNumber(), ui->voipPhoneNumber->text(), &ROSPPPSecret::setVoIPPhoneNumber );
+}
+
+bool DlgPPPUser::getVoIPSIPServer()
+{
+	return checkGroupedData( ui->voipGroupBox, tr("URL del servidor SIP"), m_pppSecret.voipSIPServer(), ui->voipServerLineEdit->text(), &ROSPPPSecret::setVoIPSIPServer );
 }
 
 bool DlgPPPUser::getVoIPUserName()
 {
-	if( ui->voipGroupBox->isChecked() )
-	{
-		QString s = ui->voipUserName->text();
-		if( !checkClientData( tr("Usuario SIP"), m_pppSecret.voipSIPUserName(), s, 8, QRegExp("[^a-zA-Z0-9\\/\\-_]") ) )
-			return false;
-		m_pppSecret.setVoIPSIPUserName( s );
-	}
-	else
-		m_pppSecret.setVoIPSIPUserName( QString() );
-	return true;
+	return checkGroupedData( ui->voipGroupBox, tr("Nombre de Usuario SIP"), m_pppSecret.voipSIPUserName(), ui->voipUserName->text(), &ROSPPPSecret::setVoIPSIPUserName );
 }
 
 bool DlgPPPUser::getVoIPUserPass()
 {
-	if( ui->voipGroupBox->isChecked() )
-	{
-		QString s = ui->voipUserPass->text();
-		if( !checkClientData( tr("Contraseña SIP"), m_pppSecret.voipSIPUserPass(), s, 8, QRegExp("[^a-zA-Z0-9\\/\\-_]") ) )
-			return false;
-		m_pppSecret.setVoIPSIPUserPass( s );
-	}
-	else
-		m_pppSecret.setVoIPSIPUserPass( QString() );
-	return true;
-}
-
-bool DlgPPPUser::checkWiFiSSID(const QString &fieldName, const QString &originalText, QString &ssid)
-{
-	return checkClientData( fieldName, originalText, ssid, 4 );
-}
-
-bool DlgPPPUser::checkWiFiWPA(const QString &fieldName, const QString &originalText, QString &wpa)
-{
-	return checkClientData( fieldName, originalText, wpa, 8 );
+	return checkGroupedData( ui->voipGroupBox, tr("Contraseña SIP"), m_pppSecret.voipSIPUserPass(), ui->voipUserPass->text(), &ROSPPPSecret::setVoIPSIPUserPass );
 }
 
 bool DlgPPPUser::getWiFi2SSID()
 {
-	if( ui->wifiGroupBox->isChecked() )
-	{
-		QString s = ui->wifi2SSIDLineEdit->text();
-		if( !checkWiFiSSID( tr("SSID para el Wifi local a 2,4Ghz"), m_pppSecret.wifi2SSID(), s) )
-			return false;
-		m_pppSecret.setWiFi2SSID( s );
-	}
-	else
-		m_pppSecret.setWiFi2SSID( QString() );
-	return true;
+	return checkGroupedData( ui->wifi2GroupBox, tr("SSID para el Wifi local a 2,4Ghz"), m_pppSecret.wifi2SSID(), ui->wifi2SSIDLineEdit->text(), &ROSPPPSecret::setWiFi2SSID );
 }
 
 bool DlgPPPUser::getWiFi2WPA()
 {
-	if( ui->wifiGroupBox->isChecked() )
-	{
-		QString s = ui->wifi2WPALineEdit->text();
-		if( !checkWiFiWPA( tr("Contraseña WPA/WPA2 para el Wifi local a 2,4Ghz"), m_pppSecret.wifi2WPA(), s) )
-			return false;
-		m_pppSecret.setWiFi2WPA( s );
-	}
-	else
-		m_pppSecret.setWiFi2WPA( QString() );
-	return true;
+	return checkGroupedData( ui->wifi2GroupBox, tr("Contraseña WPA/WPA2 para el Wifi local a 2,4Ghz"), m_pppSecret.wifi2WPA(), ui->wifi2WPALineEdit->text(), &ROSPPPSecret::setWiFi2WPA );
 }
 
 bool DlgPPPUser::getWiFi5SSID()
 {
-	if( ui->wifiGroupBox->isChecked() )
-	{
-		QString s = ui->wifi5SSIDLineEdit->text();
-		if( !s.isEmpty() && !checkWiFiSSID( tr("SSID para el Wifi local a 5Ghz"), m_pppSecret.wifi5SSID(), s) )
-			return false;
-		m_pppSecret.setWiFi5SSID(s);
-	}
-	else
-		m_pppSecret.setWiFi5SSID( QString() );
-	return true;
+	return checkGroupedData( ui->wifi5GroupBox, tr("SSID para el Wifi local a 5Ghz"), m_pppSecret.wifi5SSID(), ui->wifi5SSIDLineEdit->text(), &ROSPPPSecret::setWiFi5SSID );
 }
 
 bool DlgPPPUser::getWiFi5WPA()
 {
-	if( ui->wifiGroupBox->isChecked() )
-	{
-		QString s = ui->wifi5WPALineEdit->text();
-		if( !m_pppSecret.wifi5SSID().isEmpty() && s.isEmpty() )
-		{
-			raiseWarning( tr("Si pones el SSID de la red WiFi de 5Ghz, debes ponser también la contraseña WPA") );
-			return false;
-		}
-		if( !s.isEmpty() && !checkWiFiWPA( tr("Contraseña WPA/WPA2 para el Wifi local a 5Ghz"), m_pppSecret.wifi5WPA(), s) )
-			return false;
-		m_pppSecret.setWiFi5WPA( s );
-	}
-	else
-		m_pppSecret.setWiFi5WPA( QString() );
-	return true;
+	return checkGroupedData( ui->wifi5GroupBox, tr("Contraseña WPA/WPA2 para el Wifi local a 5Ghz"), m_pppSecret.wifi5WPA(), ui->wifi5WPALineEdit->text(), &ROSPPPSecret::setWiFi5WPA );
 }
 
 bool DlgPPPUser::getLocalIP()
@@ -366,7 +235,7 @@ bool DlgPPPUser::getLocalPorts()
 {
 	if( !ui->lanGroupBox->isChecked() )
 	{
-		m_pppSecret.portForwardList().clear();
+		m_pppSecret.setPortForwardList(QPortForwardList());
 		return true;
 	}
 	m_pppSecret.setPortForwardList( ui->lanPortsTableWidget->portForwardList() );
@@ -446,13 +315,15 @@ void DlgPPPUser::updateUserData()
 	ui->clientNotesLineEdit->setText( m_pppSecret.clientNotes() );
 	ui->installNotesLineEdit->setText( m_pppSecret.installNotes() );
 
-	ui->wifiGroupBox->setChecked( !m_pppSecret.wifi2SSID().isEmpty() );
+	ui->wifi2GroupBox->setChecked( !m_pppSecret.wifi2SSID().isEmpty() );
 	ui->wifi2SSIDLineEdit->setText( m_pppSecret.wifi2SSID() );
 	ui->wifi2WPALineEdit->setText( m_pppSecret.wifi2WPA() );
+	ui->wifi5GroupBox->setChecked( !m_pppSecret.wifi5SSID().isEmpty() );
 	ui->wifi5SSIDLineEdit->setText( m_pppSecret.wifi5SSID() );
 	ui->wifi5WPALineEdit->setText( m_pppSecret.wifi5WPA() );
 
 	ui->voipGroupBox->setChecked( !m_pppSecret.voipSIPUserName().isEmpty() );
+	ui->voipServerLineEdit->setText( m_pppSecret.voipSIPServer() );
 	ui->voipPhoneNumber->setText( m_pppSecret.voipPhoneNumber() );
 	ui->voipUserName->setText( m_pppSecret.voipSIPUserName() );
 	ui->voipUserPass->setText( m_pppSecret.voipSIPUserPass() );
@@ -603,7 +474,7 @@ void DlgPPPUser::on_applyDataButton_clicked()
 		getClientCity() && getClientPhones() && getClientEMail() &&
 		getClientNotes() && getInstallNotes() &&
 		getONTSN() &&
-		getVoIPPhone() && getVoIPUserName() && getVoIPUserPass() &&
+		getVoIPPhone() && getVoIPSIPServer() && getVoIPUserName() && getVoIPUserPass() &&
 		getWiFi2SSID() && getWiFi2WPA() &&
 		getWiFi5SSID() && getWiFi5WPA() &&
 		getLocalIP() && getLocalDMZ() && getLocalPorts() )

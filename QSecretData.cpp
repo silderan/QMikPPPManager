@@ -199,7 +199,7 @@ QString QSecretData::comment()
 
 bool QSecretData::dadoDeBaja() const
 {
-	return gGlobalConfig.clientProfileMap().serviceCanceledProfile().profileName() == perfilReal();
+	return gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName() == perfilReal();
 }
 
 void QSecretData::toSentence(ROS::QSentence *s)
