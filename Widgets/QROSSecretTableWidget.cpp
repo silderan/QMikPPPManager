@@ -536,6 +536,19 @@ bool QROSSecretTableWidget::allowCellChange(const QModelIndex &index, const QStr
 	return false;
 }
 
+void QROSSecretTableWidget::disconnectSelected()
+{
+	foreach( const QModelIndex &index, selectedIndexes() )
+	{
+		ROSPPPActive &rosActive = userNameWidgetItem(index.row())->rosPPPActive;
+		if( !rosActive.rosObjectID().isEmpty() && !rosActive.deleting() )
+		{
+			rosActive.setDeleting(true);
+			multiConnectionManager.updateRemoteData(rosActive);
+		}
+	}
+}
+
 void QROSSecretTableWidget::onCellDobleClic(QTableWidgetItem *item)
 {
 	if( item->column() == static_cast<int>(Columns::UserName) )
@@ -545,3 +558,7 @@ void QROSSecretTableWidget::onCellDobleClic(QTableWidgetItem *item)
 	}
 }
 
+void QROSSecretTableWidget::contextMenuEvent(QContextMenuEvent *event)
+{
+	emit contextMenuRequested(event->globalPos());
+}

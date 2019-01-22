@@ -166,11 +166,17 @@ public:
 
 	bool allowCellChange(const QModelIndex &index,const QString &newText);
 
+	void disconnectSelected();
+
 private slots:
 	void onCellDobleClic(QTableWidgetItem *item);
 
 signals:
 	void editPPPUser(const QMap<QString, ROSPPPSecret> &pppSecretMap, const ROSPPPActive &pppActive);
+	void contextMenuRequested(const QPoint &point);
+
+protected:
+	virtual void contextMenuEvent(QContextMenuEvent *event) override;
 };
 
 #endif // QROSSECRETTABLEWIDGET_H

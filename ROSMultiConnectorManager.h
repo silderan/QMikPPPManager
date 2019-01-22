@@ -56,7 +56,11 @@ public:
 	void simulateROSConnection();
 #endif
 
-public slots:
+	// Use this just for send data to ONE router. Intended for removing active connection.
+	// All the rest of remote updates must be done with the other funcion.
+	void updateRemoteData( const ROSDataBase &rosData );
+	// Use this when you need to update remote data on ALL routers.
+	// This should be the mainly used.
 	void updateRemoteData(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap);
 
 signals:
