@@ -13,7 +13,6 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QInputEvent>
-#include <QAction>
 
 #include "UnitTests.h"
 
@@ -41,9 +40,7 @@ class QMikPPPManager : public QMainWindow
 	Ui::QMikPPPManager *ui;
 	DlgCnfgConnect *dlgCnfgConnect;
 	QDlgDataBasePList m_dialogList;
-	QAction *m_disconnectClientAction;
 
-	void createActions();
 	void pideUsuarios(const QString &routerName);
 	void pideCambios(const QString &routerName);
 	void pideActivos(const QString &routerName);
@@ -106,9 +103,6 @@ private slots:
 	void on_pppProfilesButton_clicked();
 
 	void onPPPEditRequest(const QMap<QString, ROSPPPSecret> &pppSecretMap, const ROSPPPActive &pppActive);
-
-	void onDisconectActionTriggered();
-	void onUsersTableContextMenuRequested(const QPoint &globalPoint);
 
 public slots:
 	void updateConfig();

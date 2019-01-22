@@ -132,6 +132,9 @@ public:
 
 	QConfigData::NivelUsuario nivelUsuario() const { return m_nivelUsuario; }
 	void setNivelUsuario(const QConfigData::NivelUsuario &n) { m_nivelUsuario = n; }
+
+	// TODO: Make it configurable!
+	QMap<QString, quint16> openPortsMap();
 };
 
 extern QConfigData gGlobalConfig;

@@ -35,6 +35,19 @@ QComboBox *QConfigData::setupCBPoblaciones(QComboBox *cb, const QStringList &pob
 	return setupComboBox(cb, true, poblacion, poblaciones);
 }
 
+QMap<QString, quint16> QConfigData::openPortsMap()
+{
+	static QMap<QString, quint16> rtn;
+	if( rtn.isEmpty() )
+	{
+		rtn[ QObject::tr("Estándar")] = 80;
+		rtn[ QObject::tr("VoIP ATA")] = 8080;
+		rtn[ QObject::tr("VoIP ATA'")] = 8888;
+		rtn[ QObject::tr("Router/AP interior")] = 2001;
+	}
+	return rtn;
+}
+
 void QConfigData::select(QComboBox *cb, const QString &str)
 {
 	int i = cb->findText(str);

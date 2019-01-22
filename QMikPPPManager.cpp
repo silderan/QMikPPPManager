@@ -85,10 +85,8 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 	ui->cbFiltro->addItem( "Alta", FILTRO_ALTA );
 	ui->cbFiltro->addItem( "Baja", FILTRO_BAJA );
 
-	createActions();
 	onAllRoutersDisconnected();
 	ui->usersTable->horizontalHeader()->setFixedHeight(20);
-	connect( ui->usersTable, &QROSSecretTableWidget::contextMenuRequested, this, &QMikPPPManager::onUsersTableContextMenuRequested );
 }
 
 QMikPPPManager::~QMikPPPManager()
@@ -237,15 +235,6 @@ void QMikPPPManager::onROSDone(const QString &routerName, DataTypeID dataTypeID)
 	foreach( DlgDataBase *dlg, m_dialogList )
 		dlg->onROSDone(routerName, dataTypeID);
 	ui->usersTable->onROSDone(routerName, dataTypeID);
-}
-
-void QMikPPPManager::createActions()
-{
-	m_disconnectClientAction = new QAction( tr("&Desconectar"), this);
-	m_disconnectClientAction->setShortcut( Qt::Key_D | Qt::Key_Control );
-	m_disconnectClientAction->setStatusTip( tr("Desconecta al usuario para que renueve su conexión") );
-	connect( m_disconnectClientAction, &QAction::triggered, ui->usersTable, &QROSSecretTableWidget::disconnectSelected );
-	addAction(m_disconnectClientAction);
 }
 
 void QMikPPPManager::pideUsuarios(const QString &routerName)
@@ -885,16 +874,4 @@ void QMikPPPManager::onPPPEditRequest(const QMap<QString, ROSPPPSecret> &pppSecr
 		m_dialogList.append(dlgPPPUser);
 	}
 	dlgPPPUser->onEditUserRequest(pppSecretMap, pppActive);
-}
-
-void QMikPPPManager::onDisconectActionTriggered()
-{
-	ui->usersTable->disconnectSelected();
-}
-
-void QMikPPPManager::onUsersTableContextMenuRequested(const QPoint &globalPoint)
-{
-	QMenu menu(this);
-	menu.addAction( m_disconnectClientAction );
-	menu.exec( globalPoint );
 }

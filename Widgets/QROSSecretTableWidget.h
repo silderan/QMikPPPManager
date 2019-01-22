@@ -147,6 +147,8 @@ public:
 	explicit QROSSecretTableWidget(QWidget *papi = Q_NULLPTR);
 	void applyFilter();
 
+	static QStringList columnsNames();
+
 	QROSUserNameWidgetItem *userNameWidgetItem(int row);
 	static QString createObjectIDKey(const ROSPPPSecret &rosPPPSecret);
 	static QString createObjectIDKey(const QString &routerName, const QString &rosObjectID);

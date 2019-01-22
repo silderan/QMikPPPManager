@@ -56,25 +56,35 @@ const CellLook &QROSActiveStatusCellItem::getCellLook()
 	return gGlobalConfig.tableCellLook().m_disconnected;
 }
 
+QStringList QROSSecretTableWidget::columnsNames()
+{
+	static QStringList rtn;
+	if( rtn.isEmpty() )
+	{
+		rtn = QStringList()
+				<< tr("Usuario")
+				<< tr("CCliente")
+				<< tr("Contrato")
+				<< tr("Perfil")
+				<< tr("Estado")
+				<< tr("Router")
+				<< tr("IP")
+				<< tr("Nombre cliente")
+				<< tr("Dirección")
+				<< tr("Población")
+				<< tr("Teléfonos")
+				<< tr("Instalador")
+				<< tr("Email")
+				<< tr("Notas") ;
+		Q_ASSERT( rtn.count() == TotalColumns );
+	}
+	return rtn;
+}
+
 QROSSecretTableWidget::QROSSecretTableWidget(QWidget *papi) : QTableWidget(papi)
 {
-	setColumnCount(TotalColumns);
-	setHorizontalHeaderLabels( QStringList()
-							   << tr("Usuario")
-							   << tr("CCliente")
-							   << tr("Contrato")
-							   << tr("Perfil")
-							   << tr("Estado")
-							   << tr("Router")
-							   << tr("IP")
-							   << tr("Nombre cliente")
-							   << tr("Dirección")
-							   << tr("Población")
-							   << tr("Teléfonos")
-							   << tr("Instalador")
-							   << tr("Email")
-							   << tr("Notas") );
-	Q_ASSERT( columnCount() == TotalColumns );
+	setColumnCount( columnsNames().count() );
+	setHorizontalHeaderLabels( columnsNames() );
 
 	setItemDelegate( new QLineEditItemDelegated( this,
 												 [this] (const QModelIndex &index,const QString &newText)	{ return allowCellChange(index, newText); } ) );
@@ -558,7 +568,57 @@ void QROSSecretTableWidget::onCellDobleClic(QTableWidgetItem *item)
 	}
 }
 
+#include <QMenu>
+#include <QDesktopServices>
 void QROSSecretTableWidget::contextMenuEvent(QContextMenuEvent *event)
 {
-	emit contextMenuRequested(event->globalPos());
+	QList<QROSUserNameWidgetItem*> connectedUsersList;
+	foreach( const QModelIndex &index, selectedIndexes() )
+	{
+		if( userNameWidgetItem(index.row())->rosPPPActive.currentIPv4().isValid() && !connectedUsersList.contains(userNameWidgetItem(index.row())))
+			connectedUsersList.append( userNameWidgetItem(index.row()) );
+	}
+
+	QMenu menu(this);
+	if( !connectedUsersList.isEmpty() )
+	{
+		QString txt;
+		if( connectedUsersList.count() == 1 )
+			txt = tr("Desconectar cliente %1").arg(connectedUsersList.first()->rosPPPActive.userName());
+		else
+			txt = tr("Desconectar %1 clientes").arg(connectedUsersList.count());
+		connect( menu.addAction(txt), &QAction::triggered, [this] () { disconnectSelected(); } );
+	}
+
+	QMenu openBrowser( tr("Abrir navegador") );
+	foreach( const QROSUserNameWidgetItem *userNameItem, connectedUsersList )
+	{
+		const ROSPPPActive &rosActive = userNameItem->rosPPPActive;
+		if( rosActive.currentIPv4().isValid() )
+		{
+			openBrowser.setTitle( tr("Abrir http://%1:...").arg(rosActive.currentIPv4().toString()) );
+			QMapIterator<QString, quint16> it(gGlobalConfig.openPortsMap());
+			while( it.hasNext() )
+			{
+				it.next();
+				QString url = QString("http://%1:%2").arg(rosActive.currentIPv4().toString()).arg(it.value());
+				QAction *ac = openBrowser.addAction( QString("puerto %1 (%2)").arg(it.value()).arg(it.key()) );
+				connect( ac, &QAction::triggered, [url] () { QDesktopServices::openUrl( QUrl(url) ); } );
+			}
+			menu.addMenu( &openBrowser );
+			break;
+		}
+	}
+
+	QMenu columns( tr("Columnas") );
+	QStringList columnNames = columnsNames();
+	for( int col = 0; col < columnNames.count(); ++col )
+	{
+		QAction *ac = columns.addAction(columnNames[col]);
+		ac->setCheckable(true);
+		ac->setChecked( !isColumnHidden(col) );
+		connect( ac, &QAction::triggered, [this, col] (bool visible) { setColumnHidden(col, !visible); } );
+	}
+	menu.addMenu( &columns );
+	menu.exec( event->globalPos() );
 }
