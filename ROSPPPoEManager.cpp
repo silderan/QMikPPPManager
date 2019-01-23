@@ -91,24 +91,27 @@ void ROSPPPoEManager::updateRemoteData(const ROSDataBase &newROSData, const QStr
 
 	if( rosObjectID.isEmpty() )	// Adding new one.
 	{
+		rosDataManagerBase.logAdding(newROSData);
 		sentence.setCommand( rosDataManagerBase.addCommand() );
 		sendSentence( newROSData.toSentence(sentence), false );
 	}
 	else
 	if( newROSData.deleting() )
 	{
+		rosDataManagerBase.logDeleting(newROSData);
 		sentence.setCommand( rosDataManagerBase.removeCommand() );
 		sentence.setID( rosObjectID );
 		sendSentence( sentence, false );
 	}
 	else
 	{
-		if( (rosDataManagerBase.rosData(rosObjectID) == Q_NULLPTR) ||
-			!newROSData.hasSameData(*rosDataManagerBase.rosData(rosObjectID)) )	// Updating remote data.
+		ROSDataBase *oldData = rosDataManagerBase.rosData(rosObjectID);
+		if( (oldData == Q_NULLPTR) || !newROSData.hasSameData(*oldData) )	// Updating remote data.
 		{
+			rosDataManagerBase.logChange(*oldData, newROSData);
 #ifndef QT_NO_DEBUG
-		if( rosDataManagerBase.rosData(rosObjectID) == Q_NULLPTR )
-			qWarning("no se ha encontrado el usuario con ID %s del router %s", rosObjectID.toLatin1().data(), routerName().toLatin1().data());
+			if( rosDataManagerBase.rosData(rosObjectID) == Q_NULLPTR )
+				qWarning("no se ha encontrado el usuario con ID %s del router %s", rosObjectID.toLatin1().data(), routerName().toLatin1().data());
 #endif
 			sentence.setCommand( rosDataManagerBase.setCommand() );
 			newROSData.toSentence(sentence);
@@ -142,13 +145,12 @@ void ROSPPPoEManager::requestRemoteData(DataTypeID dataTypeID)
 		ROS::QSentence sentence;
 		sentence.setTag( QString::number(dataTypeID) );
 
-		foreach( const QString &query, rosDataManagerBase.getallQueries() )
-			sentence.addQuery(query);
-
-		sentence.setCommand( rosDataManagerBase.getallCommand() );
+		sentence.setCommand( rosDataManagerBase.listenCommand() );
 		sendSentence(sentence);
 
-		sentence.setCommand( rosDataManagerBase.listenCommand() );
+		sentence.setCommand( rosDataManagerBase.getallCommand() );
+		foreach( const QString &query, rosDataManagerBase.getallQueries() )
+			sentence.addQuery(query);
 		sendSentence(sentence);
 #endif
 	}

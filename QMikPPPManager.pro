@@ -17,7 +17,6 @@ SOURCES += main.cpp\
 	Utils/ROSSpeed.cpp \
 	Utils/ROSRateLimit.cpp \
 	Utils/QIniFile.cpp \
-    Utils/QRegistro.cpp \
     QMikPPPManager.cpp \
     ROSAPI/QMD5.cpp \
     ROSAPI/QSentences.cpp \
@@ -59,20 +58,20 @@ SOURCES += main.cpp\
     Dialogs/DlgROSIPPool.cpp \
     Dialogs/DlgDataBase.cpp \
     ROSData/ROSSecret.cpp \
-    ROSDataManager/ROSSecretManager.cpp \
     Utils/Utils.cpp \
     Widgets/QROSSecretTableWidget.cpp \
     Dialogs/DlgPPPUser.cpp \
     Widgets/QFancyComboBox.cpp \
     Utils/PortForward.cpp \
-    Widgets/QPortForwardTableWidget.cpp
+    Widgets/QPortForwardTableWidget.cpp \
+    ROSDataManager/ROSPPPSecretManager.cpp \
+    Utils/QPPPLogger.cpp
 
 HEADERS  += QMikPPPManager.h \
     Utils/IPv4Range.h \
 	Utils/ROSSpeed.h \
 	Utils/ROSRateLimit.h \
 	Utils/QIniFile.h \
-    Utils/QRegistro.h \
     ROSAPI/QMD5.h \
     ROSAPI/QSentences.h \
     ROSAPI/Comm.h \
@@ -131,7 +130,8 @@ HEADERS  += QMikPPPManager.h \
     Dialogs/DlgPPPUser.h \
     Widgets/QFancyComboBox.h \
     Utils/PortForward.h \
-    Widgets/QPortForwardTableWidget.h
+    Widgets/QPortForwardTableWidget.h \
+    Utils/QPPPLogger.h
 
 FORMS    += QMikPPPManager.ui \
 	DlgNuevoUsuario.ui \

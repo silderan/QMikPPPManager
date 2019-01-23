@@ -137,6 +137,8 @@ private:
 	static void setupCellItemStyle(QTableWidgetItem *item, const CellLook &cellLook);
 	void setupCellItemStyle(int row, Columns col, const CellLook &cellLook);
 
+	QRouterIDMap createRouterIDMap(const QROSUserNameWidgetItem *userNameItem)const;
+
 	bool shouldBeVisible(const QROSUserNameWidgetItem *userNameItem);
 	void showRowIfValid(const QROSUserNameWidgetItem *userNameItem);
 
@@ -150,6 +152,7 @@ public:
 	static QStringList columnsNames();
 
 	QROSUserNameWidgetItem *userNameWidgetItem(int row);
+	const QROSUserNameWidgetItem *userNameWidgetItem(int row) const;
 	static QString createObjectIDKey(const ROSPPPSecret &rosPPPSecret);
 	static QString createObjectIDKey(const QString &routerName, const QString &rosObjectID);
 
@@ -171,6 +174,7 @@ public:
 	void disconnectSelected();
 
 private slots:
+	void deleteUser(const QString &userName, bool sure = false) const;
 	void onCellDobleClic(QTableWidgetItem *item);
 
 signals:

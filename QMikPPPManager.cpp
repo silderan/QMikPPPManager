@@ -22,7 +22,7 @@
 #include "ui_QMikPPPManager.h"
 
 #include <QMessageBox>
-#include "Utils/QRegistro.h"
+#include "Utils/QPPPLogger.h"
 
 #include "Dialogs/DlgConfiguracion.h"
 #include "Dialogs/DlgLookConfig.h"
@@ -511,94 +511,94 @@ void QMikPPPManager::setNivelUsuario(QConfigData::NivelUsuario lvl)
 
 void QMikPPPManager::onDatoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &id, bool *isValid)
 {
-	QSecretData *sd = Q_NULLPTR;//ui->twUsuarios->findDataBySecretID(id);
-	QSecretData oldSecret = *sd;
-	if( !sd )
-		return;
-	switch( col )
-	{
-	case QSecretDataModel::ColUsuario:	// No es modificable localmente.
-	case QSecretDataModel::ColNumber:
-		break;
-	case QSecretDataModel::ColPerfil:
-		sd->setPerfilOriginal(dato);
-		if( !sd->dadoDeBaja() )
-		{
-			sd->setPerfilReal(dato);
-			actualizaPerfilRemoto(sd);
-		}
-		actualizaComentariosRemoto(sd);
-		reiniciaConexionRemota(sd);
-		break;
-	case QSecretDataModel::ColContrato:
-		if( (dato == "alta") == sd->dadoDeBaja() )
-		{
-			// Las notas están vacías cuando aun no tiene los comentarios "formateados"
-			if( sd->notas().isEmpty() )
-				actualizaComentariosRemoto(sd);
+//	QSecretData *sd = Q_NULLPTR;//ui->twUsuarios->findDataBySecretID(id);
+//	QSecretData oldSecret = *sd;
+//	if( !sd )
+//		return;
+//	switch( col )
+//	{
+//	case QSecretDataModel::ColUsuario:	// No es modificable localmente.
+//	case QSecretDataModel::ColNumber:
+//		break;
+//	case QSecretDataModel::ColPerfil:
+//		sd->setPerfilOriginal(dato);
+//		if( !sd->dadoDeBaja() )
+//		{
+//			sd->setPerfilReal(dato);
+//			actualizaPerfilRemoto(sd);
+//		}
+//		actualizaComentariosRemoto(sd);
+//		reiniciaConexionRemota(sd);
+//		break;
+//	case QSecretDataModel::ColContrato:
+//		if( (dato == "alta") == sd->dadoDeBaja() )
+//		{
+//			// Las notas están vacías cuando aun no tiene los comentarios "formateados"
+//			if( sd->notas().isEmpty() )
+//				actualizaComentariosRemoto(sd);
 
-			// TODO: Repasar esto!!!!
-			if( !sd->dadoDeBaja() )
-				sd->setPerfilReal( "" );
-			else
-				sd->setPerfilReal( sd->perfilOriginal() );
-			actualizaPerfilRemoto( sd );
-			reiniciaConexionRemota( sd );
-		}
-		break;
-	case QSecretDataModel::ColEstado:	// No es modificable localmente.
-		break;
-	case QSecretDataModel::ColIP:
-		sd->setIPEstatica(dato);
-		actualizaIPRemota(sd);
-		reiniciaConexionRemota(sd);
-		break;
-	case QSecretDataModel::ColNombre:
-		sd->setNombre(dato);
-		actualizaComentariosRemoto(sd);
-		break;
-	case QSecretDataModel::ColDireccion:
-		sd->setDireccion(dato);
-		actualizaComentariosRemoto(sd);
-		break;
-	case QSecretDataModel::ColPoblacion:
-		sd->setPoblacion(dato);
-		actualizaComentariosRemoto(sd);
-		break;
-	case QSecretDataModel::ColTelefonos:
-		sd->setTelefonos(dato);
-		actualizaComentariosRemoto(sd);
-		break;
-	case QSecretDataModel::ColInstalador:
-		sd->setInstalador(dato);
-		actualizaComentariosRemoto(sd);
-		break;
-	case QSecretDataModel::ColVendedor:
-		sd->setComercial(dato);
-		actualizaComentariosRemoto(sd);
-		break;
-	case QSecretDataModel::ColEMail:
-		sd->setEmail(dato);
-		actualizaComentariosRemoto(sd);
-		break;
-	case QSecretDataModel::ColUsaIPPublica:
-		sd->setFlagsUsaIPPublica(dato);
-		actualizaComentariosRemoto(sd);
-		break;
-	case QSecretDataModel::ColNotas:
-		sd->setNotas(dato);
-		actualizaComentariosRemoto(sd);
-		break;
-	case QSecretDataModel::ColCCliente:
-		if( dato.count() && !(*isValid = codigoClienteValido(dato, sd)) )
-			return;
-		sd->setCodigoCliente(dato);
-		actualizaComentariosRemoto(sd);
-		break;
-	case QSecretDataModel::NumColumnas:
-		break;
-	}
-	logService.registraCambios(oldSecret, *sd);
+//			// TODO: Repasar esto!!!!
+//			if( !sd->dadoDeBaja() )
+//				sd->setPerfilReal( "" );
+//			else
+//				sd->setPerfilReal( sd->perfilOriginal() );
+//			actualizaPerfilRemoto( sd );
+//			reiniciaConexionRemota( sd );
+//		}
+//		break;
+//	case QSecretDataModel::ColEstado:	// No es modificable localmente.
+//		break;
+//	case QSecretDataModel::ColIP:
+//		sd->setIPEstatica(dato);
+//		actualizaIPRemota(sd);
+//		reiniciaConexionRemota(sd);
+//		break;
+//	case QSecretDataModel::ColNombre:
+//		sd->setNombre(dato);
+//		actualizaComentariosRemoto(sd);
+//		break;
+//	case QSecretDataModel::ColDireccion:
+//		sd->setDireccion(dato);
+//		actualizaComentariosRemoto(sd);
+//		break;
+//	case QSecretDataModel::ColPoblacion:
+//		sd->setPoblacion(dato);
+//		actualizaComentariosRemoto(sd);
+//		break;
+//	case QSecretDataModel::ColTelefonos:
+//		sd->setTelefonos(dato);
+//		actualizaComentariosRemoto(sd);
+//		break;
+//	case QSecretDataModel::ColInstalador:
+//		sd->setInstalador(dato);
+//		actualizaComentariosRemoto(sd);
+//		break;
+//	case QSecretDataModel::ColVendedor:
+//		sd->setComercial(dato);
+//		actualizaComentariosRemoto(sd);
+//		break;
+//	case QSecretDataModel::ColEMail:
+//		sd->setEmail(dato);
+//		actualizaComentariosRemoto(sd);
+//		break;
+//	case QSecretDataModel::ColUsaIPPublica:
+//		sd->setFlagsUsaIPPublica(dato);
+//		actualizaComentariosRemoto(sd);
+//		break;
+//	case QSecretDataModel::ColNotas:
+//		sd->setNotas(dato);
+//		actualizaComentariosRemoto(sd);
+//		break;
+//	case QSecretDataModel::ColCCliente:
+//		if( dato.count() && !(*isValid = codigoClienteValido(dato, sd)) )
+//			return;
+//		sd->setCodigoCliente(dato);
+//		actualizaComentariosRemoto(sd);
+//		break;
+//	case QSecretDataModel::NumColumnas:
+//		break;
+//	}
+//	logService.registraCambios(oldSecret, *sd);
 }
 
 void QMikPPPManager::onDobleClicUsuario(const QSecretData &sd)

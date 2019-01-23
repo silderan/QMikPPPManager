@@ -1,7 +1,7 @@
 #include "QMikPPPManager.h"
 #include <QApplication>
 
-#include "Utils/QRegistro.h"
+#include "Utils/QPPPLogger.h"
 int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);

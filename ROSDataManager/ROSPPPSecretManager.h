@@ -10,7 +10,9 @@ public:
 	ROSPPPSecretManager(const QString &path) : ROSDataManager(path)
 	{	}
 
-//	virtual ROSDataBase *onROSModReply(const ROS::QSentence &sentence) override;
+	virtual void logAdding(const ROSDataBase &newROSData) override;
+	virtual void logDeleting(const ROSDataBase &oldROSData) override;
+	virtual void logChange(const ROSDataBase &oldROSData, const ROSDataBase &newROSData) override;
 };
 
 #endif // ROSPPPSECRETMANAGER_H

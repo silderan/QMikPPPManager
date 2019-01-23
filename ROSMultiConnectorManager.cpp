@@ -249,18 +249,21 @@ void ROSMultiConnectManager::onLoginChanged(ROS::Comm::LoginState s)
 	}
 }
 
+void ROSMultiConnectManager::updateRemoteData(ROSPPPoEManager *pppoeManager, const ROSDataBase &rosData, const QString &rosObjectID) const
+{
+	pppoeManager->updateRemoteData(rosData, rosObjectID);
+}
+
 void ROSMultiConnectManager::updateRemoteData(const ROSDataBase &rosData)
 {
 	Q_ASSERT( m_rosPppoeManagerMap.contains(rosData.routerName()) );
-	m_rosPppoeManagerMap[rosData.routerName()]->updateRemoteData(rosData, rosData.rosObjectID());
+	updateRemoteData( m_rosPppoeManagerMap[rosData.routerName()], rosData, rosData.rosObjectID());
 }
 
 void ROSMultiConnectManager::updateRemoteData(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap)
 {
 	foreach( ROSPPPoEManager *pppoeManager, m_rosPppoeManagerMap )
-	{
-		pppoeManager->updateRemoteData( rosData, routerIDMap.dataID(pppoeManager->routerName()) );
-	}
+		updateRemoteData( pppoeManager, rosData, routerIDMap.dataID(pppoeManager->routerName()) );
 }
 
 void ROSMultiConnectManager::requestAll(ROSPPPoEManagerPList rosPPPoEManagerPList, DataTypeID dataTypeID)

@@ -1,7 +1,7 @@
 #include "DlgNuevoUsuario.h"
 #include "ui_DlgNuevoUsuario.h"
 
-#include "Utils/QRegistro.h"
+#include "Utils/QPPPLogger.h"
 
 DlgNuevoUsuario::DlgNuevoUsuario(ROS::Comm *api, const QSecretData &sd, QSecretDataModel &secrets, QWidget *parent) :
 	QDialog(parent),
@@ -370,78 +370,78 @@ void DlgNuevoUsuario::on_btCerrar_clicked()
 
 void DlgNuevoUsuario::on_btCrear_clicked()
 {
-	QSecretData secretOld = m_secret;
-	if( (m_secret.secretID().isEmpty() || (m_secret.instalador() != ui->cbInstalador->currentText())) && !checkValidInstalador(this, ui->cbInstalador->currentText()) )
-		return;
-	if( (m_secret.secretID().isEmpty() || (m_secret.usuario() != ui->leUser->text())) && !checkValidUsername(this, ui->leUser->text()) )
-		return;
-	if( (m_secret.secretID().isEmpty() || (m_secret.contra() != ui->lePass->text())) && !checkValidPassword(this, ui->lePass->text()) )
-		return;
-	if( (m_secret.secretID().isEmpty() || (m_secret.nombre() != ui->leNombre->text())) && !checkValidClientName(this, ui->leNombre->text()) )
-		return;
-	if( (m_secret.secretID().isEmpty() || (m_secret.direccion() != ui->leDireccion->text())) && !checkValidDirection(this, ui->leDireccion->text()) )
-		return;
-	if( (m_secret.secretID().isEmpty() || (m_secret.poblacion() != ui->cbPoblacion->currentText())) && !checkValidCity(this, ui->cbPoblacion->currentText()) )
-		return;
-	if( (m_secret.secretID().isEmpty() || (m_secret.email() != ui->leEmail->text())) && !checkValidEMail(this, ui->leEmail->text()) )
-		return;
-	if( (m_secret.secretID().isEmpty() || (m_secret.telefonos() != ui->leTelefonos->text())) && !checkValidPhoneNumber(this, ui->leTelefonos->text()) )
-		return;
-	if( ui->grWiFi->isChecked() )
-	{
-		if( (m_secret.secretID().isEmpty() || (m_secret.SSID() != ui->leSSID->text())) && !checkValidSSID(this, ui->leSSID->text()) )
-			return;
-		if( (m_secret.secretID().isEmpty() || (m_secret.wPass() != ui->leWPass->text())) && !checkValidWPA(this, ui->leWPass->text()) )
-			return;
-	}
-	else
-	{
-		m_secret.setSSID("");
-		m_secret.setWPass("");
-	}
-	if( (m_secret.secretID().isEmpty() || (m_secret.comercial() != ui->cbComercial->currentText())) && !checkValidComercial(this, ui->cbComercial->currentText()) )
-		return;
+//	QSecretData secretOld = m_secret;
+//	if( (m_secret.secretID().isEmpty() || (m_secret.instalador() != ui->cbInstalador->currentText())) && !checkValidInstalador(this, ui->cbInstalador->currentText()) )
+//		return;
+//	if( (m_secret.secretID().isEmpty() || (m_secret.usuario() != ui->leUser->text())) && !checkValidUsername(this, ui->leUser->text()) )
+//		return;
+//	if( (m_secret.secretID().isEmpty() || (m_secret.contra() != ui->lePass->text())) && !checkValidPassword(this, ui->lePass->text()) )
+//		return;
+//	if( (m_secret.secretID().isEmpty() || (m_secret.nombre() != ui->leNombre->text())) && !checkValidClientName(this, ui->leNombre->text()) )
+//		return;
+//	if( (m_secret.secretID().isEmpty() || (m_secret.direccion() != ui->leDireccion->text())) && !checkValidDirection(this, ui->leDireccion->text()) )
+//		return;
+//	if( (m_secret.secretID().isEmpty() || (m_secret.poblacion() != ui->cbPoblacion->currentText())) && !checkValidCity(this, ui->cbPoblacion->currentText()) )
+//		return;
+//	if( (m_secret.secretID().isEmpty() || (m_secret.email() != ui->leEmail->text())) && !checkValidEMail(this, ui->leEmail->text()) )
+//		return;
+//	if( (m_secret.secretID().isEmpty() || (m_secret.telefonos() != ui->leTelefonos->text())) && !checkValidPhoneNumber(this, ui->leTelefonos->text()) )
+//		return;
+//	if( ui->grWiFi->isChecked() )
+//	{
+//		if( (m_secret.secretID().isEmpty() || (m_secret.SSID() != ui->leSSID->text())) && !checkValidSSID(this, ui->leSSID->text()) )
+//			return;
+//		if( (m_secret.secretID().isEmpty() || (m_secret.wPass() != ui->leWPass->text())) && !checkValidWPA(this, ui->leWPass->text()) )
+//			return;
+//	}
+//	else
+//	{
+//		m_secret.setSSID("");
+//		m_secret.setWPass("");
+//	}
+//	if( (m_secret.secretID().isEmpty() || (m_secret.comercial() != ui->cbComercial->currentText())) && !checkValidComercial(this, ui->cbComercial->currentText()) )
+//		return;
 
-	m_secret.setUsuario(ui->leUser->text());
-	m_secret.setContra(ui->lePass->text());
-	m_secret.setPerfilOriginal(ui->cbPerfil->currentText());
-	if( ui->cbIPPublica->currentIndex() > 0 )
-		m_secret.setIPEstatica(ui->cbIPPublica->currentText());
-	else
-		m_secret.setIPEstatica("");
-	m_secret.setNombre(ui->leNombre->text());
-	m_secret.setDireccion(ui->leDireccion->text());
-	m_secret.setPoblacion(ui->cbPoblacion->currentText());
-	m_secret.setEmail(ui->leEmail->text());
-	m_secret.setInstalador(ui->cbInstalador->currentText());
-	m_secret.setTelefonos(ui->leTelefonos->text());
-	m_secret.setSSID(ui->leSSID->text());
-	m_secret.setWPass(ui->leWPass->text());
-//	m_secret.setFlagUsaIPPublica(ui->chVozIP->isChecked(), IPPUBLICA_VOZIP);
-//	m_secret.setFlagUsaIPPublica(ui->chPuertos->isChecked(), IPPUBLICA_PUERTOS);
-//	m_secret.setFlagUsaIPPublica(ui->chDVR->isChecked(), IPPUBLICA_DVR);
-//	m_secret.setFlagUsaIPPublica(ui->chOtros->isChecked(), IPPUBLICA_OTROS);
-	m_secret.setComercial(ui->cbComercial->currentText());
-	if( !ui->leNotas->text().isEmpty() )
-		m_secret.setNotas(ui->leNotas->text());
+//	m_secret.setUsuario(ui->leUser->text());
+//	m_secret.setContra(ui->lePass->text());
+//	m_secret.setPerfilOriginal(ui->cbPerfil->currentText());
+//	if( ui->cbIPPublica->currentIndex() > 0 )
+//		m_secret.setIPEstatica(ui->cbIPPublica->currentText());
+//	else
+//		m_secret.setIPEstatica("");
+//	m_secret.setNombre(ui->leNombre->text());
+//	m_secret.setDireccion(ui->leDireccion->text());
+//	m_secret.setPoblacion(ui->cbPoblacion->currentText());
+//	m_secret.setEmail(ui->leEmail->text());
+//	m_secret.setInstalador(ui->cbInstalador->currentText());
+//	m_secret.setTelefonos(ui->leTelefonos->text());
+//	m_secret.setSSID(ui->leSSID->text());
+//	m_secret.setWPass(ui->leWPass->text());
+////	m_secret.setFlagUsaIPPublica(ui->chVozIP->isChecked(), IPPUBLICA_VOZIP);
+////	m_secret.setFlagUsaIPPublica(ui->chPuertos->isChecked(), IPPUBLICA_PUERTOS);
+////	m_secret.setFlagUsaIPPublica(ui->chDVR->isChecked(), IPPUBLICA_DVR);
+////	m_secret.setFlagUsaIPPublica(ui->chOtros->isChecked(), IPPUBLICA_OTROS);
+//	m_secret.setComercial(ui->cbComercial->currentText());
+//	if( !ui->leNotas->text().isEmpty() )
+//		m_secret.setNotas(ui->leNotas->text());
 
-	ROS::QSentence s;
-	m_secret.toSentence(&s);
+//	ROS::QSentence s;
+//	m_secret.toSentence(&s);
 
-	if( m_secret.secretID().isEmpty() )
-	{
-		s.setCommand("/ppp/secret/add");
-		logService.addRegistro(m_secret, tr("Creado nuevo usuario con perfil %1").arg(m_secret.perfilOriginal()));
-	}
-	else
-	{
-		s.setCommand("/ppp/secret/set");
-		logService.registraCambios(secretOld, m_secret);
-	}
+//	if( m_secret.secretID().isEmpty() )
+//	{
+//		s.setCommand("/ppp/secret/add");
+//		logService.addPPPLog(m_secret, tr("Creado nuevo usuario con perfil %1").arg(m_secret.perfilOriginal()));
+//	}
+//	else
+//	{
+//		s.setCommand("/ppp/secret/set");
+//		logService.registraCambios(secretOld, m_secret);
+//	}
 
-	s.setTag( gGlobalConfig.tagNuevo );
-	s.setID( m_secret.secretID() );
-	mktAPI->sendSentence(s);
+//	s.setTag( gGlobalConfig.tagNuevo );
+//	s.setID( m_secret.secretID() );
+//	mktAPI->sendSentence(s);
 }
 
 #include <QDateTime>

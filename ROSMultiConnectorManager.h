@@ -14,6 +14,7 @@ Q_OBJECT
 
 	ROSPPPoEManagerMap m_rosPppoeManagerMap;
 
+	void updateRemoteData(ROSPPPoEManager *pppoeManager, const ROSDataBase &rosData, const QString &rosObjectID) const;
 private slots:
 	void onComError(ROS::Comm::CommError, QAbstractSocket::SocketError);
 	void onCommStateChanged(ROS::Comm::CommState s);
@@ -59,6 +60,8 @@ public:
 	// Use this just for send data to ONE router. Intended for removing active connection.
 	// All the rest of remote updates must be done with the other funcion.
 	void updateRemoteData( const ROSDataBase &rosData );
+
+public slots:
 	// Use this when you need to update remote data on ALL routers.
 	// This should be the mainly used.
 	void updateRemoteData(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap);

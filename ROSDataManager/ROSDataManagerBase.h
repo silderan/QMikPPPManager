@@ -64,6 +64,10 @@ public:
 	virtual QString removeCommand()		{ return QString("%1remove").arg(m_path);	}
 
 	virtual QStringList getallQueries()	{ return QStringList() << "#|";	}
+
+	virtual void logAdding(const ROSDataBase &/*newROSData*/)	{	}
+	virtual void logDeleting(const ROSDataBase &/*oldROSData*/)	{	}
+	virtual void logChange(const ROSDataBase &/*oldROSData*/, const ROSDataBase &/*newROSData*/)	{	}
 };
 
 template <typename T>

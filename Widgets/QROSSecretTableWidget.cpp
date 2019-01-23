@@ -181,6 +181,14 @@ void QROSSecretTableWidget::setupCellItemStyle(int row, QROSSecretTableWidget::C
 		QROSSecretTableWidget::setupCellItemStyle(item, cellLook);
 }
 
+QRouterIDMap QROSSecretTableWidget::createRouterIDMap(const QROSUserNameWidgetItem *userNameItem) const
+{
+	QRouterIDMap routerIDMap;
+	foreach( const ROSPPPSecret &secret, userNameItem->rosPPPSecretMap )
+		routerIDMap[secret.routerName()] = secret.rosObjectID();
+	return routerIDMap;
+}
+
 void QROSSecretTableWidget::clear()
 {
 	setRowCount(0);
@@ -256,6 +264,11 @@ QROSUserNameWidgetItem *QROSSecretTableWidget::userNameWidgetItem(int row)
 	return static_cast<QROSUserNameWidgetItem*>(item(row, Columns::UserName));
 }
 
+const QROSUserNameWidgetItem *QROSSecretTableWidget::userNameWidgetItem(int row) const
+{
+	return static_cast<const QROSUserNameWidgetItem*>(item(row, Columns::UserName));
+}
+
 void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &rosPPPSecret)
 {
 	if( rosPPPSecret.pppProfileName().isEmpty() )
@@ -324,7 +337,7 @@ void QROSSecretTableWidget::onROSSecretDelReply(const QString &routerName, const
 	QString key = createObjectIDKey(routerName, rosObjectID);
 	QROSUserNameWidgetItem *userNameItem = m_secretIDMap.value(key, Q_NULLPTR);
 
-	if( userNameItem == Q_NULLPTR )
+	if( userNameItem != Q_NULLPTR )
 	{
 		userNameItem->rosPPPSecretIDMap.remove( routerName );
 		if( userNameItem->rosPPPSecretIDMap.isEmpty() )
@@ -461,9 +474,7 @@ bool QROSSecretTableWidget::allowCellChange(const QModelIndex &index, const QStr
 	QROSUserNameWidgetItem *userNameItem = userNameWidgetItem(index.row());
 	Q_ASSERT(userNameItem);
 	ROSPPPSecret newSecret = userNameItem->rosPPPSecretMap.first();
-	QRouterIDMap routerIDMap;
-	foreach( const ROSPPPSecret &secret, userNameItem->rosPPPSecretMap )
-		routerIDMap[secret.routerName()] = secret.rosObjectID();
+	QRouterIDMap routerIDMap = createRouterIDMap(userNameItem);
 
 	std::function<bool(ROSPPPSecret &, const QString &)> setFnc;
 	QString fieldName;
@@ -559,6 +570,23 @@ void QROSSecretTableWidget::disconnectSelected()
 	}
 }
 
+void QROSSecretTableWidget::deleteUser(const QString &userName, bool sure) const
+{
+	const QROSUserNameWidgetItem *item = m_userNameMap[userName];
+	if( item != Q_NULLPTR )
+	{
+		ROSPPPSecret pppSecret = item->rosPPPSecretMap.first();
+		pppSecret.setDeleting(true);
+		if( !sure )
+		{
+			if( QMessageBox::warning( const_cast<QROSSecretTableWidget*>(this), parent()->objectName(), tr("¿Seguro que quieres borrar al usuario %1?").arg(userName), QMessageBox::No | QMessageBox::Yes ) == QMessageBox::Yes )
+				deleteUser(userName, true);
+		}
+		else
+			multiConnectionManager.updateRemoteData(pppSecret, createRouterIDMap(item));
+	}
+}
+
 void QROSSecretTableWidget::onCellDobleClic(QTableWidgetItem *item)
 {
 	if( item->column() == static_cast<int>(Columns::UserName) )
@@ -572,11 +600,18 @@ void QROSSecretTableWidget::onCellDobleClic(QTableWidgetItem *item)
 #include <QDesktopServices>
 void QROSSecretTableWidget::contextMenuEvent(QContextMenuEvent *event)
 {
-	QList<QROSUserNameWidgetItem*> connectedUsersList;
+	QList<QROSUserNameWidgetItem*> userNameItemList;
 	foreach( const QModelIndex &index, selectedIndexes() )
 	{
-		if( userNameWidgetItem(index.row())->rosPPPActive.currentIPv4().isValid() && !connectedUsersList.contains(userNameWidgetItem(index.row())))
-			connectedUsersList.append( userNameWidgetItem(index.row()) );
+		if( !userNameItemList.contains(userNameWidgetItem(index.row())) )
+			userNameItemList.append(userNameWidgetItem(index.row()));
+	}
+
+	QList<QROSUserNameWidgetItem*> connectedUsersList;
+	foreach( QROSUserNameWidgetItem *userNameItem, userNameItemList )
+	{
+		if( userNameItem->rosPPPActive.currentIPv4().isValid() && !connectedUsersList.contains(userNameItem) )
+			connectedUsersList.append( userNameItem );
 	}
 
 	QMenu menu(this);
@@ -587,7 +622,7 @@ void QROSSecretTableWidget::contextMenuEvent(QContextMenuEvent *event)
 			txt = tr("Desconectar cliente %1").arg(connectedUsersList.first()->rosPPPActive.userName());
 		else
 			txt = tr("Desconectar %1 clientes").arg(connectedUsersList.count());
-		connect( menu.addAction(txt), &QAction::triggered, [this] () { disconnectSelected(); } );
+		connect( menu.addAction(txt), &QAction::triggered, this, &QROSSecretTableWidget::disconnectSelected );
 	}
 
 	QMenu openBrowser( tr("Abrir navegador") );
@@ -620,5 +655,14 @@ void QROSSecretTableWidget::contextMenuEvent(QContextMenuEvent *event)
 		connect( ac, &QAction::triggered, [this, col] (bool visible) { setColumnHidden(col, !visible); } );
 	}
 	menu.addMenu( &columns );
+
+	QMenu deleteUser( tr("Borra usuario") );
+	if( userNameItemList.count() )
+	{
+		QString userName = userNameItemList.first()->rosPPPSecretMap.first().userName();
+		QAction *ac = menu.addAction( tr("Borrar usuario %1").arg(userName) );
+
+		connect( ac, &QAction::triggered, [this, userName] () { this->deleteUser(userName); } );
+	}
 	menu.exec( event->globalPos() );
 }
