@@ -17,7 +17,7 @@ class DlgPPPUser : public DlgDataBase
 	Q_OBJECT
 	Ui::DlgPPPUser *ui;
 
-	QMap<QString, ROSPPPSecret> m_pppSecretMap;
+	QPPPSecretMap m_pppSecretMap;
 
 	ROSPPPSecret m_pppSecret;
 	ROSPPPActive m_pppActive;
@@ -87,7 +87,7 @@ private slots:
 	void on_delPortButton_clicked();
 
 public slots:
-	void onEditUserRequest(const QMap<QString, ROSPPPSecret> &pppSecretMap, const ROSPPPActive &pppActive);
+	void onEditUserRequest(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive);
 
 	// QWidget interface
 protected:

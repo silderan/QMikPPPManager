@@ -93,7 +93,9 @@ void ROSPPPoEManager::updateRemoteData(const ROSDataBase &newROSData, const QStr
 	{
 		rosDataManagerBase.logAdding(newROSData);
 		sentence.setCommand( rosDataManagerBase.addCommand() );
-		sendSentence( newROSData.toSentence(sentence), false );
+		newROSData.toSentence(sentence);
+		sentence.setID( "" );
+		sendSentence( sentence, false );
 	}
 	else
 	if( newROSData.deleting() )
@@ -105,7 +107,7 @@ void ROSPPPoEManager::updateRemoteData(const ROSDataBase &newROSData, const QStr
 	}
 	else
 	{
-		ROSDataBase *oldData = rosDataManagerBase.rosData(rosObjectID);
+		ROSDataBase *oldData = rosDataManagerBase.rosData(rosObjectID); Q_ASSERT(oldData);
 		if( (oldData == Q_NULLPTR) || !newROSData.hasSameData(*oldData) )	// Updating remote data.
 		{
 			rosDataManagerBase.logChange(*oldData, newROSData);

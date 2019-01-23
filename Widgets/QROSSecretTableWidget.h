@@ -29,12 +29,11 @@ class QROSUserNameWidgetItem : public QTableWidgetItem
 {
 
 public:
-	QROSUserNameWidgetItem() : /*rosCachedPPPSecret(""), */rosPPPActive("")
+	QROSUserNameWidgetItem() : /*rosCachedPPPSecret(""), */pppActive("")
 	{	}
 
-	QMap<QString, ROSPPPSecret> rosPPPSecretMap;
-	ROSPPPActive rosPPPActive;
-	QRouterIDMap rosPPPSecretIDMap;
+	QPPPSecretMap pppSecretMap;
+	ROSPPPActive pppActive;
 };
 
 class QROSServiceStatusCellItem : public QStyledWidgetItem
@@ -137,8 +136,6 @@ private:
 	static void setupCellItemStyle(QTableWidgetItem *item, const CellLook &cellLook);
 	void setupCellItemStyle(int row, Columns col, const CellLook &cellLook);
 
-	QRouterIDMap createRouterIDMap(const QROSUserNameWidgetItem *userNameItem)const;
-
 	bool shouldBeVisible(const QROSUserNameWidgetItem *userNameItem);
 	void showRowIfValid(const QROSUserNameWidgetItem *userNameItem);
 
@@ -173,12 +170,11 @@ public:
 
 	void disconnectSelected();
 
-private slots:
 	void deleteUser(const QString &userName, bool sure = false) const;
 	void onCellDobleClic(QTableWidgetItem *item);
 
 signals:
-	void editPPPUser(const QMap<QString, ROSPPPSecret> &pppSecretMap, const ROSPPPActive &pppActive);
+	void editPPPUser(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive);
 	void contextMenuRequested(const QPoint &point);
 
 protected:

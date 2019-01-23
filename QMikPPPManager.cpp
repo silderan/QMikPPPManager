@@ -47,30 +47,25 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 
 	updateConfig();
 
-	connect( &multiConnectionManager, SIGNAL(comError(QString,QString)), this, SLOT(onComError(QString,QString)) );
+	connect( &multiConnectionManager, &ROSMultiConnectManager::comError, this, &QMikPPPManager::onComError );
 
-	connect( &multiConnectionManager, SIGNAL(rosError(QString,QString)), this, SLOT(onROSError(QString,QString)) );
-	connect( &multiConnectionManager, SIGNAL(rosModReply(ROSDataBase)), this, SLOT(onROSModReply(ROSDataBase)) );
-	connect( &multiConnectionManager, SIGNAL(rosDelReply(QString,DataTypeID,QString)), this, SLOT(onROSDelReply(QString,DataTypeID,QString)) );
-	connect( &multiConnectionManager, SIGNAL(rosDone(QString,DataTypeID)), this, SLOT(onROSDone(QString,DataTypeID)) );
+	connect( &multiConnectionManager, &ROSMultiConnectManager::rosError, this, &QMikPPPManager::onROSError );
+	connect( &multiConnectionManager, &ROSMultiConnectManager::rosModReply, this, &QMikPPPManager::onROSModReply );
+	connect( &multiConnectionManager, &ROSMultiConnectManager::rosDelReply, this, &QMikPPPManager::onROSDelReply );
+	connect( &multiConnectionManager, &ROSMultiConnectManager::rosDone, this, &QMikPPPManager::onROSDone );
 
-	connect( &multiConnectionManager, SIGNAL(statusInfo(QString,QString)),this,SLOT(setStatusText(QString,QString)) );
+	connect( &multiConnectionManager, &ROSMultiConnectManager::statusInfo, this,&QMikPPPManager::setStatusText );
 
-	connect( &multiConnectionManager, SIGNAL(routerConnected(QString)), this, SLOT(onRouterConnected(QString)) );
-	connect( &multiConnectionManager, SIGNAL(allConected()), this, SLOT(onAllRoutersConnected()) );
+	connect( &multiConnectionManager, &ROSMultiConnectManager::routerConnected, this, &QMikPPPManager::onRouterConnected );
+	connect( &multiConnectionManager, &ROSMultiConnectManager::allConected, this, &QMikPPPManager::onAllRoutersConnected );
 
-	connect( &multiConnectionManager, SIGNAL(routerDisconnected(QString)), this, SLOT(onRouterDisconnected(QString)) );
-	connect( &multiConnectionManager, SIGNAL(allDisconnected()), this, SLOT(onAllRoutersDisconnected()) );
+	connect( &multiConnectionManager, &ROSMultiConnectManager::routerDisconnected, this, &QMikPPPManager::onRouterDisconnected );
+	connect( &multiConnectionManager, &ROSMultiConnectManager::allDisconnected, this, &QMikPPPManager::onAllRoutersDisconnected );
 
-	connect( &multiConnectionManager, SIGNAL(logued(QString)), this, SLOT(onLogued(QString)));
+	connect( &multiConnectionManager, &ROSMultiConnectManager::logued, this, &QMikPPPManager::onLogued );
 
-//	connect( ui->twUsuarios, SIGNAL(datoModificado(QSecretDataModel::Columnas,QString,QString,bool*)),
-//			 this, SLOT(onDatoModificado(QSecretDataModel::Columnas,QString,QString,bool*)) );
-//	connect( ui->twUsuarios, SIGNAL(dobleClicUsuario(QSecretData)), this, SLOT(onDobleClicUsuario(QSecretData)) );
-//	connect( ui->twUsuarios, SIGNAL(clicUsuario(QSecretData)), this, SLOT(onClicUsuario(QSecretData)) );
+	connect( ui->usersTable, &QROSSecretTableWidget::editPPPUser,this, &QMikPPPManager::onPPPEditRequest );
 
-	connect( ui->usersTable, SIGNAL(editPPPUser(QMap<QString,ROSPPPSecret>,ROSPPPActive)),
-			 this,		  SLOT(onPPPEditRequest(QMap<QString,ROSPPPSecret>,ROSPPPActive)) );
 	setNivelUsuario(QConfigData::SinPermisos);
 	ui->cbFiltro->addItem( "Cualquiera", 0 );
 	ui->cbFiltro->addItem( "Nombre", FILTRO_NOMBRE );
@@ -810,28 +805,6 @@ void QMikPPPManager::on_advancedConfigButton_clicked()
 	dlgConfig->deleteLater();
 }
 
-void QMikPPPManager::on_addUserButton_clicked()
-{
-	QSecretData s;
-#ifdef QT_DEBUG
-	s.setUsuario("AAAAAAAAAAAA");
-	s.setContra("123456789012");
-	s.setNombre("Nombre Cliente");
-	s.setDireccion("Dirección del cliente");
-	s.setPoblacion("Población");
-	s.setEmail("Correo@electr.nico");
-	s.setWPass("WPA123456");
-	s.setSSID("SSID_WIFI");
-	s.setInstalador("Aaron");
-	s.setTelefonos("123456789,123456789");
-#endif
-// TODO!
-//	dlgNuevoUsuario = new DlgNuevoUsuario(&mktAPI, s, ui->twUsuarios->secrets(), this);
-//	dlgNuevoUsuario->exec();
-//	dlgNuevoUsuario->deleteLater();
-//	dlgNuevoUsuario = Q_NULLPTR;
-}
-
 void QMikPPPManager::on_apiUsersButton_clicked()
 {
 	static DlgROSAPIUsers *dlgROSAPIUsers;
@@ -864,7 +837,7 @@ void QMikPPPManager::on_pppProfilesButton_clicked()
 }
 
 
-void QMikPPPManager::onPPPEditRequest(const QMap<QString, ROSPPPSecret> &pppSecretMap, const ROSPPPActive &pppActive)
+void QMikPPPManager::onPPPEditRequest(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive)
 {
 	static DlgPPPUser *dlgPPPUser;
 
@@ -874,4 +847,9 @@ void QMikPPPManager::onPPPEditRequest(const QMap<QString, ROSPPPSecret> &pppSecr
 		m_dialogList.append(dlgPPPUser);
 	}
 	dlgPPPUser->onEditUserRequest(pppSecretMap, pppActive);
+}
+
+void QMikPPPManager::on_addUserButton_clicked()
+{
+	onPPPEditRequest( QPPPSecretMap(), ROSPPPActive("") );
 }

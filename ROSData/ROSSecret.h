@@ -183,6 +183,15 @@ public:
 #endif
 };
 
+class QPPPSecretMap : public QMap<QString, ROSPPPSecret>
+{
+
+public:
+	void insert(const ROSPPPSecret &pppSecret )				{ QMap::insert(pppSecret.routerName(), pppSecret);	}
+	ROSPPPSecret pppSecret(const QString &routerName) const	{ return value(routerName, ROSPPPSecret(""));		}
+	QRouterIDMap toRouterIDMap() const;
+};
+
 class ROSPPPActive : public ROSDataBase
 {
 	QString m_userName;

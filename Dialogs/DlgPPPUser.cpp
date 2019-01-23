@@ -34,6 +34,12 @@ bool DlgPPPUser::currentEditing(const ROSPPPSecret &pppSecret)
 	 * El único caso extremo que se me ocurre es que haya un cambio del nombre de usuario
 	 * en uno de los routers y no hayamos recibido la información del usuario anteriormente.
 	 */
+	if( m_pppSecretMap.isEmpty() )
+	{
+		if( m_pppSecret.userName() == pppSecret.userName() )
+			return true;
+		return false;
+	}
 	if( m_pppSecretMap.contains(pppSecret.routerName()) )
 		return m_pppSecretMap.value(pppSecret.routerName(), ROSPPPSecret("")).rosObjectID() == pppSecret.rosObjectID();
 
@@ -113,7 +119,7 @@ bool DlgPPPUser::getPPPUserPass()
 
 bool DlgPPPUser::getPPPProfile()
 {
-	return checkStringData( tr("Contraseña del usuario PPP"), m_pppSecret.originalProfile(), ui->pppProfileComboBox->currentText(), &ROSPPPSecret::setOriginalProfile );
+	return checkStringData( tr("Perfil del cliente"), m_pppSecret.originalProfile(), ui->pppProfileComboBox->currentText(), &ROSPPPSecret::setOriginalProfile );
 }
 
 bool DlgPPPUser::getClientName()
@@ -303,8 +309,15 @@ void DlgPPPUser::updateUserData()
 {
 	ui->pppUserNameLineEdit->setText( m_pppSecret.userName() );
 	ui->pppUserPassLineEdit->setText( m_pppSecret.userPass() );
-	ui->pppProfileComboBox->setCurrentIndex( ui->pppProfileComboBox->findData(m_pppSecret.originalProfile(), Qt::EditRole) );
-	updateStaticIPComboBox();
+	ui->pppProfileComboBox->blockSignals(true);
+	if( m_pppSecret.originalProfile().isEmpty() )
+		ui->pppProfileComboBox->setCurrentIndex(-1);
+	else
+	{
+		ui->pppProfileComboBox->setCurrentIndex( ui->pppProfileComboBox->findData(m_pppSecret.originalProfile(), Qt::EditRole) );
+		updateStaticIPComboBox();
+	}
+	ui->pppProfileComboBox->blockSignals(false);
 
 	ui->installerComboBox->setCurrentText( m_pppSecret.installerName() );
 	ui->clientNameLineEdit->setText( m_pppSecret.clientName() );
@@ -359,7 +372,7 @@ void DlgPPPUser::onROSModReply(const ROSDataBase &rosData)
 		if( currentEditing(static_cast<const ROSPPPSecret &>(rosData)) )
 		{
 			m_pppSecret = static_cast<const ROSPPPSecret &>(rosData);
-			m_pppSecretMap.insert( rosData.routerName(), m_pppSecret );
+			m_pppSecretMap.insert( m_pppSecret );
 			updateDialog();
 		}
 	}
@@ -404,7 +417,7 @@ void DlgPPPUser::onROSDelReply(const QString &routerName, DataTypeID dataTypeID,
 				if( m_pppSecretMap.count() )
 					m_pppSecret.setROSObjectID( m_pppSecretMap.first().rosObjectID() );
 				else
-					m_pppSecret.setROSObjectID( QString() );
+					m_pppSecret = ROSPPPSecret("");
 				updateDialogInfo();
 			}
 		}
@@ -442,7 +455,7 @@ void DlgPPPUser::on_pppProfileComboBox_currentIndexChanged(int index)
 	updateStaticIPComboBox();
 }
 
-void DlgPPPUser::onEditUserRequest(const QMap<QString, ROSPPPSecret> &pppSecretMap, const ROSPPPActive &pppActive)
+void DlgPPPUser::onEditUserRequest(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive)
 {
 	clear();
 	if( pppSecretMap.count() )
@@ -451,6 +464,29 @@ void DlgPPPUser::onEditUserRequest(const QMap<QString, ROSPPPSecret> &pppSecretM
 		m_pppSecret = m_pppSecretMap.first();
 		m_pppActive = pppActive;
 		updateDialog();
+	}
+	else
+	{
+		updateDialog();
+
+#ifndef QT_NO_DEBUG
+		ui->pppUserNameLineEdit->setText( QString("RandomUserName%1").arg(qrand(), 4, 16, QChar('0')) );
+		ui->pppUserPassLineEdit->setText( QString("%1%2").arg(qrand(), 4, 16, QChar('0')).arg(qrand(), 4, 16, QChar('0')) );
+#endif
+		ui->pppProfileComboBox->setCurrentText( tr("Escoge perfil") );
+		ui->installerComboBox->setCurrentText( "a" );
+		ui->clientNameLineEdit->setText( "b" );
+		ui->clientAddressLineEdit->setText( "c" );
+		ui->clientCityComboBox->setCurrentText( "d" );
+		ui->clientPhonesLineEdit->setText( "e" );
+		ui->clientEmailLineEdit->setText( "f" );
+		ui->clientNotesLineEdit->setText( "g" );
+		ui->installNotesLineEdit->setText( "h" );
+
+//		ui->wifi2GroupBox->setChecked( false );
+//		ui->wifi5GroupBox->setChecked( false );
+//		ui->voipGroupBox->setChecked( false );
+//		ui->lanGroupBox->setChecked( false );
 	}
 	show();
 }
@@ -480,12 +516,7 @@ void DlgPPPUser::on_applyDataButton_clicked()
 		getLocalIP() && getLocalDMZ() && getLocalPorts() )
 
 	{
-		QRouterIDMap routerMapIP;
-		foreach( const ROSDataBase &rosData, m_pppSecretMap )
-		{
-			routerMapIP[rosData.routerName()] = rosData.rosObjectID();
-		}
-		multiConnectionManager.updateRemoteData(m_pppSecret, routerMapIP);
+		multiConnectionManager.updateRemoteData( m_pppSecret, m_pppSecretMap.toRouterIDMap() );
 	}
 }
 
@@ -496,5 +527,5 @@ void DlgPPPUser::on_addPortButton_clicked()
 
 void DlgPPPUser::on_delPortButton_clicked()
 {
-	ui->lanPortsTableWidget->removeRow(ui->lanPortsTableWidget->currentRow());
+	ui->lanPortsTableWidget->removeRow( ui->lanPortsTableWidget->currentRow() );
 }

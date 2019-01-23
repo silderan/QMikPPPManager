@@ -268,18 +268,18 @@ void ROSPPPSecret::fromSentence(const QString &routerName, const ROS::QSentence 
 
 ROS::QSentence &ROSPPPSecret::toSentence(ROS::QSentence &sentence) const
 {
-	Q_ASSERT( !m_profile.isEmpty() );
+	Q_ASSERT( !m_userName.isEmpty() );
 
 	sentence.addAttribute( "name", m_userName );
 	sentence.addAttribute( "password", m_userPass );
-	sentence.addAttribute( "profile", m_profile );
+	sentence.addAttribute( "profile", m_profile.isEmpty() && !originalProfile().isEmpty() ? originalProfile() : m_profile );
 	sentence.addAttribute( "service", "pppoe" );
 	if( m_staticIP.isValid() )
 		sentence.addAttribute( "remote-address", m_staticIP.toString() );
 	else
 		sentence.addAttribute( "!remote-address", "" );
 
-	ROSDataBase::toSentence(sentence);
+	ROSDataBase::toSentence( sentence );
 	// This must be after base toSentence because it sets the comment attribute.
 	sentence.addAttribute( "comment", commentString() );
 	return sentence;
@@ -467,3 +467,12 @@ QList<ROS::QSentence> ROSPPPActive::simulatedStepSentences(const QString &router
 }
 #endif
 
+
+QRouterIDMap QPPPSecretMap::toRouterIDMap() const
+{
+	QRouterIDMap rtn;
+	foreach( const ROSPPPSecret &pppSecret, *this )
+		rtn.insert(pppSecret.routerName(), pppSecret.rosObjectID() );
+
+	return rtn;
+}

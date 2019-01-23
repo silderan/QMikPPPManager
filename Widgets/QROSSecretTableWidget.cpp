@@ -1,5 +1,7 @@
 #include "QROSSecretTableWidget.h"
 
+#include <QMenu>
+#include <QDesktopServices>
 #include <QFont>
 #include <QHeaderView>
 #include <QMessageBox>
@@ -117,12 +119,12 @@ QROSSecretTableWidget::QROSSecretTableWidget(QWidget *papi) : QTableWidget(papi)
 	setSortingEnabled(true);
 	horizontalHeader()->setSectionsMovable(true);
 //	horizontalHeader()->saveState();
-	connect( this, SIGNAL(itemDoubleClicked(QTableWidgetItem *)), this, SLOT(onCellDobleClic(QTableWidgetItem *)) );
+	connect( this, &QROSSecretTableWidget::itemDoubleClicked, this, &QROSSecretTableWidget::onCellDobleClic );
 }
 
 bool QROSSecretTableWidget::shouldBeVisible(const QROSUserNameWidgetItem *userNameItem)
 {
-	foreach( const ROSPPPSecret &rosPPPSecret, userNameItem->rosPPPSecretMap )
+	foreach( const ROSPPPSecret &rosPPPSecret, userNameItem->pppSecretMap )
 		if( gGlobalConfig.clientProfileMap().containsProfileName(rosPPPSecret.pppProfileName()) )
 			return true;
 	return false;
@@ -181,14 +183,6 @@ void QROSSecretTableWidget::setupCellItemStyle(int row, QROSSecretTableWidget::C
 		QROSSecretTableWidget::setupCellItemStyle(item, cellLook);
 }
 
-QRouterIDMap QROSSecretTableWidget::createRouterIDMap(const QROSUserNameWidgetItem *userNameItem) const
-{
-	QRouterIDMap routerIDMap;
-	foreach( const ROSPPPSecret &secret, userNameItem->rosPPPSecretMap )
-		routerIDMap[secret.routerName()] = secret.rosObjectID();
-	return routerIDMap;
-}
-
 void QROSSecretTableWidget::clear()
 {
 	setRowCount(0);
@@ -240,7 +234,7 @@ void QROSSecretTableWidget::setupRemoteIPCellItem(int row, const IPv4 &remoteIP,
 
 void QROSSecretTableWidget::setupRemoteIPCellItem(const QROSUserNameWidgetItem *userNameItem)
 {
-	setupRemoteIPCellItem( userNameItem->row(), userNameItem->rosPPPActive.currentIPv4(), userNameItem->rosPPPSecretMap.isEmpty() ? IPv4() : userNameItem->rosPPPSecretMap.first().staticIP() );
+	setupRemoteIPCellItem( userNameItem->row(), userNameItem->pppActive.currentIPv4(), userNameItem->pppSecretMap.isEmpty() ? IPv4() : userNameItem->pppSecretMap.first().staticIP() );
 }
 
 QROSUserNameWidgetItem *QROSSecretTableWidget::addNewRow(const QString &userName)
@@ -269,9 +263,9 @@ const QROSUserNameWidgetItem *QROSSecretTableWidget::userNameWidgetItem(int row)
 	return static_cast<const QROSUserNameWidgetItem*>(item(row, Columns::UserName));
 }
 
-void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &rosPPPSecret)
+void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &pppSecret)
 {
-	if( rosPPPSecret.pppProfileName().isEmpty() )
+	if( pppSecret.pppProfileName().isEmpty() )
 		return;
 
 	blockSignals(true);
@@ -279,42 +273,40 @@ void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &rosPPPSecret
 	QROSUserNameWidgetItem *userNameItem;
 
 	// Find the item by the pair routerName-rosObjectID (the ObjectIDKey)...
-	if( (userNameItem = m_secretIDMap.value(createObjectIDKey(rosPPPSecret), Q_NULLPTR)) == Q_NULLPTR )
+	if( (userNameItem = m_secretIDMap.value(createObjectIDKey(pppSecret), Q_NULLPTR)) == Q_NULLPTR )
 	{
 		// ...or by the name if it was created before by the a secretActive event.
-		if( (userNameItem = m_userNameMap.value(rosPPPSecret.userName(), Q_NULLPTR)) == Q_NULLPTR )
-			userNameItem = addNewRow(rosPPPSecret.userName());
+		if( (userNameItem = m_userNameMap.value(pppSecret.userName(), Q_NULLPTR)) == Q_NULLPTR )
+			userNameItem = addNewRow(pppSecret.userName());
 
 //		userNameItem->rosCachedPPPSecret = rosPPPSecret;
-		m_secretIDMap[createObjectIDKey(rosPPPSecret)] = userNameItem;
+		m_secretIDMap[createObjectIDKey(pppSecret)] = userNameItem;
 	}
-	userNameItem->rosPPPSecretMap.insert(rosPPPSecret.routerName(), rosPPPSecret);
+	userNameItem->pppSecretMap.insert( pppSecret );
 
 	// As username is key for this map, has special code.
-	if( item(userNameItem->row(), Columns::UserName)->text() != rosPPPSecret.userName() )
+	if( item(userNameItem->row(), Columns::UserName)->text() != pppSecret.userName() )
 	{
 		// Copy the item to the new name key.
-		m_userNameMap[rosPPPSecret.userName()] = m_userNameMap.take( item(userNameItem->row(), Columns::UserName)->text() );
-		setupCellItem(userNameItem->row(), UserName,				rosPPPSecret.userName() );
+		m_userNameMap[pppSecret.userName()] = m_userNameMap.take( item(userNameItem->row(), Columns::UserName)->text() );
+		setupCellItem(userNameItem->row(), UserName,				pppSecret.userName() );
 	}
 
-	userNameItem->rosPPPSecretIDMap[rosPPPSecret.routerName()] = rosPPPSecret.rosObjectID();
-
-	setupCellItem( userNameItem->row(), Columns::ClientCode,		rosPPPSecret.clientCode() );
-	setupCellItem( userNameItem->row(), Columns::UserProfile,		rosPPPSecret.originalProfile() );
-	setupCellItem( userNameItem->row(), Columns::ClientName,		rosPPPSecret.clientName() );
-	setupCellItem( userNameItem->row(), Columns::ClientAddress,		rosPPPSecret.clientAddress() );
-	setupCellItem( userNameItem->row(), Columns::ClientCity,		rosPPPSecret.clientCity() );
-	setupCellItem( userNameItem->row(), Columns::ClientPhone,		rosPPPSecret.clientPhones() );
-	setupCellItem( userNameItem->row(), Columns::Installer,			rosPPPSecret.installerName() );
-	setupCellItem( userNameItem->row(), Columns::ClientEmail,		rosPPPSecret.clientEmail() );
-	setupCellItem( userNameItem->row(), Columns::ClientAnnotations,	rosPPPSecret.clientNotes() );
+	setupCellItem( userNameItem->row(), Columns::ClientCode,		pppSecret.clientCode() );
+	setupCellItem( userNameItem->row(), Columns::UserProfile,		pppSecret.originalProfile() );
+	setupCellItem( userNameItem->row(), Columns::ClientName,		pppSecret.clientName() );
+	setupCellItem( userNameItem->row(), Columns::ClientAddress,		pppSecret.clientAddress() );
+	setupCellItem( userNameItem->row(), Columns::ClientCity,		pppSecret.clientCity() );
+	setupCellItem( userNameItem->row(), Columns::ClientPhone,		pppSecret.clientPhones() );
+	setupCellItem( userNameItem->row(), Columns::Installer,			pppSecret.installerName() );
+	setupCellItem( userNameItem->row(), Columns::ClientEmail,		pppSecret.clientEmail() );
+	setupCellItem( userNameItem->row(), Columns::ClientAnnotations,	pppSecret.clientNotes() );
 
 	// This columns can be filled by active data before the secred was reported. So, here will set data only if they're empty.
 	// TODO: Last logg off must show the last (date-nearest) value because every router will has diferent time-stamp.
 	//       Maybe, could be interesting also keep all data and show to user via cell tool-tip
 	if( item(userNameItem->row(), Columns::ActiveUserStatus) == Q_NULLPTR )
-		setupActiveStatusCellItem( userNameItem->row(), QDateTime(), rosPPPSecret.lastLogOff() );
+		setupActiveStatusCellItem( userNameItem->row(), QDateTime(), pppSecret.lastLogOff() );
 
 	if( item(userNameItem->row(), Columns::ActiveRouter) == Q_NULLPTR )
 		setupCellItem( userNameItem->row(), Columns::ActiveRouter,	tr("Ninguno") );
@@ -325,7 +317,7 @@ void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &rosPPPSecret
 	setupServiceCellItem( userNameItem->row(),
 //						  gGlobalConfig.clientProfileList().isDisabledProfile(rosSecretData.profile()) && (rosSecretData.serviceState() < ROSPPPSecret::ServiceState::CanceledNoPay)
 //						  ? ROSPPPSecret::ServiceState::CanceledUndefined :
-							rosPPPSecret.serviceState() );
+							pppSecret.serviceState() );
 
 	showRowIfValid( userNameItem );
 
@@ -339,12 +331,12 @@ void QROSSecretTableWidget::onROSSecretDelReply(const QString &routerName, const
 
 	if( userNameItem != Q_NULLPTR )
 	{
-		userNameItem->rosPPPSecretIDMap.remove( routerName );
-		if( userNameItem->rosPPPSecretIDMap.isEmpty() )
+		userNameItem->pppSecretMap.remove( routerName );
+		if( userNameItem->pppSecretMap.isEmpty() )
 		{
 			m_userNameMap.remove( userNameItem->text() );
 			m_secretIDMap.remove( key );
-			m_activeIDMap.remove( userNameItem->rosPPPActive.rosObjectID() );
+			m_activeIDMap.remove( userNameItem->pppActive.rosObjectID() );
 			blockSignals(true);
 			removeRow(userNameItem->row());
 			blockSignals(false);
@@ -362,10 +354,10 @@ void QROSSecretTableWidget::onROSActiveModReply(const ROSPPPActive &rosPPPActive
 		userNameItem = addNewRow(rosPPPActive.userName());
 
 	// That could happen when a new connection comes before a desconnection.
-	if( !userNameItem->rosPPPActive.rosObjectID().isEmpty() )
-		m_activeIDMap.remove(userNameItem->rosPPPActive.rosObjectID());
+	if( !userNameItem->pppActive.rosObjectID().isEmpty() )
+		m_activeIDMap.remove(userNameItem->pppActive.rosObjectID());
 
-	userNameItem->rosPPPActive = rosPPPActive;
+	userNameItem->pppActive = rosPPPActive;
 
 	m_activeIDMap[rosPPPActive.rosObjectID()] = userNameItem;
 
@@ -382,7 +374,7 @@ void QROSSecretTableWidget::onROSActiveDelReply(const QString &routerName, const
 	// Not found: not yet in table.
 	if( userNameItem != Q_NULLPTR )
 	{
-		userNameItem->rosPPPActive = ROSPPPActive("");
+		userNameItem->pppActive = ROSPPPActive("");
 		// Take care. can be a connection from another router.
 		if( item(userNameItem->row(), Columns::ActiveRouter)->text() == routerName )
 		{
@@ -473,8 +465,7 @@ bool QROSSecretTableWidget::allowCellChange(const QModelIndex &index, const QStr
 {
 	QROSUserNameWidgetItem *userNameItem = userNameWidgetItem(index.row());
 	Q_ASSERT(userNameItem);
-	ROSPPPSecret newSecret = userNameItem->rosPPPSecretMap.first();
-	QRouterIDMap routerIDMap = createRouterIDMap(userNameItem);
+	ROSPPPSecret newSecret = userNameItem->pppSecretMap.first();
 
 	std::function<bool(ROSPPPSecret &, const QString &)> setFnc;
 	QString fieldName;
@@ -498,14 +489,14 @@ bool QROSSecretTableWidget::allowCellChange(const QModelIndex &index, const QStr
 			else
 			if( !ServiceState::isActiveState(newSecret.serviceState()) && (newSecret.pppProfileName() != gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName()) )
 				newSecret.setPPPProfileName(gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName());
-			multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
+			multiConnectionManager.updateRemoteData(newSecret, userNameItem->pppSecretMap.toRouterIDMap());
 			break;
 		case QROSSecretTableWidget::UserProfile:
 			// This is a special case where two fields changes at once.
 			newSecret.setOriginalProfile(newText);
 			if( newSecret.pppProfileName() != gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName() )
 				newSecret.setPPPProfileName(newText);
-			multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
+			multiConnectionManager.updateRemoteData(newSecret, userNameItem->pppSecretMap.toRouterIDMap());
 			break;
 		case QROSSecretTableWidget::ActiveUserStatus:
 			Q_ASSERT(false);
@@ -516,7 +507,7 @@ bool QROSSecretTableWidget::allowCellChange(const QModelIndex &index, const QStr
 		case QROSSecretTableWidget::RemoteIP:
 			// This is not a string, so cannot be set by setFnc
 			newSecret.setStaticIP( IPv4(newText) );
-			multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
+			multiConnectionManager.updateRemoteData(newSecret, userNameItem->pppSecretMap.toRouterIDMap());
 			break;
 		case QROSSecretTableWidget::ClientName:
 			fieldName = tr("Nombre del cliente");
@@ -553,7 +544,7 @@ bool QROSSecretTableWidget::allowCellChange(const QModelIndex &index, const QStr
 	}
 
 	if( !fieldName.isEmpty() && checkStringData( newSecret, fieldName, newText, setFnc) )
-		multiConnectionManager.updateRemoteData(newSecret, routerIDMap);
+		multiConnectionManager.updateRemoteData(newSecret, userNameItem->pppSecretMap.toRouterIDMap());
 	return false;
 }
 
@@ -561,7 +552,7 @@ void QROSSecretTableWidget::disconnectSelected()
 {
 	foreach( const QModelIndex &index, selectedIndexes() )
 	{
-		ROSPPPActive &rosActive = userNameWidgetItem(index.row())->rosPPPActive;
+		ROSPPPActive &rosActive = userNameWidgetItem(index.row())->pppActive;
 		if( !rosActive.rosObjectID().isEmpty() && !rosActive.deleting() )
 		{
 			rosActive.setDeleting(true);
@@ -575,7 +566,7 @@ void QROSSecretTableWidget::deleteUser(const QString &userName, bool sure) const
 	const QROSUserNameWidgetItem *item = m_userNameMap[userName];
 	if( item != Q_NULLPTR )
 	{
-		ROSPPPSecret pppSecret = item->rosPPPSecretMap.first();
+		ROSPPPSecret pppSecret = item->pppSecretMap.first();
 		pppSecret.setDeleting(true);
 		if( !sure )
 		{
@@ -583,7 +574,7 @@ void QROSSecretTableWidget::deleteUser(const QString &userName, bool sure) const
 				deleteUser(userName, true);
 		}
 		else
-			multiConnectionManager.updateRemoteData(pppSecret, createRouterIDMap(item));
+			multiConnectionManager.updateRemoteData( pppSecret, item->pppSecretMap.toRouterIDMap() );
 	}
 }
 
@@ -592,12 +583,10 @@ void QROSSecretTableWidget::onCellDobleClic(QTableWidgetItem *item)
 	if( item->column() == static_cast<int>(Columns::UserName) )
 	{
 		QROSUserNameWidgetItem *userNameItem = static_cast<QROSUserNameWidgetItem*>(item);
-		emit editPPPUser( userNameItem->rosPPPSecretMap, userNameItem->rosPPPActive );
+		emit editPPPUser( userNameItem->pppSecretMap, userNameItem->pppActive );
 	}
 }
 
-#include <QMenu>
-#include <QDesktopServices>
 void QROSSecretTableWidget::contextMenuEvent(QContextMenuEvent *event)
 {
 	QList<QROSUserNameWidgetItem*> userNameItemList;
@@ -610,7 +599,7 @@ void QROSSecretTableWidget::contextMenuEvent(QContextMenuEvent *event)
 	QList<QROSUserNameWidgetItem*> connectedUsersList;
 	foreach( QROSUserNameWidgetItem *userNameItem, userNameItemList )
 	{
-		if( userNameItem->rosPPPActive.currentIPv4().isValid() && !connectedUsersList.contains(userNameItem) )
+		if( userNameItem->pppActive.currentIPv4().isValid() && !connectedUsersList.contains(userNameItem) )
 			connectedUsersList.append( userNameItem );
 	}
 
@@ -619,7 +608,7 @@ void QROSSecretTableWidget::contextMenuEvent(QContextMenuEvent *event)
 	{
 		QString txt;
 		if( connectedUsersList.count() == 1 )
-			txt = tr("Desconectar cliente %1").arg(connectedUsersList.first()->rosPPPActive.userName());
+			txt = tr("Desconectar cliente %1").arg(connectedUsersList.first()->pppActive.userName());
 		else
 			txt = tr("Desconectar %1 clientes").arg(connectedUsersList.count());
 		connect( menu.addAction(txt), &QAction::triggered, this, &QROSSecretTableWidget::disconnectSelected );
@@ -628,7 +617,7 @@ void QROSSecretTableWidget::contextMenuEvent(QContextMenuEvent *event)
 	QMenu openBrowser( tr("Abrir navegador") );
 	foreach( const QROSUserNameWidgetItem *userNameItem, connectedUsersList )
 	{
-		const ROSPPPActive &rosActive = userNameItem->rosPPPActive;
+		const ROSPPPActive &rosActive = userNameItem->pppActive;
 		if( rosActive.currentIPv4().isValid() )
 		{
 			openBrowser.setTitle( tr("Abrir http://%1:...").arg(rosActive.currentIPv4().toString()) );
@@ -659,7 +648,7 @@ void QROSSecretTableWidget::contextMenuEvent(QContextMenuEvent *event)
 	QMenu deleteUser( tr("Borra usuario") );
 	if( userNameItemList.count() )
 	{
-		QString userName = userNameItemList.first()->rosPPPSecretMap.first().userName();
+		QString userName = userNameItemList.first()->pppSecretMap.first().userName();
 		QAction *ac = menu.addAction( tr("Borrar usuario %1").arg(userName) );
 
 		connect( ac, &QAction::triggered, [this, userName] () { this->deleteUser(userName); } );

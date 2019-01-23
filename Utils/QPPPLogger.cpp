@@ -103,7 +103,7 @@ void QPPPLogger::logAddingSecret(const ROSPPPSecret &pppSecret)
 
 void QPPPLogger::logDeletingSecret(const ROSPPPSecret &pppSecret)
 {
-	addPPPLog( tr("Borra al usuario %1 (%2) con perfil %2").arg(pppSecret.userName(), ServiceState::readableString(pppSecret.serviceState()), pppSecret.originalProfile()) );
+	addPPPLog( tr("Borra al usuario %1 (%2) con perfil %3").arg(pppSecret.userName(), ServiceState::readableString(pppSecret.serviceState()), pppSecret.originalProfile()) );
 }
 
 void QPPPLogger::logChangingSecret(const ROSPPPSecret &oldSecret, const ROSPPPSecret &newSecret)

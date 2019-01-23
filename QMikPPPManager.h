@@ -102,7 +102,7 @@ private slots:
 	void on_apiUsersButton_clicked();
 	void on_pppProfilesButton_clicked();
 
-	void onPPPEditRequest(const QMap<QString, ROSPPPSecret> &pppSecretMap, const ROSPPPActive &pppActive);
+	void onPPPEditRequest(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive);
 
 public slots:
 	void updateConfig();
