@@ -1,9 +1,9 @@
 #include <QMessageBox>
+#include <QSpinBox>
 
 #include "DlgPPPUser.h"
 #include "ui_DlgPPPUser.h"
-
-#include <QSpinBox>
+#include "DlgPPPLogViewer.h"
 
 DlgPPPUser::DlgPPPUser(QWidget *papi, ROSMultiConnectManager &rosMultiConnectManager, QConfigData &configData) :
 	DlgDataBase(papi, rosMultiConnectManager), ui(new Ui::DlgPPPUser)
@@ -528,4 +528,10 @@ void DlgPPPUser::on_addPortButton_clicked()
 void DlgPPPUser::on_delPortButton_clicked()
 {
 	ui->lanPortsTableWidget->removeRow( ui->lanPortsTableWidget->currentRow() );
+}
+
+void DlgPPPUser::on_clientLogsButton_clicked()
+{
+	DlgPPPLogViewer dlgPPPLogViewer( m_pppSecret.userName(), this );
+	dlgPPPLogViewer.exec();
 }

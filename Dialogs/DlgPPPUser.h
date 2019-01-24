@@ -86,6 +86,8 @@ private slots:
 
 	void on_delPortButton_clicked();
 
+	void on_clientLogsButton_clicked();
+
 public slots:
 	void onEditUserRequest(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive);
 

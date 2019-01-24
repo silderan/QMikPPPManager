@@ -9,23 +9,58 @@
 #include "QSecretData.h"
 #include "ROSData/ROSSecret.h"
 
+struct PPPLogData
+{
+	QString timestamp;
+	QString appUserName;
+	QString pppUserName;
+	QString field;
+	QString oldValue;
+	QString newValue;
+	bool operator==(const PPPLogData &other)
+	{
+		return  (newValue == other.newValue) &&
+				(oldValue == other.oldValue) &&
+				(pppUserName == other.pppUserName) &&
+				(field == other.field) &&
+				(appUserName == other.appUserName) &&
+				(timestamp == other.timestamp);
+	}
+	PPPLogData()
+	{	}
+	PPPLogData(const QString &timestamp, const QString &appUserName, const QString &pppUserName, const QString &field, const QString &oldValue, const QString &newValue)
+		: timestamp(timestamp)
+		, appUserName(appUserName)
+		, pppUserName(pppUserName)
+		, field(field)
+		, oldValue(oldValue)
+		, newValue(newValue)
+	{
+
+	}
+};
+
+typedef QList<PPPLogData> QPPPLogDataList;
+
 class QPPPLogger : public QObject
 {
 Q_OBJECT
 
-	QString m_logDir;	// Directorio donde se guardarà el registro.
+	QString m_logDir;		// Directorio donde se guardarà el registro.
 	QString m_appUserName;	// Usuario que está usando el programa.
-	QMap<QString, QString> m_logMap;
+	QPPPLogDataList m_pppLogDataList;
 	QTimer flushTimer;
 
 	QString currentFName(const QString &pre) const;
 	QString currentGlobalFName() const;
 	QString currentUserFName() const;
 
-	void flush(QMap<QString, QString> &m_registros, const QString &logFName);
+	void flush(QPPPLogDataList &pppLogDataList, const QString &logFName);
 	void startFlushing();
-	void addPPPLog(QString text);
-	void logIfChanges(const QString &pppUserName, const QString &oldValue, const QString &newValue, const QString &field);
+	void addPPPLog(const PPPLogData &pppLogData);
+	void logIfChanges(const QString &pppUserName, const QString &field, const QString &oldValue, const QString &newValue);
+
+	void readLogs(const QString &logFName, const QString &userName, QPPPLogDataList &pppLogdataList) const;
 
 public:
 	QPPPLogger(QObject *papi = Q_NULLPTR);
@@ -42,6 +77,7 @@ public slots:
 	void logAddingSecret(const ROSPPPSecret &pppSecret);
 	void logDeletingSecret(const ROSPPPSecret &pppSecret);
 	void logChangingSecret(const ROSPPPSecret &oldSecret, const ROSPPPSecret &newSecret);
+	QPPPLogDataList readLogs(const QString &userName = QString()) const;
 };
 
 extern QPPPLogger logService;

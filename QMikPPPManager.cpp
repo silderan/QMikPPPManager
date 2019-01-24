@@ -26,6 +26,7 @@
 
 #include "Dialogs/DlgConfiguracion.h"
 #include "Dialogs/DlgLookConfig.h"
+#include "Dialogs/DlgPPPLogViewer.h"
 #include "DlgExportar.h"
 #include "DlgPortScan.h"
 
@@ -852,4 +853,10 @@ void QMikPPPManager::onPPPEditRequest(const QPPPSecretMap &pppSecretMap, const R
 void QMikPPPManager::on_addUserButton_clicked()
 {
 	onPPPEditRequest( QPPPSecretMap(), ROSPPPActive("") );
+}
+
+void QMikPPPManager::on_pppLogsButton_clicked()
+{
+	DlgPPPLogViewer dlgPPPLogViewer( "", this );
+	dlgPPPLogViewer.exec();
 }

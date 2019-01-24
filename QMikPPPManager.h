@@ -104,6 +104,8 @@ private slots:
 
 	void onPPPEditRequest(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive);
 
+	void on_pppLogsButton_clicked();
+
 public slots:
 	void updateConfig();
 

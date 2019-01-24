@@ -3,25 +3,94 @@
 #include <QTextStream>
 #include <QApplication>
 
-void QPPPLogger::flush(QMap<QString, QString> &registros, const QString &logFName)
+void QPPPLogger::readLogs(const QString &logFName, const QString &userName, QPPPLogDataList &pppLogdataList) const
 {
-	if( registros.count() )
+	QFile f(logFName);
+
+	if( !f.open(QIODevice::Text | QIODevice::ReadOnly) )
+		qDebug( tr("WARNING: No se ha podido abrir el fichero %1").arg(logFName).toLatin1().constData() );
+	else
+	{
+		QStringList lineBits;
+		PPPLogData pppLogData;
+		while( !f.atEnd() )
+		{
+			lineBits = QString().fromLatin1(f.readLine().trimmed()).split('\t');
+			if( lineBits.count() >= 4 )
+			{
+				pppLogData.timestamp = lineBits[0];
+				pppLogData.appUserName = lineBits[1];
+				pppLogData.pppUserName = lineBits[2];
+
+				if( lineBits.count() == 6 )
+				{
+					pppLogData.field = lineBits[3];
+					pppLogData.oldValue = lineBits[4];
+					pppLogData.newValue = lineBits[5];
+				}
+				else
+				{
+					if( lineBits[3] == "baja" )
+					{
+						pppLogData.field = tr("Estado servicio");
+						pppLogData.oldValue = "Activo";
+						pppLogData.newValue = "Cancelado";
+					}
+					else
+					if( lineBits[3] == "ALTA" )
+					{
+						pppLogData.field = tr("Estado servicio");
+						pppLogData.oldValue = "Cancelado";
+						pppLogData.newValue = "Activo";
+					}
+					else
+					{
+						QRegExp reg( "([\\w á-ú]*) ha cambiado de '([^']*)' a '([^']*)'" );
+						if( reg.indexIn(lineBits[3]) > -1 )
+						{
+							if( reg.cap().count() > 1) pppLogData.field = reg.cap(1);
+							if( reg.cap().count() > 2) pppLogData.oldValue = reg.cap(2);
+							if( reg.cap().count() > 3) pppLogData.newValue = reg.cap(3);
+						}
+						else
+						{
+							pppLogData.field = "FailParse";
+							pppLogData.oldValue = "";
+							pppLogData.newValue = reg.cap(0);
+						}
+					}
+				}
+				if( userName.isEmpty() || (pppLogData.pppUserName == userName) ||
+						// This weird comparations are necessary for users where the userName changed over time.
+						(pppLogData.oldValue == userName) || (pppLogData.newValue == userName) )
+					pppLogdataList.append( pppLogData  );
+			}
+		}
+		f.close();
+	}
+}
+
+void QPPPLogger::flush(QPPPLogDataList &pppLogDataList, const QString &logFName)
+{
+	if( pppLogDataList.count() )
 	{
 		QFile f(logFName);
 
 		if( !f.open(QIODevice::Text | QIODevice::Append) )
-			addPPPLog( tr("WARNING: No se ha podido abrir el fichero %1").arg(logFName) );
+			qDebug( tr("WARNING: No se ha podido abrir el fichero %1").arg(logFName).toLatin1().constData() );
 		else
 		{
 			QTextStream out(&f);
-			QMapIterator<QString, QString> it(registros);
-
-			while( it.hasNext() )
+			foreach( const PPPLogData &pppLogData, pppLogDataList )
 			{
-				it.next();
-				out << tr("%1\t%2\t%3\n"). arg(it.value(), m_appUserName, it.key());
+				out << tr("%1\t%2\t%3\t%4\t%5\t%6\n"). arg(pppLogData.timestamp,
+													   m_appUserName,
+													   pppLogData.pppUserName,
+													   pppLogData.field,
+													   pppLogData.oldValue,
+													   pppLogData.newValue);
 			}
-			registros.clear();
+			pppLogDataList.clear();
 			f.flush();
 			f.close();
 		}
@@ -35,9 +104,21 @@ void QPPPLogger::flush()
 	if( !flushing )
 	{
 		flushing = true;
-		flush( m_logMap, currentUserFName() );
+		flush( m_pppLogDataList, currentUserFName() );
 		flushing = false;
 	}
+}
+
+
+QPPPLogDataList QPPPLogger::readLogs(const QString &userName) const
+{
+	QPPPLogDataList rtn;
+	QStringList files = QDir(QDir::toNativeSeparators(logDir())).entryList( QStringList() << "*.log", QDir::Files );
+	foreach( const QString &file, files )
+	{
+		readLogs( QString( "%1/%2").arg(QDir::toNativeSeparators(logDir()), file), userName, rtn );
+	}
+	return rtn;
 }
 
 QString QPPPLogger::currentFName(const QString &pre) const
@@ -66,11 +147,11 @@ void QPPPLogger::startFlushing()
 	}
 }
 
-void QPPPLogger::addPPPLog(QString text)
+void QPPPLogger::addPPPLog( const PPPLogData &pppLogData )
 {
-	if( !m_logMap.contains(text) )
+	if( !m_pppLogDataList.contains(pppLogData) )
 	{
-		m_logMap.insert( text, QDateTime::currentDateTimeUtc().toString("dd/MM/yyyy hh:mm:ss") );
+		m_pppLogDataList.append( pppLogData );
 		startFlushing();
 	}
 }
@@ -90,30 +171,30 @@ void QPPPLogger::shutdown()
 	flush();
 }
 
-void QPPPLogger::logIfChanges(const QString &pppUserName, const QString &oldValue, const QString &newValue, const QString &field)
+void QPPPLogger::logIfChanges(const QString &pppUserName, const QString &field, const QString &oldValue, const QString &newValue)
 {
 	if( oldValue != newValue )
-		addPPPLog( QString("%1\t%2: %3 -> %4").arg(pppUserName, field, oldValue, newValue) );
+		addPPPLog( PPPLogData(QDateTime::currentDateTimeUtc().toString("dd/MM/yyyy hh:mm:ss"), m_appUserName, pppUserName, field, oldValue, newValue) );
 }
 
 void QPPPLogger::logAddingSecret(const ROSPPPSecret &pppSecret)
 {
-	addPPPLog( tr("Nuevo usuario %1 con perfil %2").arg(pppSecret.userName(), pppSecret.originalProfile()) );
+	logIfChanges( pppSecret.userName(), "Nuevo Usuario", ServiceState::readableString(pppSecret.serviceState()), pppSecret.originalProfile() );
 }
 
 void QPPPLogger::logDeletingSecret(const ROSPPPSecret &pppSecret)
 {
-	addPPPLog( tr("Borra al usuario %1 (%2) con perfil %3").arg(pppSecret.userName(), ServiceState::readableString(pppSecret.serviceState()), pppSecret.originalProfile()) );
+	logIfChanges( pppSecret.userName(), "Borra al usuario", ServiceState::readableString(pppSecret.serviceState()), pppSecret.originalProfile() );
 }
 
 void QPPPLogger::logChangingSecret(const ROSPPPSecret &oldSecret, const ROSPPPSecret &newSecret)
 {
 	const QString &pppUserName = oldSecret.userName();
 
-	logIfChanges( pppUserName, oldSecret.userName(), newSecret.userName(), tr("Nombre usuario PPP") );
-	logIfChanges( pppUserName, oldSecret.userPass(), newSecret.userPass(), tr("Contraseña usuario PPP") );
-	logIfChanges( pppUserName, ServiceState::readableString(oldSecret.serviceState()), ServiceState::readableString(newSecret.serviceState()), tr("Estado Servicio") );
-	logIfChanges( pppUserName, oldSecret.originalProfile(), newSecret.originalProfile(), tr("Perfil") );
+	logIfChanges( pppUserName, tr("Nombre usuario PPP"), oldSecret.userName(), newSecret.userName() );
+	logIfChanges( pppUserName, tr("Contraseña usuario PPP"), oldSecret.userPass(), newSecret.userPass() );
+	logIfChanges( pppUserName, tr("Estado Servicio"), ServiceState::readableString(oldSecret.serviceState()), ServiceState::readableString(newSecret.serviceState()) );
+	logIfChanges( pppUserName, tr("Perfil"), oldSecret.originalProfile(), newSecret.originalProfile() );
 }
 
 QPPPLogger logService;
