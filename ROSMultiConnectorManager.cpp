@@ -102,7 +102,7 @@ QStringList ROSMultiConnectManager::rosNameList(DataTypeID dataTypeID, std::func
 QStringList ROSMultiConnectManager::rosAPIUsersGrupList() const
 {
 	return rosNameList(DataTypeID::APIUsersGroup, [] (const ROSDataBase *rosData) {
-		Q_ASSERT(dynamic_cast<const ROSIPPool*>(rosData));
+		Q_ASSERT(dynamic_cast<const ROSAPIUsersGroup*>(rosData));
 
 		return static_cast<const ROSAPIUsersGroup*>(rosData)->groupName();
 	} );
@@ -111,7 +111,7 @@ QStringList ROSMultiConnectManager::rosAPIUsersGrupList() const
 QStringList ROSMultiConnectManager::pppProfileNameList() const
 {
 	return rosNameList(DataTypeID::PPPProfile, [] (const ROSDataBase *rosData) {
-		Q_ASSERT(dynamic_cast<const ROSIPPool*>(rosData));
+		Q_ASSERT(dynamic_cast<const ROSPPPProfile*>(rosData));
 
 		return static_cast<const ROSPPPProfile*>(rosData)->profileName();
 	} );
@@ -150,7 +150,7 @@ QStringList ROSMultiConnectManager::poolNameList() const
 QStringList ROSMultiConnectManager::clientCities() const
 {
 	return rosNameList(DataTypeID::PPPSecret, [] (const ROSDataBase *rosData) {
-		Q_ASSERT(dynamic_cast<const ROSIPPool*>(rosData));
+		Q_ASSERT(dynamic_cast<const ROSPPPSecret*>(rosData));
 
 		return static_cast<const ROSPPPSecret*>(rosData)->clientCity();
 	} );
@@ -159,7 +159,7 @@ QStringList ROSMultiConnectManager::clientCities() const
 QStringList ROSMultiConnectManager::staticIPv4List() const
 {
 	return rosNameList(DataTypeID::PPPSecret, [] (const ROSDataBase *rosData) {
-		Q_ASSERT(dynamic_cast<const ROSIPPool*>(rosData));
+		Q_ASSERT(dynamic_cast<const ROSPPPSecret*>(rosData));
 
 		return static_cast<const ROSPPPSecret*>(rosData)->staticIP().toString();
 	} );
