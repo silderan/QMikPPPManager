@@ -18,19 +18,19 @@ public:
 	{	}
 
 	const QString &profileName() const		{ return m_name;	}
-	void setProfileName(const QString &n)	{ m_name = n;		}
+	bool setProfileName(const QString &n)	{ return updateMember(m_name, n, profilePattern, 4);		}
 
 	const ROSRateLimit &rateLimit() const	{ return m_rateLimit;	}
 	ROSRateLimit &rateLimit()				{ return m_rateLimit;	}
 
 	const QString &localAddress()const					{ return m_localAdress;	}
-	void setLocalAddress(const QString &localAddress)	{ m_localAdress = localAddress;	}
+	bool setLocalAddress(const QString &localAddress)	{ return updateMember(m_localAdress, localAddress, userNamePattern, -4);	}
 
 	const QString &remoteAddress()const					{ return m_remoteAdress;}
-	void setRemoteAddress(const QString &remoteAddress)	{ m_remoteAdress = remoteAddress;	}
+	bool setRemoteAddress(const QString &remoteAddress)	{ return updateMember(m_remoteAdress, remoteAddress, userNamePattern, -4);	}
 
 	const QString &bridgeName() const				{ return m_bridgeName;	}
-	void setBridgeName(const QString &bridgeName)	{ m_bridgeName = bridgeName;	}
+	bool setBridgeName(const QString &bridgeName)	{ return updateMember(m_bridgeName, bridgeName, userNamePattern, -4);	}
 
 	virtual void fromSentence(const QString &routerName, const ROS::QSentence &sentence);
 	virtual ROS::QSentence &toSentence(ROS::QSentence &sentence) const;

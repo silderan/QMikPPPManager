@@ -5,13 +5,14 @@
 #include "ui_DlgPPPUser.h"
 #include "DlgPPPLogViewer.h"
 
-DlgPPPUser::DlgPPPUser(QWidget *papi, ROSMultiConnectManager &rosMultiConnectManager, QConfigData &configData) :
-	DlgDataBase(papi, rosMultiConnectManager), ui(new Ui::DlgPPPUser)
-  , m_pppSecret("")
-  , m_pppActive("")
+DlgPPPUser::DlgPPPUser(QConfigData &configData, ROSMultiConnectManager &rosMultiConnectManager, QWidget *papi)
+	: DlgDataBase(configData, rosMultiConnectManager, papi)
+	, ui(new Ui::DlgPPPUser)
+	, m_pppSecret("")
+	, m_pppActive("")
 {
 	ui->setupUi(this);
-	setConfigData(configData);
+	onConfigDataChanged();
 }
 
 DlgPPPUser::~DlgPPPUser()
@@ -253,6 +254,14 @@ bool DlgPPPUser::getLocalPorts()
 	return true;
 }
 
+void DlgPPPUser::onConfigDataChanged()
+{
+	updateInstallersComboBox();
+	updateCitiesComboBox();
+	updatePPPProfilesComboBox();
+	updateStaticIPComboBox();
+}
+
 void DlgPPPUser::updatePPPProfilesComboBox()
 {
 	QString currentProfile = ui->pppProfileComboBox->currentText();
@@ -260,15 +269,16 @@ void DlgPPPUser::updatePPPProfilesComboBox()
 	ui->pppProfileComboBox->blockSignals(true);
 	ui->pppProfileComboBox->clear();
 	ui->pppProfileComboBox->addItems( configData().clientProfileMap().regularProfileNames() );
-	ui->pppProfileComboBox->blockSignals(false);
 
 	if( !currentProfile.isEmpty() )
-		ui->pppProfileComboBox->setCurrentIndex(ui->pppProfileComboBox->findData(currentProfile, Qt::EditRole));
+		ui->pppProfileComboBox->setCurrentIndex( ui->pppProfileComboBox->findData(currentProfile, Qt::EditRole) );
+
+	ui->pppProfileComboBox->blockSignals(false);
 }
 
 void DlgPPPUser::updateInstallersComboBox()
 {
-	ui->installerComboBox->updateList(configData().instaladores(), true);
+	ui->installerComboBox->updateList( configData().instaladores(), true );
 }
 
 void DlgPPPUser::updateCitiesComboBox()
@@ -279,22 +289,23 @@ void DlgPPPUser::updateCitiesComboBox()
 void DlgPPPUser::updateStaticIPComboBox()
 {
 	ui->staticIPComboBox->blockSignals(true);
-	ui->staticIPComboBox->clear();
-	ui->staticIPComboBox->addItem( tr("No (Dinámica)") );
 	QString profileName = ui->pppProfileComboBox->currentText();
 	QString profileGroup;
+
 	if( profileName.isEmpty() )
 		raiseWarning( tr("No hay ningún perfil seleccionado y no se puede saber las IPs públicas disponibles sin uno válido.") );
 	else
 	if( (profileGroup = configData().clientProfileMap().groupName(profileName)).isEmpty() )
 		raiseWarning( tr("El perfil perfil $1 no está asociado a ningún grupo y no se puede saber las IPs públicas disponibles sin un grupo válido.") );
-	else
-		ui->staticIPComboBox->setup( tr("No (IP dinámica)"),
-									 configData().staticIPv4RangeListMap().staticIPv4StringList(profileGroup),
-									 rosMultiConnectManager().staticIPv4List(), m_pppSecret.staticIP().isValid() ? m_pppSecret.staticIP().toString() : QString() );
-	ui->staticIPComboBox->blockSignals(false);
+
+	ui->staticIPComboBox->setup( tr("No (IP dinámica)"),
+								 configData().staticIPv4RangeListMap().staticIPv4StringList(profileGroup),
+								 rosMultiConnectManager().staticIPv4List(), m_pppSecret.staticIP().isValid() ? m_pppSecret.staticIP().toString() : QString() );
+
 	if( m_pppSecret.staticIP().isValid() && (ui->staticIPComboBox->currentIndex() <= 0) )
 		raiseWarning( tr("La IP estática seleccionada no es válida para el perfil actual.") );
+
+	ui->staticIPComboBox->blockSignals(false);
 }
 
 void DlgPPPUser::updateDialog()
@@ -482,20 +493,9 @@ void DlgPPPUser::onEditUserRequest(const QPPPSecretMap &pppSecretMap, const ROSP
 		ui->clientEmailLineEdit->setText( "f" );
 		ui->clientNotesLineEdit->setText( "g" );
 		ui->installNotesLineEdit->setText( "h" );
-
-//		ui->wifi2GroupBox->setChecked( false );
-//		ui->wifi5GroupBox->setChecked( false );
-//		ui->voipGroupBox->setChecked( false );
-//		ui->lanGroupBox->setChecked( false );
 	}
 	show();
 }
-
-void DlgPPPUser::onConfigDataChanged()
-{
-	updatePPPProfilesComboBox();
-}
-
 
 void DlgPPPUser::hideEvent(QHideEvent *event)
 {

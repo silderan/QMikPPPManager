@@ -6,8 +6,9 @@
 #include "Widgets/QROSAPIUserLevelComboBox.h"
 #include "Widgets/QROSAPIUserTableWidget.h"
 
-DlgROSAPIUsers::DlgROSAPIUsers(QWidget *parent, ROSMultiConnectManager &rosMultiConnectManager) :
-	DlgDataBase(parent, rosMultiConnectManager), ui(new Ui::DlgROSAPIUsers)
+DlgROSAPIUsers::DlgROSAPIUsers(QConfigData &configData, ROSMultiConnectManager &rosMultiConnectManager, QWidget *papi)
+	: DlgDataBase(configData, rosMultiConnectManager, papi)
+	, ui(new Ui::DlgROSAPIUsers)
 {
 	ui->setupUi(this);
 

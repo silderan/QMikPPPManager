@@ -587,6 +587,11 @@ void QROSSecretTableWidget::onCellDobleClic(QTableWidgetItem *item)
 	}
 }
 
+void QROSSecretTableWidget::onConfigDataChanged()
+{
+	applyFilter();
+}
+
 void QROSSecretTableWidget::contextMenuEvent(QContextMenuEvent *event)
 {
 	QList<QROSUserNameWidgetItem*> userNameItemList;

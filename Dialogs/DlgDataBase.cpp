@@ -18,16 +18,12 @@ void DlgDataBase::updateMultipleData(DataTypeIDList dataTypeIDList, const QStrin
 	}
 }
 
-DlgDataBase::DlgDataBase(QWidget *parent, ROSMultiConnectManager &rosMultiConnectManager) : QDialog(parent)
+DlgDataBase::DlgDataBase(QConfigData &configData, ROSMultiConnectManager &rosMultiConnectManager, QWidget *parent)
+	: QDialog(parent)
+  , m_configData(configData)
   , m_rosMultiConnectManager(rosMultiConnectManager)
 {
 
-}
-
-void DlgDataBase::setConfigData(QConfigData &configData)
-{
-	m_configData = configData;
-	onConfigDataChanged();
 }
 
 void DlgDataBase::onLogued(const QString &routerName)

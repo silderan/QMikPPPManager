@@ -54,6 +54,7 @@ protected:
 	virtual ROSDataBase *getRosData(int row) = 0;
 
 public:
+	void addNewRow(const ROSDataBase &rosData);
 	// Must be called when new data arrived and row cells mut be updated.
 	// It's not necessary to override this one because this will call setupRow rowOf virtual funcions.
 	virtual void onROSModReply(const ROSDataBase &rosData);

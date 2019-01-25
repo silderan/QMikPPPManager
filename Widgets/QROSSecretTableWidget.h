@@ -172,6 +172,7 @@ public:
 
 	void deleteUser(const QString &userName, bool sure = false) const;
 	void onCellDobleClic(QTableWidgetItem *item);
+	void onConfigDataChanged();
 
 signals:
 	void editPPPUser(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive);

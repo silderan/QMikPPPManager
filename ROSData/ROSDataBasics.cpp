@@ -31,7 +31,7 @@ ROS::QSentence &ROSDataBase::toSentence(ROS::QSentence &sentence) const
 	return sentence;
 }
 
-bool ROSDataBase::checkValidData(const QString txt, const QString &charsRegExRange, int minLenght)
+bool ROSDataBase::checkValidData(const QString &txt, const QString &charsRegExRange, int minLenght)
 {
 	QRegExp rx(charsRegExRange);
 

@@ -18,15 +18,19 @@ public:
 	void fromString(const QString &bps);
 	QString toString()const;
 
-	inline quint64 toInt()const	{ return m_bps;	}
+	quint64 toInt()const	{ return m_bps;	}
 
-	inline ROSSpeed &operator=(quint64 bps)				{ m_bps = bps;	return *this;		}
-	inline bool operator==(const ROSSpeed &speed)const	{ return m_bps == speed.m_bps;}
-	inline bool operator==(const quint64 &bps)const		{ return m_bps == bps;		}
-	inline operator bool()		{ return m_bps != 0 ;	}
-	inline bool operator ! ()	{ return m_bps == 0;	}
-	inline bool operator &&(const ROSSpeed &speed) const	{ return m_bps && speed.m_bps;	}
-	inline bool operator ||(const ROSSpeed &speed) const	{ return m_bps || speed.m_bps;	}
+	ROSSpeed &operator=(quint64 bps)				{ m_bps = bps;	return *this;		}
+	bool operator==(const ROSSpeed &speed)const	{ return m_bps == speed.m_bps;}
+	template<typename T>
+	bool operator==(const T &bps)const		{ return m_bps == static_cast<quint64>(bps);		}
+	template<typename T>
+	bool operator!=(const T &bps)const		{ return m_bps != static_cast<quint64>(bps);		}
+
+	operator bool()		{ return m_bps != 0 ;	}
+	bool operator ! ()	{ return m_bps == 0;	}
+	bool operator &&(const ROSSpeed &speed) const	{ return m_bps && speed.m_bps;	}
+	bool operator ||(const ROSSpeed &speed) const	{ return m_bps || speed.m_bps;	}
 };
 
 

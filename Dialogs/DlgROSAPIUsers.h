@@ -16,7 +16,7 @@ class DlgROSAPIUsers : public DlgDataBase
 	Ui::DlgROSAPIUsers *ui;
 
 public:
-	explicit DlgROSAPIUsers(QWidget *parent, ROSMultiConnectManager &rosMultiConnectManager);
+	explicit DlgROSAPIUsers(QConfigData &configData, ROSMultiConnectManager &rosMultiConnectManager, QWidget *parent);
 	~DlgROSAPIUsers()override;
 
 	void onUserDataReceived(const ROSAPIUser &user);

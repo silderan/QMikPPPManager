@@ -21,7 +21,7 @@ class ROSDataBase
 	bool m_delete;
 
 protected:
-	bool checkValidData(const QString newData, const QString &charsRegExRange, int minLenght);
+	bool checkValidData(const QString &newData, const QString &charsRegExRange, int minLenght);
 	bool updateMember(QString &member, const QString &data, const QString &pattern, int minLenght);
 
 public:

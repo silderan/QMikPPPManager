@@ -66,7 +66,9 @@ SOURCES += main.cpp\
     Widgets/QPortForwardTableWidget.cpp \
     ROSDataManager/ROSPPPSecretManager.cpp \
     Utils/QPPPLogger.cpp \
-    Dialogs/DlgPPPLogViewer.cpp
+    Dialogs/DlgPPPLogViewer.cpp \
+    Dialogs/DlgNewPPPProfile.cpp \
+    Widgets/QSpeedTableWidget.cpp
 
 HEADERS  += QMikPPPManager.h \
     Utils/IPv4Range.h \
@@ -133,7 +135,9 @@ HEADERS  += QMikPPPManager.h \
     Utils/PortForward.h \
     Widgets/QPortForwardTableWidget.h \
     Utils/QPPPLogger.h \
-    Dialogs/DlgPPPLogViewer.h
+    Dialogs/DlgPPPLogViewer.h \
+    Dialogs/DlgNewPPPProfile.h \
+    Widgets/QSpeedTableWidget.h
 
 FORMS    += QMikPPPManager.ui \
 	DlgNuevoUsuario.ui \
@@ -147,7 +151,8 @@ FORMS    += QMikPPPManager.ui \
     Dialogs/DlgPPPProfiles.ui \
     Dialogs/DlgROSIPPool.ui \
     Dialogs/DlgPPPUser.ui \
-    Dialogs/DlgPPPLogViewer.ui
+    Dialogs/DlgPPPLogViewer.ui \
+    Dialogs/DlgNewPPPProfile.ui
 
 DISTFILES += \
     ToDo.txt

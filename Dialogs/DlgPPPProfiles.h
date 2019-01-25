@@ -16,11 +16,13 @@ class DlgPPPProfiles : public DlgDataBase
 	Ui::DlgPPPProfiles *ui;
 
 public:
-	explicit DlgPPPProfiles(QWidget *parent, ROSMultiConnectManager &rosMultiConnectManager);
+	explicit DlgPPPProfiles(QConfigData &configData, ROSMultiConnectManager &rosMultiConnectManager, QWidget *papi);
 	~DlgPPPProfiles()override;
 
 private slots:
 	void on_acceptButton_clicked();
+
+	void on_addButton_clicked();
 
 signals:
 	void dataModified(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap);

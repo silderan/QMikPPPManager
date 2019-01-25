@@ -142,6 +142,20 @@ void QTableWidgetBase::setupRow(int row, const ROSDataBase &rosData)
 		addCellRoutersID( row, (m_routerIDColumn != -1) ? m_routerIDColumn : m_routerColumn, rosData.routerName(), rosData.rosObjectID() );
 }
 
+void QTableWidgetBase::addNewRow(const ROSDataBase &rosData)
+{
+	Q_ASSERT( rosData.routerName().isEmpty() );
+	Q_ASSERT( rosData.rosObjectID().isEmpty() );
+
+	blockSignals(true);
+
+	int row = rowCount();
+	insertRow( row );
+	setupRow( row, rosData );
+
+	blockSignals(false);
+}
+
 void QTableWidgetBase::onROSModReply(const ROSDataBase &rosData)
 {
 	Q_ASSERT( !rosData.routerName().isEmpty() );
@@ -152,7 +166,7 @@ void QTableWidgetBase::onROSModReply(const ROSDataBase &rosData)
 
 	if( (row >= rowCount()) || (row < 0) )
 		insertRow( row = rowCount() );
-	setupRow(row, rosData);
+	setupRow( row, rosData );
 
 	blockSignals(false);
 }

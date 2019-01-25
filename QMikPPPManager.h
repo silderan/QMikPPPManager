@@ -81,11 +81,6 @@ private slots:
 	void onAllRoutersDisconnected();
 	void onLogued(const QString &routerName);
 
-
-	void onDatoModificado(QSecretDataModel::Columnas col, const QString &dato, const QString &id, bool *isValid);
-	void onDobleClicUsuario(const QSecretData &sd);
-	void onClicUsuario(const QSecretData &sd);
-
 	void on_leFiltro_textChanged(const QString &);
 	void on_cbFiltro_currentIndexChanged(int);
 

@@ -1,8 +1,11 @@
 #include "DlgPPPProfiles.h"
 #include "ui_DlgPPPProfiles.h"
 
-DlgPPPProfiles::DlgPPPProfiles(QWidget *parent, ROSMultiConnectManager &rosMultiConnectManager) :
-	DlgDataBase(parent, rosMultiConnectManager), ui(new Ui::DlgPPPProfiles)
+#include "DlgNewPPPProfile.h"
+
+DlgPPPProfiles::DlgPPPProfiles(QConfigData &configData, ROSMultiConnectManager &rosMultiConnectManager, QWidget *papi)
+	: DlgDataBase(configData, rosMultiConnectManager, papi)
+	, ui(new Ui::DlgPPPProfiles)
 {
 	ui->setupUi(this);
 
@@ -44,4 +47,12 @@ void DlgPPPProfiles::onROSDone(const QString &routerName, DataTypeID dataTypeID)
 {
 	if( dataTypeID == DataTypeID::PPPProfile )
 		ui->profilesTable->onROSDone(routerName);
+}
+
+void DlgPPPProfiles::on_addButton_clicked()
+{
+	DlgNewPPPProfile dlg(ROSPPPProfile(""), this);
+
+	if( dlg.exec() == QDialog::Accepted )
+		emit dataModified( dlg.rosPPPProfile(), QRouterIDMap() );
 }

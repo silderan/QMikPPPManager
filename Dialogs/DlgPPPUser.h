@@ -66,7 +66,7 @@ class DlgPPPUser : public DlgDataBase
 	bool getLocalPorts();
 
 public:
-	DlgPPPUser(QWidget *papi, ROSMultiConnectManager &rosMultiConnectManager, QConfigData &configData);
+	DlgPPPUser(QConfigData &configData, ROSMultiConnectManager &rosMultiConnectManager, QWidget *papi);
 	~DlgPPPUser() override;
 
 	void onROSModReply(const ROSDataBase &rosData) override;

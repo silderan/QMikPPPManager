@@ -13,19 +13,18 @@ class DlgDataBase : public QDialog
 {
 	Q_OBJECT
 
+	QConfigData &m_configData;
 	ROSMultiConnectManager &m_rosMultiConnectManager;
 	DataTypeIDList m_dataTypeIDList;
-	QConfigData m_configData;
 
 protected:
 	virtual void updateMultipleData(DataTypeIDList dataTypeIDList, const QString &routerName = QString());
 
 public:
-	DlgDataBase(QWidget *parent, ROSMultiConnectManager &rosMultiConnectManager);
+	DlgDataBase(QConfigData &configData, ROSMultiConnectManager &rosMultiConnectManager, QWidget *parent);
 
 	ROSMultiConnectManager &rosMultiConnectManager()	{ return m_rosMultiConnectManager;	}
 
-	void setConfigData(QConfigData &configData);
 	QConfigData &configData() { return m_configData;	}
 
 	virtual void onConfigDataChanged()	{	}
