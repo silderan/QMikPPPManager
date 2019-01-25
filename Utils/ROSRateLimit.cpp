@@ -43,7 +43,7 @@ void ROSRateLimit::fromString(const QString &str)
 	case 2:	m_rxKbps.fromString( speeds.at(1) ); [[clang::fallthrough]];
 	case 1:	m_txKbps.fromString( speeds.at(0) );
 		// Ensures that if only one value is present, uses it in both upload and download.
-		if( !m_rxKbps )
+		if( m_rxKbps == 0 )
 			m_rxKbps = m_txKbps;
 		break;
 	case 0:

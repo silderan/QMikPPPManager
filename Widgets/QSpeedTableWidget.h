@@ -19,7 +19,7 @@ class QSpeedTableWidget : public QTableWidget
 
 	void updateTable();
 
-	QString checkSpeeds( const QString &direction, ROSSpeed normal, ROSSpeed burst, ROSSpeed average, quint32 seconds )const;
+	QString checkSpeeds( const QString &direction, const ROSSpeed &normal, const ROSSpeed &burst, const ROSSpeed &average, quint32 seconds )const;
 	void raiseWarning(const QString &error)const;
 
 public:

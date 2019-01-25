@@ -43,6 +43,7 @@ bool QSpeedTableWidget::getROSRateLimit(ROSRateLimit &rosRateLimit) const
 	rosRateLimit.uploadAverageSeconds() =			item( 3, (1 ^ m_inverted))->text().toUInt();
 
 	QString error;
+
 	if( !(error = checkSpeeds( m_inverted ? "descarga" : "subida",
 							   rosRateLimit.downloadSpeed(),
 							   rosRateLimit.downloadBurstSpeed(),
@@ -95,7 +96,7 @@ void QSpeedTableWidget::updateTable()
 	resizeColumnsToContents();
 }
 
-QString QSpeedTableWidget::checkSpeeds(const QString &direction, ROSSpeed normal, ROSSpeed burst, ROSSpeed average, quint32 seconds) const
+QString QSpeedTableWidget::checkSpeeds(const QString &direction, const ROSSpeed &normal, const ROSSpeed &burst, const ROSSpeed &average, quint32 seconds) const
 {
 	if( burst == 0 )
 	{
