@@ -8,6 +8,11 @@ DlgNewPPPProfile::DlgNewPPPProfile(const ROSPPPProfile &rosPPPProfile, QWidget *
 	ui(new Ui::DlgNewPPPProfile)
 {
 	ui->setupUi(this);
+	if( rosPPPProfile.profileName().isEmpty() )
+		setWindowTitle( tr("Nuevo perfil PPP") );
+	else
+		setWindowTitle( tr("Modificando perfil %1").arg(rosPPPProfile.profileName()) );
+	setup(rosPPPProfile);
 }
 
 DlgNewPPPProfile::~DlgNewPPPProfile()

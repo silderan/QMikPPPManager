@@ -12,13 +12,6 @@ public:
 	ROSInterfaceManager(const QString &path) : ROSDataManager(path)
 	{	}
 
-	inline ROSDataBasePList rosDataList()	{ return ROSDataManager::rosDataList();	}
-	ROSDataBasePList rosDataList(const QString &interfaceType);
-
-	QStringList getallQueries() override
-	{
-		return QStringList() << "type=ether" << "type=bridge" << "type=vlan" << ROSDataManager::getallQueries();
-	}
 };
 
 #endif // ROSINTERFACEMANAGER_H

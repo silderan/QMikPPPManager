@@ -84,57 +84,85 @@ ROSDataBasePList ROSMultiConnectManager::rosDataList(DataTypeID dataTypeID, cons
 	return rtn;
 }
 
-QStringList ROSMultiConnectManager::rosAPIUsersGrupList() const
+QStringList ROSMultiConnectManager::rosNameList(DataTypeID dataTypeID, std::function<QString (const ROSDataBase *)> getFnc) const
 {
 	QStringList rtn;
 	QString t;
-	foreach( const ROSDataBase *rosData, rosDataList(DataTypeID::APIUsersGroup) )
+	foreach( const ROSDataBase *rosData, rosDataList(dataTypeID) )
 	{
-		t = static_cast<const ROSAPIUsersGroup*>(rosData)->groupName();
+		Q_ASSERT(rosData);
+		t = getFnc(rosData);
 		if( !t.isEmpty() && !rtn.contains(t) )
 			rtn.append( t );
 	}
 
 	return rtn;
+}
+
+QStringList ROSMultiConnectManager::rosAPIUsersGrupList() const
+{
+	return rosNameList(DataTypeID::APIUsersGroup, [] (const ROSDataBase *rosData) {
+		Q_ASSERT(dynamic_cast<const ROSIPPool*>(rosData));
+
+		return static_cast<const ROSAPIUsersGroup*>(rosData)->groupName();
+	} );
 }
 
 QStringList ROSMultiConnectManager::pppProfileNameList() const
 {
-	QStringList rtn;
-	QString t;
-	foreach( const ROSDataBase *rosData, rosDataList(DataTypeID::PPPProfile) )
-	{
-		t = static_cast<const ROSPPPProfile*>(rosData)->profileName();
-		if( !t.isEmpty() && !rtn.contains(t) )
-			rtn.append( t );
-	}
-	return rtn;
+	return rosNameList(DataTypeID::PPPProfile, [] (const ROSDataBase *rosData) {
+		Q_ASSERT(dynamic_cast<const ROSIPPool*>(rosData));
+
+		return static_cast<const ROSPPPProfile*>(rosData)->profileName();
+	} );
+}
+
+QStringList ROSMultiConnectManager::interfaceNameList(const QString &type) const
+{
+	return rosNameList(DataTypeID::Interface, [type](const ROSDataBase *rosDataBase) {
+		Q_ASSERT(dynamic_cast<const ROSInterface*>(rosDataBase));
+
+		if( type.isEmpty() || (static_cast<const ROSInterface*>(rosDataBase)->interfaceType() == type) )
+			return static_cast<const ROSInterface*>(rosDataBase)->interfaceName();
+		return QString();
+	} );
+}
+
+QStringList ROSMultiConnectManager::bridgeNameList() const
+{
+	return interfaceNameList("bridge");
+}
+
+QStringList ROSMultiConnectManager::etherNameList() const
+{
+	return interfaceNameList("ether");
+}
+
+QStringList ROSMultiConnectManager::poolNameList() const
+{
+	return rosNameList(DataTypeID::IPPool, [](const ROSDataBase *rosDataBase) {
+		Q_ASSERT(dynamic_cast<const ROSIPPool*>(rosDataBase));
+
+		return static_cast<const ROSIPPool*>(rosDataBase)->poolName();
+	} );
 }
 
 QStringList ROSMultiConnectManager::clientCities() const
 {
-	QStringList rtn;
-	QString t;
-	foreach( const ROSDataBase *rosData, rosDataList(DataTypeID::PPPSecret) )
-	{
-		t = static_cast<const ROSPPPSecret*>(rosData)->clientCity();
-		if( !t.isEmpty() && !rtn.contains(t) )
-			rtn.append( t );
-	}
-	return rtn;
+	return rosNameList(DataTypeID::PPPSecret, [] (const ROSDataBase *rosData) {
+		Q_ASSERT(dynamic_cast<const ROSIPPool*>(rosData));
+
+		return static_cast<const ROSPPPSecret*>(rosData)->clientCity();
+	} );
 }
 
 QStringList ROSMultiConnectManager::staticIPv4List() const
 {
-	QStringList rtn;
-	QString t;
-	foreach( const ROSDataBase *rosData, rosDataList(DataTypeID::PPPSecret) )
-	{
-		t = static_cast<const ROSPPPSecret*>(rosData)->staticIP().toString();
-		if( !t.isEmpty() && !rtn.contains(t) )
-			rtn.append( t );
-	}
-	return rtn;
+	return rosNameList(DataTypeID::PPPSecret, [] (const ROSDataBase *rosData) {
+		Q_ASSERT(dynamic_cast<const ROSIPPool*>(rosData));
+
+		return static_cast<const ROSPPPSecret*>(rosData)->staticIP().toString();
+	} );
 }
 
 void ROSMultiConnectManager::sendCancel(const QString &tag, const QString &routerName)

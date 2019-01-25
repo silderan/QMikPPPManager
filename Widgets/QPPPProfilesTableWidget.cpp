@@ -1,6 +1,8 @@
 #include "QPPPProfilesTableWidget.h"
 
 #include "../ROSData/ROSPPPProfile.h"
+#include "QComboBoxItemDelegate.h"
+#include "QSpeedTableWidget.h"
 
 QPPPProfilesTableWidget::QPPPProfilesTableWidget(QWidget *papi) :
 	QTableWidgetBase(papi)
@@ -8,6 +10,23 @@ QPPPProfilesTableWidget::QPPPProfilesTableWidget(QWidget *papi) :
 	setColumnCount(TotalColumns);
 	setRouterIDColumn(RoutersColumn);
 	setHorizontalHeaderLabels( QStringList() << "Nombre" << "Velocidades" << "Direccion Router" << "Pool direcciones cliente" << "Bridge" << "Routers" );
+
+	setItemDelegateForColumn( Columns::BridgeColumn, new QComboBoxItemDelegated( this, "", false,
+													 /*add list*/				[] (int)			{ return multiConnectionManager.bridgeNameList();	},
+													 /*skip list*/				[] (int)			{ return QStringList(); },
+													 /*allow change*/			[] (const QModelIndex &,const QString &)	{ return true; } ) );
+
+	setItemDelegateForColumn( Columns::LocalAddressColumn, new QComboBoxItemDelegated( this, "", false,
+													 /*add list*/				[] (int)			{ return multiConnectionManager.poolNameList();	},
+													 /*skip list*/				[] (int)			{ return QStringList(); },
+													 /*allow change*/			[] (const QModelIndex &,const QString &)	{ return true; } ) );
+
+	setItemDelegateForColumn( Columns::RemoteAddressColumn, new QComboBoxItemDelegated( this, "", false,
+													 /*add list*/				[] (int)			{ return multiConnectionManager.poolNameList();	},
+													 /*skip list*/				[] (int)			{ return QStringList(); },
+													 /*allow change*/			[] (const QModelIndex &,const QString &)	{ return true; } ) );
+
+	setItemDelegateForColumn( Columns::RateLimitColumn, new QSpeedTableWidgetItemDelegate() );
 }
 
 QPPPProfilesTableWidget::~QPPPProfilesTableWidget()

@@ -11,7 +11,6 @@ QSpeedTableWidget::QSpeedTableWidget(QWidget *parent) : QTableWidget(parent)
 	setHorizontalHeaderLabels( QStringList() << "Descarga" << "Subida" );
 	setRowCount(4);
 	setVerticalHeaderLabels( QStringList() << "Límite normal" << "Pico" << "Media" << "Tiempo" );
-	connect( this, SIGNAL(cellChanged(int,int)), this, SLOT(onSpeedChanged(int,int)) );
 	updateTable();
 }
 
@@ -31,14 +30,17 @@ void QSpeedTableWidget::setROSRateLimit(const QString &rosRateLimitString, bool 
 
 bool QSpeedTableWidget::getROSRateLimit(ROSRateLimit &rosRateLimit) const
 {
-	rosRateLimit.downloadSpeed().fromString(item(0, (0 ^ m_inverted))->text());
-	rosRateLimit.uploadSpeed().fromString(item(0, (1 ^ m_inverted))->text());
-	rosRateLimit.downloadBurstSpeed().fromString(item(1, (0 ^ m_inverted))->text());
-	rosRateLimit.uploadBurstSpeed().fromString(item(1, (1 ^ m_inverted))->text());
-	rosRateLimit.downloadAverageSpeed().fromString(item(2, (0 ^ m_inverted))->text());
-	rosRateLimit.uploadAverageSpeed().fromString(item(1, (1 ^ m_inverted))->text());
-	rosRateLimit.downloadAverageSeconds() = item(3, (0 ^ m_inverted))->text().toUInt();
-	rosRateLimit.uploadAverageSeconds() = item(1, (1 ^ m_inverted))->text().toUInt();
+	rosRateLimit.downloadSpeed().fromString(		item( 0, (0 ^ m_inverted))->text() );
+	rosRateLimit.uploadSpeed().fromString(			item( 0, (1 ^ m_inverted))->text() );
+
+	rosRateLimit.downloadBurstSpeed().fromString(	item( 1, (0 ^ m_inverted))->text() );
+	rosRateLimit.uploadBurstSpeed().fromString(		item( 1, (1 ^ m_inverted))->text() );
+
+	rosRateLimit.downloadAverageSpeed().fromString(	item( 2, (0 ^ m_inverted))->text() );
+	rosRateLimit.uploadAverageSpeed().fromString(	item( 2, (1 ^ m_inverted))->text() );
+
+	rosRateLimit.downloadAverageSeconds() =			item( 3, (0 ^ m_inverted))->text().toUInt();
+	rosRateLimit.uploadAverageSeconds() =			item( 3, (1 ^ m_inverted))->text().toUInt();
 
 	QString error;
 	if( !(error = checkSpeeds( m_inverted ? "descarga" : "subida",
@@ -90,6 +92,7 @@ void QSpeedTableWidget::updateTable()
 
 	setItemTime( 3, (0 ^ m_inverted) & 1, m_ROSRateLimit.downloadAverageSeconds() );
 	setItemTime( 3, (1 ^ m_inverted) & 1, m_ROSRateLimit.uploadAverageSeconds() );
+	resizeColumnsToContents();
 }
 
 QString QSpeedTableWidget::checkSpeeds(const QString &direction, ROSSpeed normal, ROSSpeed burst, ROSSpeed average, quint32 seconds) const
@@ -104,9 +107,9 @@ QString QSpeedTableWidget::checkSpeeds(const QString &direction, ROSSpeed normal
 	}
 	else
 	{
-		if( normal >= burst )
+		if( burst <= normal )
 			return tr("El pico de %1 debe ser mayor a la velocidad de %1.").arg(direction);
-		if( normal >= average )
+		if( average >= normal )
 			return tr("La media de %1 debe ser menor a la velocidad de %1.").arg(direction);
 	}
 	return QString();
@@ -115,4 +118,29 @@ QString QSpeedTableWidget::checkSpeeds(const QString &direction, ROSSpeed normal
 void QSpeedTableWidget::raiseWarning(const QString &error) const
 {
 	QMessageBox::warning( const_cast<QSpeedTableWidget*>(this), tr("Límites de velocidad"), error);
+}
+
+
+QWidget *QSpeedTableWidgetItemDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+	Q_UNUSED(option);
+	Q_UNUSED(index);
+
+	return new QSpeedTableWidget(parent);
+}
+
+void QSpeedTableWidgetItemDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
+{
+	static_cast<QSpeedTableWidget*>(editor)->setROSRateLimit(index.data(Qt::EditRole).toString());
+}
+
+void QSpeedTableWidgetItemDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
+{
+	ROSRateLimit rosRateLimit;
+	if( static_cast<QSpeedTableWidget*>(editor)->getROSRateLimit(rosRateLimit) )
+		model->setData( index, rosRateLimit.toString() );
+}
+
+void QSpeedTableWidgetItemDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
 }

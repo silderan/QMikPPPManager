@@ -2,6 +2,7 @@
 #define QSPEEDTABLEWIDGET_H
 
 #include <QTableWidget>
+#include <QStyledItemDelegate>
 
 #include "Utils/ROSRateLimit.h"
 
@@ -28,6 +29,16 @@ public:
 	void setROSRateLimit(const QString &rosRateLimitString, bool inverted = false);
 
 	bool getROSRateLimit(ROSRateLimit &rosRateLimit) const;
+};
+
+
+class QSpeedTableWidgetItemDelegate : public QStyledItemDelegate
+{
+public:
+	QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const Q_DECL_OVERRIDE;
+	void setEditorData(QWidget *editor, const QModelIndex &index) const Q_DECL_OVERRIDE;
+	void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const Q_DECL_OVERRIDE;
+	void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const Q_DECL_OVERRIDE;
 };
 
 #endif // QSPEEDTABLEWIDGET_H

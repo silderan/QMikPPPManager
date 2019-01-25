@@ -9,7 +9,7 @@ DlgPPPProfiles::DlgPPPProfiles(QConfigData &configData, ROSMultiConnectManager &
 {
 	ui->setupUi(this);
 
-	updateMultipleData( DataTypeIDList() << DataTypeID::PPPProfile );
+	updateMultipleData( DataTypeIDList() << DataTypeID::PPPProfile << DataTypeID::Interface << DataTypeID::IPPool );
 
 	// Forward signal.
 	connect( ui->profilesTable, SIGNAL(dataModified(ROSDataBase,QRouterIDMap)), this, SIGNAL(dataModified(ROSDataBase,QRouterIDMap)) );
