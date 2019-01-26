@@ -36,16 +36,16 @@ public:
 	{	}
 
 	const QString &userName()const			{ return m_uname;	}
-	void setUserName(const QString &uname)	{ m_uname = uname;	}
+	bool setUserName(const QString &uname)	{ return updateMember(m_uname, uname, userNamePattern, 4);	}
 
 	const QString &userPass()const			{ return m_upass;	}
-	void setUserPass(const QString &upass)	{ m_upass = upass;	}
+	bool setUserPass(const QString &upass)	{ return updateMember(m_upass, upass, userPassPattern, 8);	}
 
 	const QString &groupName()const			{ return m_group;	}
-	void setGroupName(const QString group)	{ m_group = group;	}
+	bool setGroupName(const QString group)	{ return updateMember(m_group, group, userNamePattern, 4);	}
 
 	Level userLevel()const					{ return m_level;	}
-	void setUserLevel(Level level)			{ m_level = level; setComment(levelName());	}
+	bool setUserLevel(Level level)			{ m_level = level; setComment(levelName());	return true; }
 
 	virtual void fromSentence(const QString &routerName, const ROS::QSentence &sentence);
 	virtual ROS::QSentence &toSentence(ROS::QSentence &sentence) const;

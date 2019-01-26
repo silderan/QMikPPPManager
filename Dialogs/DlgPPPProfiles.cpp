@@ -51,8 +51,9 @@ void DlgPPPProfiles::onROSDone(const QString &routerName, DataTypeID dataTypeID)
 
 void DlgPPPProfiles::on_addButton_clicked()
 {
-	DlgNewPPPProfile dlg(ROSPPPProfile(""), this);
+	ROSPPPProfile newPPPProfile("");
+	DlgNewPPPProfile dlg(this);
 
-	if( dlg.exec() == QDialog::Accepted )
-		emit dataModified( dlg.rosPPPProfile(), QRouterIDMap() );
+	if( dlg.exec(newPPPProfile) )
+		emit dataModified( newPPPProfile, QRouterIDMap() );
 }

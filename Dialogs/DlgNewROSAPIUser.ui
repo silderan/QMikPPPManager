@@ -6,33 +6,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>269</width>
-    <height>145</height>
+    <width>260</width>
+    <height>173</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Nuevo usuario ROS API</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>Nombre</string>
-     </property>
-    </widget>
-   </item>
    <item row="1" column="0">
     <widget class="QLabel" name="label_2">
      <property name="text">
       <string>Grupo</string>
      </property>
     </widget>
-   </item>
-   <item row="1" column="1">
-    <widget class="QROSAPIUsersGroupComboBox" name="grupNameComboBox"/>
-   </item>
-   <item row="0" column="1">
-    <widget class="QLineEdit" name="userNameLineEdit"/>
    </item>
    <item row="2" column="0">
     <widget class="QLabel" name="label_3">
@@ -44,6 +31,23 @@
    <item row="2" column="1">
     <widget class="QROSAPIUserLevelComboBox" name="userLevelComboBox"/>
    </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Nombre</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLineEdit" name="userNameLineEdit"/>
+   </item>
+   <item row="5" column="0">
+    <widget class="QPushButton" name="acceptButton">
+     <property name="text">
+      <string>Aceptar</string>
+     </property>
+    </widget>
+   </item>
    <item row="3" column="0">
     <widget class="QLabel" name="label_4">
      <property name="text">
@@ -54,12 +58,21 @@
    <item row="3" column="1">
     <widget class="QLineEdit" name="userPassLineEdit"/>
    </item>
-   <item row="4" column="0">
-    <widget class="QPushButton" name="acceptButton">
-     <property name="text">
-      <string>Aceptar</string>
+   <item row="1" column="1">
+    <widget class="QROSAPIUsersGroupComboBox" name="grupNameComboBox"/>
+   </item>
+   <item row="4" column="1">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
      </property>
-    </widget>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
    </item>
   </layout>
  </widget>

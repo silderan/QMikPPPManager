@@ -53,7 +53,6 @@ SOURCES += main.cpp\
     Dialogs/DlgConfiguracion.cpp \
     Dialogs/DlgLookConfig.cpp \
     Dialogs/DlgROSAPIUsers.cpp \
-	Dialogs/DlgROSAPIUser.cpp \
 	Dialogs/DlgPPPProfiles.cpp \
     Dialogs/DlgROSIPPool.cpp \
     Dialogs/DlgDataBase.cpp \
@@ -61,14 +60,16 @@ SOURCES += main.cpp\
     Utils/Utils.cpp \
     Widgets/QROSSecretTableWidget.cpp \
     Dialogs/DlgPPPUser.cpp \
-    Widgets/QFancyComboBox.cpp \
     Utils/PortForward.cpp \
     Widgets/QPortForwardTableWidget.cpp \
     ROSDataManager/ROSPPPSecretManager.cpp \
     Utils/QPPPLogger.cpp \
     Dialogs/DlgPPPLogViewer.cpp \
     Dialogs/DlgNewPPPProfile.cpp \
-    Widgets/QSpeedTableWidget.cpp
+    Widgets/QSpeedTableWidget.cpp \
+    Widgets/QFancyComboBox.cpp \
+    Dialogs/QNewROSDataDialogBase.cpp \
+    Dialogs/DlgNewROSAPIUser.cpp
 
 HEADERS  += QMikPPPManager.h \
     Utils/IPv4Range.h \
@@ -117,7 +118,6 @@ HEADERS  += QMikPPPManager.h \
     Dialogs/DlgLookConfig.h \
     Dialogs/DlgCnfgConnect.h \
     Dialogs/DlgROSAPIUsers.h \
-	Dialogs/DlgROSAPIUser.h \
 	Dialogs/DlgPPPProfiles.h \
     Dialogs/DlgROSIPPool.h \
     Dialogs/DlgDataBase.h \
@@ -137,7 +137,9 @@ HEADERS  += QMikPPPManager.h \
     Utils/QPPPLogger.h \
     Dialogs/DlgPPPLogViewer.h \
     Dialogs/DlgNewPPPProfile.h \
-    Widgets/QSpeedTableWidget.h
+    Widgets/QSpeedTableWidget.h \
+    Dialogs/QNewROSDataDialogBase.h \
+    Dialogs/DlgNewROSAPIUser.h
 
 FORMS    += QMikPPPManager.ui \
 	DlgNuevoUsuario.ui \
@@ -147,12 +149,12 @@ FORMS    += QMikPPPManager.ui \
     Dialogs/DlgCnfgConnect.ui \
     Dialogs/DlgLookConfig.ui \
     Dialogs/DlgROSAPIUsers.ui \
-    Dialogs/DlgROSAPIUser.ui \
     Dialogs/DlgPPPProfiles.ui \
     Dialogs/DlgROSIPPool.ui \
     Dialogs/DlgPPPUser.ui \
     Dialogs/DlgPPPLogViewer.ui \
-    Dialogs/DlgNewPPPProfile.ui
+    Dialogs/DlgNewPPPProfile.ui \
+    Dialogs/DlgNewROSAPIUser.ui
 
 DISTFILES += \
     ToDo.txt

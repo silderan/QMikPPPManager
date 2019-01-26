@@ -3,16 +3,12 @@
 
 #include <QMessageBox>
 
-DlgNewPPPProfile::DlgNewPPPProfile(const ROSPPPProfile &rosPPPProfile, QWidget *papi) :
-	QDialog(papi),
-	ui(new Ui::DlgNewPPPProfile)
+DlgNewPPPProfile::DlgNewPPPProfile(QWidget *papi)
+	: QNewROSDataDialogBase(papi)
+	, ui(new Ui::DlgNewPPPProfile)
 {
 	ui->setupUi(this);
-	if( rosPPPProfile.profileName().isEmpty() )
-		setWindowTitle( tr("Nuevo perfil PPP") );
-	else
-		setWindowTitle( tr("Modificando perfil %1").arg(rosPPPProfile.profileName()) );
-	setup(rosPPPProfile);
+	connect( ui->acceptButton, &QAbstractButton::clicked, this, &QNewROSDataDialogBase::tryAccept<ROSPPPProfile> );
 }
 
 DlgNewPPPProfile::~DlgNewPPPProfile()
@@ -20,48 +16,25 @@ DlgNewPPPProfile::~DlgNewPPPProfile()
 	delete ui;
 }
 
-void DlgNewPPPProfile::raiseWarning(const QString &error, const QString &field) const
+void DlgNewPPPProfile::setROSData(ROSDataBase &rosData)
 {
-	if( field.isEmpty() )
-		QMessageBox::warning( const_cast<DlgNewPPPProfile*>(this), tr("Perfil PPP"), error );
+	if( static_cast<ROSPPPProfile&>(rosData).profileName().isEmpty() )
+		setWindowTitle( tr("Nuevo perfil PPP") );
 	else
-		QMessageBox::warning( const_cast<DlgNewPPPProfile*>(this), tr("Perfil PPP"), tr("El campo %1, %2").arg(field, error) );
+		setWindowTitle( tr("Modificando perfil %1").arg(static_cast<ROSPPPProfile&>(rosData).profileName()) );
+
+	ui->pppProfileNameLineEdit->setText( static_cast<ROSPPPProfile&>(rosData).profileName() );
+	ui->bridgeComboBox->setCurrentText( static_cast<ROSPPPProfile&>(rosData).bridgeName() );
+	ui->localAddressComboBox->setCurrentText( static_cast<ROSPPPProfile&>(rosData).localAddress() );
+	ui->remoteAddressComboBox->setCurrentText( static_cast<ROSPPPProfile&>(rosData).remoteAddress() );
+	ui->speedRateLimits->setROSRateLimit( static_cast<ROSPPPProfile&>(rosData).rateLimit() );
 }
 
-void DlgNewPPPProfile::setup(const ROSPPPProfile &rosPPPProfile)
+bool DlgNewPPPProfile::getROSData(ROSDataBase &rosData) const
 {
-	ui->pppProfileNameLineEdit->setText( rosPPPProfile.profileName() );
-	ui->bridgeComboBox->setCurrentText( rosPPPProfile.bridgeName() );
-	ui->localAddressComboBox->setCurrentText( rosPPPProfile.localAddress() );
-	ui->remoteAddressComboBox->setCurrentText( rosPPPProfile.remoteAddress() );
-	ui->speedRateLimits->setROSRateLimit( rosPPPProfile.rateLimit() );
-}
-
-ROSPPPProfile DlgNewPPPProfile::rosPPPProfile() const
-{
-	ROSPPPProfile rosPPPProfile("");
-	if( !rosPPPProfile.setProfileName( ui->pppProfileNameLineEdit->text()) )
-		raiseWarning( rosPPPProfile.lastError(), tr("Nombre del perfil") );
-	else
-	if( !rosPPPProfile.setBridgeName( ui->bridgeComboBox->currentText()) )
-		raiseWarning( rosPPPProfile.lastError(), tr("bridge") );
-	else
-	if( !rosPPPProfile.setLocalAddress( ui->localAddressComboBox->currentText()) )
-		raiseWarning( rosPPPProfile.lastError(), tr("Local Address") );
-	else
-	if( !rosPPPProfile.setRemoteAddress( ui->remoteAddressComboBox->currentText()) )
-		raiseWarning( rosPPPProfile.lastError(), tr("Remote Address") );
-	else
-	if( !rosPPPProfile.setLocalAddress( ui->localAddressComboBox->currentText()) )
-		raiseWarning( rosPPPProfile.lastError(), tr("Local Address") );
-	else
-	if( ui->speedRateLimits->getROSRateLimit(rosPPPProfile.rateLimit()) )
-		return rosPPPProfile;
-	return ROSPPPProfile("");
-}
-
-void DlgNewPPPProfile::on_acceptButton_clicked()
-{
-	if( !rosPPPProfile().profileName().isEmpty() )
-		accept();
+	return	fancySetTextToMember( ui->pppProfileNameLineEdit->text(), rosData, ROSPPPProfile, setProfileName, "nombre del perfil" ) &&
+			fancySetTextToMember( ui->bridgeComboBox->currentText(), rosData, ROSPPPProfile, setBridgeName, "nombre del bridge" ) &&
+			fancySetTextToMember( ui->localAddressComboBox->currentText(), rosData, ROSPPPProfile, setLocalAddress, "local address" ) &&
+			fancySetTextToMember( ui->remoteAddressComboBox->currentText(), rosData, ROSPPPProfile, setRemoteAddress, "remote address" ) &&
+			ui->speedRateLimits->getROSRateLimit( static_cast<ROSPPPProfile&>(rosData).rateLimit() );
 }

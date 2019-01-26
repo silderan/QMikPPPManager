@@ -1,8 +1,7 @@
 #ifndef DLGNEWPPPPROFILE_H
 #define DLGNEWPPPPROFILE_H
 
-#include <QDialog>
-
+#include "QNewROSDataDialogBase.h"
 #include "../ROSData/ROSPPPProfile.h"
 
 namespace Ui
@@ -10,23 +9,18 @@ namespace Ui
 	class DlgNewPPPProfile;
 }
 
-class DlgNewPPPProfile : public QDialog
+class DlgNewPPPProfile : public QNewROSDataDialogBase
 {
-	Q_OBJECT
 	Ui::DlgNewPPPProfile *ui;
 
-	void raiseWarning(const QString &error, const QString &field) const;
 	void setup(const ROSPPPProfile &rosPPPProfile);
 
 public:
-	explicit DlgNewPPPProfile(const ROSPPPProfile &rosPPPProfile, QWidget *papi);
+	explicit DlgNewPPPProfile(QWidget *papi);
 	~DlgNewPPPProfile();
 
-	ROSPPPProfile rosPPPProfile()const;
-
-private slots:
-	void on_acceptButton_clicked();
-
+	virtual void setROSData(ROSDataBase &rosData) Q_DECL_OVERRIDE;
+	virtual bool getROSData(ROSDataBase &rosData) const Q_DECL_OVERRIDE;
 };
 
 #endif // DLGNEWPPPPROFILE_H

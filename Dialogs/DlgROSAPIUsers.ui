@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>728</width>
-    <height>501</height>
+    <width>666</width>
+    <height>757</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,6 +16,12 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QGroupBox" name="groupBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="title">
       <string>Grupos de usuarios</string>
      </property>
@@ -48,13 +54,23 @@
        </widget>
       </item>
       <item row="1" column="0" colspan="3">
-       <widget class="QROSAPIUsersGroupTableWidget" name="groupsTable"/>
+       <widget class="QROSAPIUsersGroupTableWidget" name="groupsTable">
+        <attribute name="horizontalHeaderStretchLastSection">
+         <bool>true</bool>
+        </attribute>
+       </widget>
       </item>
      </layout>
     </widget>
    </item>
    <item>
     <widget class="QGroupBox" name="groupBox_2">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="title">
       <string>Usuarios</string>
      </property>
@@ -67,7 +83,11 @@
        </widget>
       </item>
       <item row="1" column="0" colspan="3">
-       <widget class="QROSAPIUserTableWidget" name="usersTable"/>
+       <widget class="QROSAPIUserTableWidget" name="usersTable">
+        <attribute name="horizontalHeaderStretchLastSection">
+         <bool>true</bool>
+        </attribute>
+       </widget>
       </item>
       <item row="0" column="0">
        <spacer name="horizontalSpacer_2">
@@ -90,13 +110,6 @@
        </widget>
       </item>
      </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;OjO:&lt;/span&gt;&lt;br/&gt;- Los cambios que se hagan aquí, se harán directamente sobre todos los routers.&lt;br/&gt;- El nombre de los usuarios no se pueden cambiar; una vez se ha añadido el usuario (colocando el grupo correctamente) no podrá cambiarse.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
     </widget>
    </item>
   </layout>
