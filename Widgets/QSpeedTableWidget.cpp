@@ -142,6 +142,6 @@ void QSpeedTableWidgetItemDelegate::setModelData(QWidget *editor, QAbstractItemM
 		model->setData( index, rosRateLimit.toString() );
 }
 
-void QSpeedTableWidgetItemDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const
+void QSpeedTableWidgetItemDelegate::updateEditorGeometry(QWidget *, const QStyleOptionViewItem &, const QModelIndex &) const
 {
 }

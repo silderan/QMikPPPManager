@@ -32,11 +32,8 @@ SOURCES += main.cpp\
     ROSData/ROSIPPool.cpp \
 	Widgets/QIPv4RangeComboBox.cpp \
     Widgets/QROSAPIUserTableWidget.cpp \
-    Widgets/QROSAPIUserLevelComboBox.cpp \
     Widgets/QROSAPIUsersGroupTableWidget.cpp \
     Widgets/QRoutersLineEdit.cpp \
-    Widgets/QROSAPIUsersGroupComboBox.cpp \
-    Widgets/QTableWidgetBase.cpp \
 	Widgets/QPPPProfilesTableWidget.cpp \
     Widgets/QROSIPoolTableWidget.cpp \
     ConfigData/ConnectInfo.cpp \
@@ -45,8 +42,6 @@ SOURCES += main.cpp\
     ConfigData/QConfigData.cpp \
     QSecretData.cpp \
     DlgNuevoUsuario.cpp \
-	DlgExportar.cpp \
-	DlgPortScan.cpp \
     ROSMultiConnectorManager.cpp \
     ROSPPPoEManager.cpp \
     Dialogs/DlgCnfgConnect.cpp \
@@ -68,8 +63,9 @@ SOURCES += main.cpp\
     Dialogs/DlgNewPPPProfile.cpp \
     Widgets/QSpeedTableWidget.cpp \
     Widgets/QFancyComboBox.cpp \
-    Dialogs/QNewROSDataDialogBase.cpp \
-    Dialogs/DlgNewROSAPIUser.cpp
+    Widgets/QROSDataTableWidget.cpp \
+    Dialogs/DlgNewROSAPIUser.cpp \
+    Dialogs/DlgExportUserData.cpp
 
 HEADERS  += QMikPPPManager.h \
     Utils/IPv4Range.h \
@@ -101,17 +97,12 @@ HEADERS  += QMikPPPManager.h \
     ConfigData/QConfigData.h \
     Widgets/QIPv4RangeComboBox.h \
     Widgets/QROSAPIUserTableWidget.h \
-    Widgets/QROSAPIUserLevelComboBox.h \
     Widgets/QROSAPIUsersGroupTableWidget.h \
     Widgets/QRoutersLineEdit.h \
-    Widgets/QROSAPIUsersGroupComboBox.h \
-    Widgets/QTableWidgetBase.h \
 	Widgets/QPPPProfilesTableWidget.h \
     Widgets/QROSIPoolTableWidget.h \
     QSecretData.h \
     DlgNuevoUsuario.h \
-	DlgExportar.h \
-	DlgPortScan.h \
     ROSMultiConnectorManager.h \
     ROSPPPoEManager.h \
     Dialogs/DlgConfiguracion.h \
@@ -138,23 +129,23 @@ HEADERS  += QMikPPPManager.h \
     Dialogs/DlgPPPLogViewer.h \
     Dialogs/DlgNewPPPProfile.h \
     Widgets/QSpeedTableWidget.h \
-    Dialogs/QNewROSDataDialogBase.h \
-    Dialogs/DlgNewROSAPIUser.h
+    Widgets/QROSDataTableWidget.h \
+    Dialogs/DlgNewROSAPIUser.h \
+    Dialogs/DlgExportUserData.h
 
 FORMS    += QMikPPPManager.ui \
 	DlgNuevoUsuario.ui \
-	DlgExportar.ui \
-	DlgPortScan.ui \
     Dialogs/DlgConfiguracion.ui \
     Dialogs/DlgCnfgConnect.ui \
     Dialogs/DlgLookConfig.ui \
     Dialogs/DlgROSAPIUsers.ui \
+	Dialogs/DlgNewPPPProfile.ui \
     Dialogs/DlgPPPProfiles.ui \
     Dialogs/DlgROSIPPool.ui \
     Dialogs/DlgPPPUser.ui \
-    Dialogs/DlgPPPLogViewer.ui \
-    Dialogs/DlgNewPPPProfile.ui \
-    Dialogs/DlgNewROSAPIUser.ui
+	Dialogs/DlgPPPLogViewer.ui \
+    Dialogs/DlgNewROSAPIUser.ui \
+    Dialogs/DlgExportUserData.ui
 
 DISTFILES += \
     ToDo.txt

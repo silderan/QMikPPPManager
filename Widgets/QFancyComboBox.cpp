@@ -1,15 +1,19 @@
 #include "QFancyComboBox.h"
 
-QFancyComboBox::QFancyComboBox(QWidget *papi) : QComboBox(papi)
+QFancyComboBox::QFancyComboBox(QWidget *papi)
+	: QComboBox(papi)
+	, m_hasDefaultData(false)
 {
 
 }
 
-void QFancyComboBox::setup(const QString &defaultValue, const QStringList &addList, const QStringList &skipList, const QString &currentSelected)
+void QFancyComboBox::setup(const QString &defaultValueDescription, const QString &defaultValueData, const QStringList &addList, const QStringList &skipList, const QString &currentSelected)
 {
 	clear();
-	if( !defaultValue.isEmpty() )
-		addItem( defaultValue );
+
+	if( (m_hasDefaultData = !defaultValueDescription.isEmpty()) )
+		addItem( defaultValueDescription, defaultValueData );
+
 	int i = -1;
 	foreach( QString t, addList )
 	{
@@ -26,7 +30,7 @@ void QFancyComboBox::setup(const QString &defaultValue, const QStringList &addLi
 	{
 		if( i == -1 )
 		{
-			if( !defaultValue.isEmpty() )
+			if( !defaultValueDescription.isEmpty() )
 				i = 0;
 			else
 			if( !currentSelected.isEmpty() )
@@ -54,6 +58,13 @@ void QFancyComboBox::updateList(const QStringList &addList, bool addIfNecessary)
 		return setup(addList);
 	else
 		return setup(addList, currentText(), addIfNecessary );
+}
+
+QString QFancyComboBox::currentText()
+{
+	if( (currentIndex() == 0) && m_hasDefaultData )
+		return currentData().toString();
+	return QComboBox::currentText();
 }
 
 void QFancyComboBox::selectText(const QString &text, bool addIfNecessary)

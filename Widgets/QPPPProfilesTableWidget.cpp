@@ -5,26 +5,23 @@
 #include "QSpeedTableWidget.h"
 
 QPPPProfilesTableWidget::QPPPProfilesTableWidget(QWidget *papi) :
-	QTableWidgetBase(papi)
+	QROSDataTableWidget(papi)
 {
 	setColumnCount(TotalColumns);
 	setRouterIDColumn(RoutersColumn);
 	setHorizontalHeaderLabels( QStringList() << "Nombre" << "Velocidades" << "Direccion Router" << "Pool direcciones cliente" << "Bridge" << "Routers" );
 
-	setItemDelegateForColumn( Columns::BridgeColumn, new QComboBoxItemDelegated( this, "", false,
-													 /*add list*/				[] (int)			{ return multiConnectionManager.bridgeNameList();	},
-													 /*skip list*/				[] (int)			{ return QStringList(); },
-													 /*allow change*/			[] (const QModelIndex &,const QString &)	{ return true; } ) );
+	setFancyItemDelegateForColumn( Columns::BridgeColumn, new QComboBoxItemDelegated( this, tr("Ninguno"), "", false,
+													/*add list*/				[] (int)			{ return multiConnectionManager.bridgeNameList();	},
+													/*skip list*/				[] (int)			{ return QStringList(); } ) );
 
-	setItemDelegateForColumn( Columns::LocalAddressColumn, new QComboBoxItemDelegated( this, "", false,
-													 /*add list*/				[] (int)			{ return multiConnectionManager.poolNameList();	},
-													 /*skip list*/				[] (int)			{ return QStringList(); },
-													 /*allow change*/			[] (const QModelIndex &,const QString &)	{ return true; } ) );
+	setFancyItemDelegateForColumn( Columns::LocalAddressColumn, new QComboBoxItemDelegated( this, tr("Ninguna"), "", false,
+													/*add list*/				[] (int)			{ return multiConnectionManager.poolNameList();	},
+													/*skip list*/				[] (int)			{ return QStringList(); } ) );
 
-	setItemDelegateForColumn( Columns::RemoteAddressColumn, new QComboBoxItemDelegated( this, "", false,
-													 /*add list*/				[] (int)			{ return multiConnectionManager.poolNameList();	},
-													 /*skip list*/				[] (int)			{ return QStringList(); },
-													 /*allow change*/			[] (const QModelIndex &,const QString &)	{ return true; } ) );
+	setFancyItemDelegateForColumn( Columns::RemoteAddressColumn, new QComboBoxItemDelegated( this, tr("Ninguna"), "", false,
+													/*add list*/				[] (int)			{ return multiConnectionManager.poolNameList();	},
+													/*skip list*/				[] (int)			{ return QStringList(); } ) );
 
 	setItemDelegateForColumn( Columns::RateLimitColumn, new QSpeedTableWidgetItemDelegate() );
 }
@@ -36,7 +33,7 @@ QPPPProfilesTableWidget::~QPPPProfilesTableWidget()
 
 void QPPPProfilesTableWidget::setupRow(int row, const ROSDataBase &rosData)
 {
-	QTableWidgetBase::setupRow(row, rosData);
+	QROSDataTableWidget::setupRow(row, rosData);
 
 	const ROSPPPProfile &profileData = static_cast<const ROSPPPProfile &>(rosData);
 	setCellText( row, ProfileNameColumn, profileData.profileName(), Qt::ItemIsEditable );
@@ -48,7 +45,7 @@ void QPPPProfilesTableWidget::setupRow(int row, const ROSDataBase &rosData)
 
 int QPPPProfilesTableWidget::rowOf(const ROSDataBase &rosData)
 {
-	return QTableWidgetBase::rowOf( ProfileNameColumn, static_cast<const ROSPPPProfile &>(rosData).profileName() );
+	return QROSDataTableWidget::rowOf( ProfileNameColumn, static_cast<const ROSPPPProfile &>(rosData).profileName() );
 }
 
 ROSDataBase *QPPPProfilesTableWidget::getRosData(int row)
@@ -60,4 +57,35 @@ ROSDataBase *QPPPProfilesTableWidget::getRosData(int row)
 	profileData->setRemoteAddress( cellText(row, RemoteAddressColumn) );
 	profileData->setBridgeName( cellText(row, BridgeColumn) );
 	return profileData;
+}
+
+void QPPPProfilesTableWidget::updateROSData(ROSDataBase *rosData, int row, int changedColumn, const QString &newValue)
+{
+	Q_UNUSED(row);
+
+	ROSPPPProfile *profileData = static_cast<ROSPPPProfile*>(rosData);
+	switch( static_cast<Columns>(changedColumn) )
+	{
+	case QPPPProfilesTableWidget::ProfileNameColumn:
+		profileData->setProfileName(newValue);
+		break;
+	case QPPPProfilesTableWidget::RateLimitColumn:
+		profileData->rateLimit().fromString(newValue);
+		break;
+	case QPPPProfilesTableWidget::LocalAddressColumn:
+		profileData->setLocalAddress(newValue);
+		break;
+	case QPPPProfilesTableWidget::RemoteAddressColumn:
+		profileData->setRemoteAddress(newValue);
+		break;
+	case QPPPProfilesTableWidget::BridgeColumn:
+		profileData->setBridgeName(newValue);
+		break;
+	case QPPPProfilesTableWidget::RoutersColumn:
+		Q_ASSERT(false);
+		break;
+	case QPPPProfilesTableWidget::TotalColumns:
+		Q_ASSERT(false);
+		break;
+	}
 }

@@ -7,13 +7,12 @@ ROSSpeed::ROSSpeed(const QString &bps)
 
 void ROSSpeed::fromString(const QString &bps)
 {
-	if( bps.isEmpty() )
-		m_bps = 0;
-	else
+	m_bps = 0;
+	if( !bps.isEmpty() )
 	{
 		int i;
 		for( i = 0; (i < bps.count()) && bps.at(i).isDigit(); ++i )
-			m_bps = m_bps * 10 + (bps.at(i).toLatin1() - ('0'));
+			m_bps = m_bps * 10 + static_cast<quint64>((bps.at(i).toLatin1() - '0'));
 
 		if( i < bps.count() )
 			switch( bps.at(i).toLower().toLatin1() )

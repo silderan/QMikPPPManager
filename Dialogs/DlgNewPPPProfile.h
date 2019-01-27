@@ -1,7 +1,7 @@
 #ifndef DLGNEWPPPPROFILE_H
 #define DLGNEWPPPPROFILE_H
 
-#include "QNewROSDataDialogBase.h"
+#include "DlgDataBase.h"
 #include "../ROSData/ROSPPPProfile.h"
 
 namespace Ui

@@ -27,8 +27,6 @@
 #include "Dialogs/DlgConfiguracion.h"
 #include "Dialogs/DlgLookConfig.h"
 #include "Dialogs/DlgPPPLogViewer.h"
-#include "DlgExportar.h"
-#include "DlgPortScan.h"
 
 #include "Utils/Utils.h"
 
@@ -142,14 +140,14 @@ void QMikPPPManager::onRouterDisconnected(const QString &routerName)
 	if( dlgCnfgConnect != Q_NULLPTR )
 		dlgCnfgConnect->onRouterDisconnected(routerName);
 
-	foreach( DlgDataBase *dlg, m_dialogList )
+	foreach( QDlgMultiDataBase *dlg, m_dialogList )
 		dlg->onDisconnected(routerName);
 }
 void QMikPPPManager::onAllRoutersDisconnected()
 {
 	ui->disconnectButton->setDisabled(true);
 
-	foreach( DlgDataBase *dlg, m_dialogList )
+	foreach( QDlgMultiDataBase *dlg, m_dialogList )
 		dlg->clear();
 
 	multiConnectionManager.clear();
@@ -172,7 +170,7 @@ void QMikPPPManager::onLogued(const QString &routerName)
 	if( dlgCnfgConnect != Q_NULLPTR )
 		dlgCnfgConnect->onLogued(routerName);
 
-	foreach( DlgDataBase *dlg, m_dialogList )
+	foreach( QDlgMultiDataBase *dlg, m_dialogList )
 		dlg->onLogued(routerName);
 }
 
@@ -200,14 +198,14 @@ void QMikPPPManager::onROSError(const QString &routerName, const QString &errorS
 
 void QMikPPPManager::onROSModReply(const ROSDataBase &rosData)
 {
-	foreach( DlgDataBase *dlg, m_dialogList )
+	foreach( QDlgMultiDataBase *dlg, m_dialogList )
 		dlg->onROSModReply(rosData);
 	ui->usersTable->onROSModReply(rosData);
 }
 
 void QMikPPPManager::onROSDelReply(const QString &routerName, DataTypeID dataTypeID, const QString &rosObjectID)
 {
-	foreach( DlgDataBase *dlg, m_dialogList )
+	foreach( QDlgMultiDataBase *dlg, m_dialogList )
 		dlg->onROSDelReply(routerName, dataTypeID, rosObjectID);
 	ui->usersTable->onROSDelReply(routerName, dataTypeID, rosObjectID);
 }
@@ -228,7 +226,7 @@ void QMikPPPManager::onROSDone(const QString &routerName, DataTypeID dataTypeID)
 	case DataTypeID::PPPActive:		setStatusText( tr("Usuarios activos recibidos"), routerName );		break;
 	case DataTypeID::TotalIDs:		break;
 	}
-	foreach( DlgDataBase *dlg, m_dialogList )
+	foreach( QDlgMultiDataBase *dlg, m_dialogList )
 		dlg->onROSDone(routerName, dataTypeID);
 	ui->usersTable->onROSDone(routerName, dataTypeID);
 }
@@ -471,7 +469,7 @@ void QMikPPPManager::on_advancedConfigButton_clicked()
 		gGlobalConfig.staticIPv4RangeListMap() = dlgConfig->staticIPv4RangeListMap();
 		gGlobalConfig.clientProfileMap() = dlgConfig->clientProfileList();
 		gGlobalConfig.saveGlobalProtectedData();
-		foreach( DlgDataBase *dlg, m_dialogList )
+		foreach( QDlgMultiDataBase *dlg, m_dialogList )
 			dlg->onConfigDataChanged();
 		ui->usersTable->onConfigDataChanged();
 	}

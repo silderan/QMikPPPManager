@@ -12,7 +12,7 @@ namespace Ui
 	class DlgPPPUser;
 }
 
-class DlgPPPUser : public DlgDataBase
+class DlgPPPUser : public QDlgMultiDataBase
 {
 	Q_OBJECT
 	Ui::DlgPPPUser *ui;
@@ -30,12 +30,14 @@ class DlgPPPUser : public DlgDataBase
 	void updateUserData();
 	void updateDialogInfo();
 
-	void raiseWarning(const QString &info);
-
 	bool currentEditing(const ROSPPPSecret &pppSecret);
 
 	bool checkStringData(const QString &fieldName, const QString &originalText, const QString &text, std::function<bool(ROSPPPSecret &, const QString &)> setFnc);
-	bool checkGroupedData(const QGroupBox *group, const QString &fieldName, const QString &originalText, QString text, std::function<bool(ROSPPPSecret &, const QString &)> setFnc);
+	bool checkGroupedData( const QGroupBox *group,
+						   QString newText,
+						   std::function<const QString &(ROSPPPSecret &)> getFnc,
+						   std::function<bool(ROSPPPSecret &, const QString &)> setFnc,
+						   const QString &fieldName );
 	bool checkIPv4(const QString &fieldName, QString &ipString, bool obligated = false);
 
 	bool getPPPUserName();
@@ -79,14 +81,15 @@ public:
 
 private slots:
 	void on_pppProfileComboBox_currentIndexChanged(int index);
-
 	void on_applyDataButton_clicked();
-
 	void on_addPortButton_clicked();
-
 	void on_delPortButton_clicked();
-
 	void on_clientLogsButton_clicked();
+	void on_pppUserNameCopyButton_clicked();
+	void on_pppUserPassCopyButton_clicked();
+	void on_pppUserPassCreateButton_clicked();
+
+	void on_copyInfoButton_clicked();
 
 public slots:
 	void onEditUserRequest(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive);

@@ -6,7 +6,7 @@ const char ROSDataBase::separatorCommentChar = '$';
 const char *ROSDataBase::userNamePattern = "[^A-Za-z0-9\\-_]";
 const char *ROSDataBase::userPassPattern = "[^A-Za-z0-9\\-_]";
 const char *ROSDataBase::profilePattern = "[^A-Za-z0-9\\-_\\/\\() ]";
-const char *ROSDataBase::emailPattern = "[^A-Za-z0-9_@]";
+const char *ROSDataBase::emailPattern = "[^A-Za-z0-9\\/\\-_.:!%+='?,@]";
 const char *ROSDataBase::phonePattern = "[^0-9\\+]";
 const char *ROSDataBase::urlPattern = "[^A-Za-z0-9\\/\\-_.:!%+='?,@]";
 const char *ROSDataBase::basicNonROSMemberPatern = "[~$]";

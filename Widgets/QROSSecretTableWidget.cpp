@@ -92,26 +92,26 @@ QROSSecretTableWidget::QROSSecretTableWidget(QWidget *papi) : QTableWidget(papi)
 												 [this] (const QModelIndex &index,const QString &newText)	{ return allowCellChange(index, newText); } ) );
 
 	setItemDelegateForColumn( Columns::UserProfile,
-							  new QComboBoxItemDelegated( this, "", false,
+							  new QComboBoxItemDelegated( this, "", "", false,
 		/*add list*/			  [] (int)			{ return gGlobalConfig.clientProfileMap().regularProfileNames();	},
 		/*skip list*/			  [] (int)			{ return QStringList(); },
 		/*allow change*/		  [this] (const QModelIndex &index,const QString &newText)	{ return allowCellChange(index, newText); } ) );
 
 	setItemDelegateForColumn( Columns::RemoteIP,
-							  new QComboBoxItemDelegated( this, tr("IP dinámica"), false,
+							  new QComboBoxItemDelegated( this, tr("IP dinámica"), "", false,
 								  [this] (int row)	{ return staticIPs(row); },
 								  [this] (int)		{ return usedStaticIPs(); },
 		/*allow change*/		  [this] (const QModelIndex &index,const QString &newText)	{ return allowCellChange(index, newText); },
 		/*initial text*/		  [this] (const QModelIndex &index)	{ return currentIP(index.row()); } ) );
 
 	setItemDelegateForColumn( Columns::Installer,
-							  new QComboBoxItemDelegated( this, gGlobalConfig.userName(), false,
+							  new QComboBoxItemDelegated( this, gGlobalConfig.userName(), gGlobalConfig.userName(), false,
 								  [] (int)			{ return gGlobalConfig.instaladores(); },
 								  [] (int)			{ return QStringList(); },
 		/*allow change*/		  [this] (const QModelIndex &index,const QString &newText)	{ return allowCellChange(index, newText); } ) );
 
 	setItemDelegateForColumn( Columns::ServiceStatus,
-							  new QComboBoxItemDelegated( this, "", false,
+							  new QComboBoxItemDelegated( this, "", "", false,
 								  [] (int)			{ return ServiceState::serviceStateNameList(); },
 								  [] (int)			{ return QStringList(); },
 		/*allow change*/		  [this] (const QModelIndex &index,const QString &newText)	{ return allowCellChange(index, newText); } ) );
@@ -199,6 +199,17 @@ QString QROSSecretTableWidget::createObjectIDKey(const ROSPPPSecret &rosPPPSecre
 QString QROSSecretTableWidget::createObjectIDKey(const QString &routerName, const QString &rosObjectID)
 {
 	return QString("%1:%2").arg(routerName, rosObjectID);
+}
+
+QList<QROSUserNameWidgetItem *> QROSSecretTableWidget::selectedUsers()
+{
+	QList<QROSUserNameWidgetItem*> userNameItemList;
+	foreach( const QModelIndex &index, selectedIndexes() )
+	{
+		if( !userNameItemList.contains(userNameWidgetItem(index.row())) )
+			userNameItemList.append(userNameWidgetItem(index.row()));
+	}
+	return userNameItemList;
 }
 
 void QROSSecretTableWidget::setupCellItem(int row, Columns col, const QString &cellText)
@@ -592,35 +603,65 @@ void QROSSecretTableWidget::onConfigDataChanged()
 	applyFilter();
 }
 
+#include "Dialogs/DlgExportUserData.h"
+void QROSSecretTableWidget::exportUsersData()
+{
+	QList<QStringList> exportData;
+	QList<QROSUserNameWidgetItem*> selectedList = selectedUsers();
+	QStringList data;
+	if( selectedList.count() )
+	{
+		foreach( QROSUserNameWidgetItem *item, selectedList )
+		{
+			data.clear();
+			for( int col = 0; col < columnCount(); ++col )
+			{
+				if( !isColumnHidden(col) )
+					data.append(QTableWidget::item(item->row(), col)->text());
+			}
+			exportData.append(data);
+		}
+	}
+	else
+	{
+		for( int row = 0; row < rowCount(); ++row )
+		{
+			data.clear();
+			for( int col = 0; col < columnCount(); ++col )
+			{
+				if( !isColumnHidden(col) )
+					data.append(QTableWidget::item(row, col)->text());
+			}
+			exportData.append(data);
+		}
+	}
+	if( exportData.count() )
+		DlgExportUserData::exportData(exportData, this);
+}
+
 void QROSSecretTableWidget::contextMenuEvent(QContextMenuEvent *event)
 {
-	QList<QROSUserNameWidgetItem*> userNameItemList;
-	foreach( const QModelIndex &index, selectedIndexes() )
+	QList<QROSUserNameWidgetItem*> selectedList = selectedUsers();
+	QList<QROSUserNameWidgetItem*> connectedList;
+	foreach( QROSUserNameWidgetItem *userNameItem, selectedList )
 	{
-		if( !userNameItemList.contains(userNameWidgetItem(index.row())) )
-			userNameItemList.append(userNameWidgetItem(index.row()));
-	}
-
-	QList<QROSUserNameWidgetItem*> connectedUsersList;
-	foreach( QROSUserNameWidgetItem *userNameItem, userNameItemList )
-	{
-		if( userNameItem->pppActive.currentIPv4().isValid() && !connectedUsersList.contains(userNameItem) )
-			connectedUsersList.append( userNameItem );
+		if( userNameItem->pppActive.currentIPv4().isValid() && !connectedList.contains(userNameItem) )
+			connectedList.append( userNameItem );
 	}
 
 	QMenu menu(this);
-	if( !connectedUsersList.isEmpty() )
+	if( !connectedList.isEmpty() )
 	{
 		QString txt;
-		if( connectedUsersList.count() == 1 )
-			txt = tr("Desconectar cliente %1").arg(connectedUsersList.first()->pppActive.userName());
+		if( connectedList.count() == 1 )
+			txt = tr("Desconectar cliente %1").arg(connectedList.first()->pppActive.userName());
 		else
-			txt = tr("Desconectar %1 clientes").arg(connectedUsersList.count());
+			txt = tr("Desconectar %1 clientes").arg(connectedList.count());
 		connect( menu.addAction(txt), &QAction::triggered, this, &QROSSecretTableWidget::disconnectSelected );
 	}
 
 	QMenu openBrowser( tr("Abrir navegador") );
-	foreach( const QROSUserNameWidgetItem *userNameItem, connectedUsersList )
+	foreach( const QROSUserNameWidgetItem *userNameItem, connectedList )
 	{
 		const ROSPPPActive &rosActive = userNameItem->pppActive;
 		if( rosActive.currentIPv4().isValid() )
@@ -651,12 +692,19 @@ void QROSSecretTableWidget::contextMenuEvent(QContextMenuEvent *event)
 	menu.addMenu( &columns );
 
 	QMenu deleteUser( tr("Borra usuario") );
-	if( userNameItemList.count() )
+	if( selectedList.count() )
 	{
-		QString userName = userNameItemList.first()->pppSecretMap.first().userName();
+		QString userName = selectedList.first()->pppSecretMap.first().userName();
 		QAction *ac = menu.addAction( tr("Borrar usuario %1").arg(userName) );
 
 		connect( ac, &QAction::triggered, [this, userName] () { this->deleteUser(userName); } );
+	}
+	int count = selectedList.count() ? selectedList.count() : rowCount();
+	if( rowCount() )
+	{
+		menu.addSeparator();
+		connect( menu.addAction( tr("Esportar datos de %1 usuario%2").arg(count).arg( (count>1) ? "s" : "") ), &QAction::triggered,
+				 [this] () { exportUsersData(); }	);
 	}
 	menu.exec( event->globalPos() );
 }

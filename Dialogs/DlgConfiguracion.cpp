@@ -24,19 +24,19 @@ DlgConfiguracion::DlgConfiguracion(const QStringList &installerList, const QStri
 
 	multiConnectionManager.requestAll(DataTypeID::PPPProfile);
 	ui->profilesTable->setItemDelegateForColumn( 0,
-												 new QComboBoxItemDelegated( this, "", false,
+												 new QComboBoxItemDelegated( this, "", "", false,
 						/*add list*/				[] (int)			{ return multiConnectionManager.pppProfileNameList();	},
 						/*skip list*/				[this] (int)		{ return Utils::allColumnTexts(ui->profilesTable->model(), 0); },
 						/*allow change*/			[] (const QModelIndex &,const QString &)	{ return true; } ) );
 
 	ui->profilesTable->setItemDelegateForColumn( 1,
-												 new QComboBoxItemDelegated( this, "", true,
+												 new QComboBoxItemDelegated( this, "", "", true,
 						/*add list*/				[this] (int row)	{ return selectableGroupNames(row);	},
 						/*skip list*/				[] (int)			{ return QStringList(); },
 						/*allow change*/			[] (const QModelIndex &,const QString &)	{ return true; } ) );
 
 	ui->staticIPv4Table->setItemDelegateForColumn( 2,
-												   new QComboBoxItemDelegated( this, "", false,
+												   new QComboBoxItemDelegated( this, "", "", false,
 						/*add list*/				[this] (int)		{ return Utils::allColumnTexts(ui->profilesTable->model(), 1);	},
 						/*skip list*/				[] (int)			{ return QStringList() << ClientProfileData::serviceCanceledGroupName(); },
 						/*allow change*/			[] (const QModelIndex &,const QString &)	{ return true; } ) );

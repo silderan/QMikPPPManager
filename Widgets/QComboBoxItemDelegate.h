@@ -20,10 +20,14 @@ public:
 						std::function<bool(const QModelIndex &,const QString &)> allowChange,
 						std::function<QString(const QModelIndex &)> getInitialText = [](const QModelIndex &index){return index.data(Qt::EditRole).toString();})
 		: QStyledItemDelegate(papi)
-	  , m_getInitialText(getInitialText)
-	  , m_allowChange(allowChange)
+		, m_getInitialText(getInitialText)
+		, m_allowChange(allowChange)
 	{	}
 
+	void setAllowChangeCallback(std::function<bool(const QModelIndex &,const QString &)> allowChange)
+	{
+		m_allowChange = allowChange;
+	}
 	virtual void setEditorData(QWidget *editor, const QModelIndex &index) const Q_DECL_OVERRIDE
 	{
 		setEditorText( editor, m_getInitialText(index) );
@@ -48,22 +52,24 @@ public:
 
 class QComboBoxItemDelegated : public QFancyItemDelegate
 {
-	QString m_defaultValue;
+	QString m_defaultValueDescription;
+	QString m_defaultValueData;
 	bool m_comboBoxEditable;
 	std::function<QStringList(int)> m_getAddList;
 	std::function<QStringList(int)> m_getSkipList;
 
 public:
-	QComboBoxItemDelegated(	QObject *papi, QString defaultValue, bool comboBoxEditable,
+	QComboBoxItemDelegated(	QObject *papi, QString defaultValueDescription, QString defaultValueData, bool comboBoxEditable,
 							std::function<QStringList(int)> getAddList,
 							std::function<QStringList(int)> getSkipList,
-							std::function<bool(const QModelIndex &,const QString &)> allowChange,
+							std::function<bool(const QModelIndex &,const QString &)> allowChange = [] (const QModelIndex &,const QString &) { return true;	},
 							std::function<QString(const QModelIndex &)> getInitialText = [](const QModelIndex &index){return index.data(Qt::EditRole).toString();})
 		: QFancyItemDelegate(papi, allowChange, getInitialText)
-	  , m_defaultValue(defaultValue)
-	  , m_comboBoxEditable(comboBoxEditable)
-	  , m_getAddList(getAddList)
-	  , m_getSkipList(getSkipList)
+		, m_defaultValueDescription(defaultValueDescription)
+		, m_defaultValueData(defaultValueData)
+		, m_comboBoxEditable(comboBoxEditable)
+		, m_getAddList(getAddList)
+		, m_getSkipList(getSkipList)
 	{	}
 
 	QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const Q_DECL_OVERRIDE
@@ -76,7 +82,7 @@ public:
 	}
 	void setEditorData(QWidget *editor, const QModelIndex &index) const Q_DECL_OVERRIDE
 	{
-		static_cast<QFancyComboBox*>(editor)->setup( m_defaultValue, m_getAddList(index.row()), m_getSkipList(index.row()), m_getInitialText(index) );
+		static_cast<QFancyComboBox*>(editor)->setup( m_defaultValueDescription, m_defaultValueData, m_getAddList(index.row()), m_getSkipList(index.row()), m_getInitialText(index) );
 	}
 	virtual void setEditorText(QWidget *editor, const QString &text) const Q_DECL_OVERRIDE
 	{

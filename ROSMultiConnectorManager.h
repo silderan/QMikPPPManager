@@ -49,6 +49,7 @@ public:
 
 	ROSDataBasePList rosDataList(DataTypeID dataTypeID, const QString &routerName = QString()) const;
 	QStringList rosNameList(DataTypeID dataTypeID, std::function<QString (const ROSDataBase *)> getFnc) const;
+	QStringList rosAPIUserNameList() const;
 	QStringList rosAPIUsersGrupList() const;
 	QStringList pppProfileNameList() const;
 	QStringList interfaceNameList(const QString &type = QString()) const;

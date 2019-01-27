@@ -152,6 +152,7 @@ public:
 	const QROSUserNameWidgetItem *userNameWidgetItem(int row) const;
 	static QString createObjectIDKey(const ROSPPPSecret &rosPPPSecret);
 	static QString createObjectIDKey(const QString &routerName, const QString &rosObjectID);
+	QList<QROSUserNameWidgetItem*> selectedUsers();
 
 	QString cellText(int row, Columns col) const;
 	QString originalProfile(int row) const	{ return cellText(row, UserProfile); }
@@ -162,6 +163,7 @@ public:
 	void onROSDelReply(const QString &routerName, DataTypeID dataTypeID, const QString &rosObjectID);
 	void onROSDone(const QString &routerName, DataTypeID dataTypeID);
 	void updateConfig();
+	void exportUsersData();
 
 	QStringList usedStaticIPs() const;
 	QStringList staticIPs(int row) const;

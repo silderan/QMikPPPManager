@@ -4,14 +4,14 @@
 #include <QStringList>
 #include <QTableWidgetItem>
 
-#include "QTableWidgetBase.h"
+#include "QROSDataTableWidget.h"
 #include "../ROSData/ROSAPIUser.h"
 
-class QROSAPIUserTableWidget : public QTableWidgetBase
+class QROSAPIUserTableWidget : public QROSDataTableWidget
 {
 	Q_OBJECT
 
-	enum Column
+	enum Columns
 	{
 		UserName,
 		GroupName,
@@ -32,10 +32,10 @@ public:
 	inline ROSAPIUser::Level userLevel(int row) const	{ return ROSAPIUser::level(cellText(row, UserLevel));	}
 
 protected:
-	ROSDataBase *getRosData(int row)override;
-	void setupRow(int row, const ROSDataBase &rosData)override;
-	int rowOf(const ROSDataBase &rosData) override;
+	virtual ROSDataBase *getRosData(int row) Q_DECL_OVERRIDE;
+	virtual void setupRow(int row, const ROSDataBase &rosData) Q_DECL_OVERRIDE;
+	virtual int rowOf(const ROSDataBase &rosData) Q_DECL_OVERRIDE;
+	virtual void updateROSData(ROSDataBase *rosData, int row, int changedColumn, const QString &newValue) Q_DECL_OVERRIDE;
 };
-
 
 #endif // QROSAPIUSERTABLEWIDGET_H

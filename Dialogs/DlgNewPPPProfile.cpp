@@ -32,9 +32,9 @@ void DlgNewPPPProfile::setROSData(ROSDataBase &rosData)
 
 bool DlgNewPPPProfile::getROSData(ROSDataBase &rosData) const
 {
-	return	fancySetTextToMember( ui->pppProfileNameLineEdit->text(), rosData, ROSPPPProfile, setProfileName, "nombre del perfil" ) &&
-			fancySetTextToMember( ui->bridgeComboBox->currentText(), rosData, ROSPPPProfile, setBridgeName, "nombre del bridge" ) &&
-			fancySetTextToMember( ui->localAddressComboBox->currentText(), rosData, ROSPPPProfile, setLocalAddress, "local address" ) &&
-			fancySetTextToMember( ui->remoteAddressComboBox->currentText(), rosData, ROSPPPProfile, setRemoteAddress, "remote address" ) &&
+	return	setTextMember<ROSPPPProfile>( ui->pppProfileNameLineEdit->text(), rosData, &ROSPPPProfile::setProfileName, tr("nombre del perfil") ) &&
+			setTextMember<ROSPPPProfile>( ui->bridgeComboBox->currentText(), rosData, &ROSPPPProfile::setBridgeName, tr("nombre del bridge") ) &&
+			setTextMember<ROSPPPProfile>( ui->localAddressComboBox->currentText(), rosData, &ROSPPPProfile::setLocalAddress, tr("local address") ) &&
+			setTextMember<ROSPPPProfile>( ui->remoteAddressComboBox->currentText(), rosData, &ROSPPPProfile::setRemoteAddress, tr("remote address") ) &&
 			ui->speedRateLimits->getROSRateLimit( static_cast<ROSPPPProfile&>(rosData).rateLimit() );
 }

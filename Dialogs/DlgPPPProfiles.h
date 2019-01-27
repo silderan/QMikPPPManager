@@ -9,7 +9,7 @@ namespace Ui
 	class DlgPPPProfiles;
 }
 
-class DlgPPPProfiles : public DlgDataBase
+class DlgPPPProfiles : public QDlgMultiDataBase
 {
 	Q_OBJECT
 

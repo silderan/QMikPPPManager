@@ -1,15 +1,19 @@
 #include "QROSAPIUserTableWidget.h"
-#include "QROSAPIUserLevelComboBox.h"
-#include "QROSAPIUsersGroupComboBox.h"
 #include "../ROSMultiConnectorManager.h"
 
-QROSAPIUserTableWidget::QROSAPIUserTableWidget(QWidget *papi) : QTableWidgetBase(papi)
+QROSAPIUserTableWidget::QROSAPIUserTableWidget(QWidget *papi) : QROSDataTableWidget(papi)
 {
 	setColumnCount(TotalColumns);
 	setHorizontalHeaderLabels( QStringList() << "Usuario" << "Grupo" << "Nivel/Tipo" << "Routers" );
 	setRouterIDColumn(Routers);
-	setItemDelegateForColumn(GroupName, new QROSAPIUsersGroupComboBoxDelegate());
-	setItemDelegateForColumn(UserLevel, new QROSAPIUserLevelComboBoxDelegate());
+
+	setFancyItemDelegateForColumn( Columns::GroupName, new QComboBoxItemDelegated( this, "", "", false,
+													/*add list*/				[] (int) { return multiConnectionManager.rosAPIUsersGrupList();	},
+													/*skip list*/				[] (int) { return QStringList(); } ) );
+
+	setFancyItemDelegateForColumn( Columns::UserLevel, new QComboBoxItemDelegated( this, "", "", false,
+													/*add list*/				[] (int) { return ROSAPIUser::levelNames();	},
+													/*skip list*/				[] (int) { return QStringList(); } ) );
 }
 
 QROSAPIUserTableWidget::~QROSAPIUserTableWidget()
@@ -32,7 +36,7 @@ void QROSAPIUserTableWidget::setupRow(int row, const ROSDataBase &rosData)
 
 	Q_ASSERT( !userData.userName().isEmpty() );
 
-	QTableWidgetBase::setupRow(row, rosData);
+	QROSDataTableWidget::setupRow(row, rosData);
 	setCellText( row, UserName, userData.userName(), userData.rosObjectID().isEmpty() ? Qt::ItemIsEditable : Qt::NoItemFlags );
 	setCellText( row, GroupName, userData.groupName(), Qt::ItemIsEditable );
 	setCellText( row, UserLevel, userData.levelName(), Qt::ItemIsEditable );
@@ -42,5 +46,31 @@ void QROSAPIUserTableWidget::setupRow(int row, const ROSDataBase &rosData)
 int QROSAPIUserTableWidget::rowOf(const ROSDataBase &rosData)
 {
 	const ROSAPIUser &userData = static_cast<const ROSAPIUser&>(rosData);
-	return QTableWidgetBase::rowOf(UserName, userData.userName());
+	return QROSDataTableWidget::rowOf(UserName, userData.userName());
+}
+
+void QROSAPIUserTableWidget::updateROSData(ROSDataBase *rosData, int row, int changedColumn, const QString &newValue)
+{
+	Q_UNUSED(row);
+
+	ROSAPIUser *apiUser = static_cast<ROSAPIUser*>(rosData);
+	switch( static_cast<Columns>(changedColumn) )
+	{
+	case QROSAPIUserTableWidget::UserName:
+		// API User Name is not allowed by ROS.
+		Q_ASSERT(false);
+		break;
+	case QROSAPIUserTableWidget::GroupName:
+		apiUser->setGroupName(newValue);
+		break;
+	case QROSAPIUserTableWidget::UserLevel:
+		apiUser->setUserLevel(newValue);
+		break;
+	case QROSAPIUserTableWidget::Routers:
+		Q_ASSERT(false);
+		break;
+	case QROSAPIUserTableWidget::TotalColumns:
+		Q_ASSERT(false);
+		break;
+	}
 }

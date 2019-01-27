@@ -4,7 +4,7 @@
 #include "DlgNewPPPProfile.h"
 
 DlgPPPProfiles::DlgPPPProfiles(QConfigData &configData, ROSMultiConnectManager &rosMultiConnectManager, QWidget *papi)
-	: DlgDataBase(configData, rosMultiConnectManager, papi)
+	: QDlgMultiDataBase(configData, rosMultiConnectManager, papi)
 	, ui(new Ui::DlgPPPProfiles)
 {
 	ui->setupUi(this);

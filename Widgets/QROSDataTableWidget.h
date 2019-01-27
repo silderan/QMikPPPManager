@@ -3,13 +3,14 @@
 
 #include <QTableWidget>
 
+#include "QComboBoxItemDelegate.h"
 #include "../ROSData/ROSDataBasics.h"
 
 /**
  * @brief The QTableWidgetBase class TreeWidget class with comon features for ROS data control.
  */
 
-class QTableWidgetBase : public QTableWidget
+class QROSDataTableWidget : public QTableWidget
 {
 	Q_OBJECT
 
@@ -17,8 +18,8 @@ class QTableWidgetBase : public QTableWidget
 	int m_routerColumn;
 
 public:
-	explicit QTableWidgetBase(QWidget *parent = Q_NULLPTR);
-	~QTableWidgetBase();
+	explicit QROSDataTableWidget(QWidget *parent = Q_NULLPTR);
+	~QROSDataTableWidget();
 
 	int rowOf(int colKey, const QString &cellText);
 	int rowOf(const QString &routerName, const QString &rosObjectID);
@@ -36,10 +37,13 @@ public:
 
 	inline void setRouterIDColumn(int col)	{ m_routerIDColumn = col;	}
 
+	void setFancyItemDelegateForColumn(int column, QFancyItemDelegate *delegate);
+
 private slots:
 	void onCellChanged(int row, int col);
 
 protected:
+
 	// Internally called when row data must been updated.
 	// Overriders must fillup all cellText. The cellRouterID will be filled up calling base function
 	virtual void setupRow(int row, const ROSDataBase &rosData);
@@ -50,8 +54,18 @@ protected:
 	// Internally called when rosData is needed because of table row modification or deletion.
 	// Base function does nothing because the only known data are router-id and there are many of them.
 	// So, derived classes must override this funcion and fillup all data.
-	// pointer must be globally allocated and will be deleted later by the caller.
+	// Pointer must be globally allocated and will be deleted later by the caller.
 	virtual ROSDataBase *getRosData(int row) = 0;
+	// Internally called one column has been changed but before it's actually changed in table.
+	// Base function does nothing because the only known data are router-id.
+	// So, derived classes must override this funcion and update data of the rosData member up to changedColumn.
+	virtual void updateROSData(ROSDataBase *rosData, int row, int changedColumn, const QString &newValue);
+	// Called by delegates before data changes.
+	// Base funcion returns false and sends data to ROS. With this, data shown in table remains untouched and just will be
+	// updated when it comes from ROS. Un case of ROS error, as local data remained unchanged, is consistent with remote one.
+	// This function calls getROSData(int row, int changedColumn, const QString &newValue);
+	// Overriders shouldn't change this behaviour.
+	virtual bool allowModelIndexDataChange( const QModelIndex &index, const QString &newData );
 
 public:
 	void addNewRow(const ROSDataBase &rosData);

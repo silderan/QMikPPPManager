@@ -1,11 +1,14 @@
 #include "DlgNewROSAPIUser.h"
-#include "ui_DlgROSAPIUser.h"
+#include "ui_DlgNewROSAPIUser.h"
+
 
 DlgNewROSAPIUser::DlgNewROSAPIUser(QWidget *papi)
 	: QNewROSDataDialogBase(papi)
-	, ui(new Ui::DlgROSAPIUser)
+	, ui(new Ui::DlgNewROSAPIUser)
 {
 	ui->setupUi(this);
+	ui->grupNameComboBox->addItems( multiConnectionManager.rosAPIUsersGrupList() );
+	ui->userLevelComboBox->addItems( ROSAPIUser::levelNames() );
 	connect( ui->acceptButton, &QAbstractButton::clicked, this, &QNewROSDataDialogBase::tryAccept<ROSAPIUser> );
 }
 
@@ -33,8 +36,8 @@ void DlgNewROSAPIUser::setROSData(ROSDataBase &rosData)
 
 bool DlgNewROSAPIUser::getROSData(ROSDataBase &rosData) const
 {
-	return	fancySetTextToMember( ui->grupNameComboBox->currentGroupName(), rosData, ROSAPIUser, setGroupName, tr("Nombre del grupo de usuarios") ) &&
-			fancySetTextToMember( ui->userNameLineEdit->text(), rosData, ROSAPIUser, setUserName, tr("Nombre de usuario") ) &&
-			fancySetTextToMember( ui->userPassLineEdit->text(), rosData, ROSAPIUser, setUserPass, tr("Contraseña de usuario") ) &&
-			static_cast<ROSAPIUser&>(rosData).setUserLevel( ui->userLevelComboBox->currentLevel() );
+	return	setTextMember<ROSAPIUser>( ui->grupNameComboBox->currentText(), rosData, &ROSAPIUser::setGroupName, tr("Nombre del grupo de usuarios") ) &&
+			setTextMember<ROSAPIUser>( ui->userNameLineEdit->text(), rosData, &ROSAPIUser::setUserName, tr("Nombre de usuario") ) &&
+			setTextMember<ROSAPIUser>( ui->userPassLineEdit->text(), rosData, &ROSAPIUser::setUserPass, tr("Contraseña de usuario") ) &&
+			static_cast<ROSAPIUser&>(rosData).setUserLevel( ui->userLevelComboBox->currentText() );
 }

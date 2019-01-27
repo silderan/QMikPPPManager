@@ -1,20 +1,20 @@
 #ifndef DLGNEWROSAPIUSER_H
 #define DLGNEWROSAPIUSER_H
 
-#include "QNewROSDataDialogBase.h"
-#include "../ROSMultiConnectorManager.h"
+#include "DlgDataBase.h"
 
 namespace Ui
 {
-	class DlgROSAPIUser;
+	class DlgNewROSAPIUser;
 }
 
 class DlgNewROSAPIUser : public QNewROSDataDialogBase
 {
-	Ui::DlgROSAPIUser *ui;
+	Q_OBJECT
+	Ui::DlgNewROSAPIUser *ui;
 
 public:
-	explicit DlgNewROSAPIUser(QWidget *papi);
+	explicit DlgNewROSAPIUser(QWidget *parent = Q_NULLPTR);
 	~DlgNewROSAPIUser();
 
 	virtual void setROSData(ROSDataBase &);

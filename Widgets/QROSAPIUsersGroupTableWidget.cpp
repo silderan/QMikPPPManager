@@ -4,7 +4,7 @@
 
 #include "../ROSData/ROSAPIUserGroup.h"
 
-QROSAPIUsersGroupTableWidget::QROSAPIUsersGroupTableWidget(QWidget *parent) : QTableWidgetBase(parent)
+QROSAPIUsersGroupTableWidget::QROSAPIUsersGroupTableWidget(QWidget *parent) : QROSDataTableWidget(parent)
 {
 	setColumnCount(TotalColumns);
 	setHorizontalHeaderLabels( QStringList() << "Nombre" << "Permisos" << "Routers" );
@@ -26,7 +26,7 @@ QStringList QROSAPIUsersGroupTableWidget::groupNames() const
 
 void QROSAPIUsersGroupTableWidget::setupRow(int row, const ROSDataBase &rosData)
 {
-	QTableWidgetBase::setupRow(row, rosData);
+	QROSDataTableWidget::setupRow(row, rosData);
 	const ROSAPIUsersGroup &groupData = static_cast<const ROSAPIUsersGroup &>(rosData);
 	setCellText( row, GroupName, groupData.groupName() );
 	setCellText( row, Policy, groupData.policy().join(',') );
@@ -35,7 +35,7 @@ void QROSAPIUsersGroupTableWidget::setupRow(int row, const ROSDataBase &rosData)
 int QROSAPIUsersGroupTableWidget::rowOf(const ROSDataBase &rosData)
 {
 	const ROSAPIUsersGroup &groupData = static_cast<const ROSAPIUsersGroup &>(rosData);
-	return QTableWidgetBase::rowOf(GroupName, groupData.groupName());
+	return QROSDataTableWidget::rowOf(GroupName, groupData.groupName());
 }
 
 ROSDataBase *QROSAPIUsersGroupTableWidget::getRosData(int row)

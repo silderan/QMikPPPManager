@@ -1,6 +1,6 @@
 #include "QROSIPoolTableWidget.h"
 
-QROSIPoolTableWidget::QROSIPoolTableWidget(QWidget *papi) : QTableWidgetBase(papi)
+QROSIPoolTableWidget::QROSIPoolTableWidget(QWidget *papi) : QROSDataTableWidget(papi)
 {
 
 }
@@ -8,7 +8,7 @@ QROSIPoolTableWidget::QROSIPoolTableWidget(QWidget *papi) : QTableWidgetBase(pap
 
 int QROSIPoolTableWidget::rowOf(const ROSDataBase &rosData)
 {
-	return QTableWidgetBase::rowOf(PoolName, static_cast<const ROSIPPool &>(rosData).poolName());
+	return QROSDataTableWidget::rowOf(PoolName, static_cast<const ROSIPPool &>(rosData).poolName());
 }
 
 ROSDataBase *QROSIPoolTableWidget::getRosData(int row)

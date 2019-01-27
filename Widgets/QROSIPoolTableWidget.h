@@ -4,10 +4,10 @@
 #include <QStringList>
 #include <QTableWidgetItem>
 
-#include "QTableWidgetBase.h"
+#include "QROSDataTableWidget.h"
 #include "../ROSData/ROSIPPool.h"
 
-class QROSIPoolTableWidget : public QTableWidgetBase
+class QROSIPoolTableWidget : public QROSDataTableWidget
 {
 Q_OBJECT
 

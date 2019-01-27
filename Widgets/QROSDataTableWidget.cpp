@@ -1,21 +1,21 @@
-#include "QTableWidgetBase.h"
+#include "QROSDataTableWidget.h"
 
 #include <QTreeWidgetItem>
 
 #include "QRoutersLineEdit.h"
 
-QTableWidgetBase::QTableWidgetBase(QWidget *papi) : QTableWidget(papi),
+QROSDataTableWidget::QROSDataTableWidget(QWidget *papi) : QTableWidget(papi),
 	m_routerIDColumn(-1), m_routerColumn(-1)
 {
 	connect( this, SIGNAL(cellChanged(int,int)), this, SLOT(onCellChanged(int,int)) );
 }
 
-QTableWidgetBase::~QTableWidgetBase()
+QROSDataTableWidget::~QROSDataTableWidget()
 {
 
 }
 
-int QTableWidgetBase::rowOf(const QString &routerName, const QString &rosObjectID)
+int QROSDataTableWidget::rowOf(const QString &routerName, const QString &rosObjectID)
 {
 	Q_ASSERT( !routerName.isEmpty() );
 
@@ -51,7 +51,7 @@ int QTableWidgetBase::rowOf(const QString &routerName, const QString &rosObjectI
 	return -1;
 }
 
-int QTableWidgetBase::rowOf(int colKey, const QString &cellText)
+int QROSDataTableWidget::rowOf(int colKey, const QString &cellText)
 {
 	Q_ASSERT( (colKey >= 0) && (colKey < columnCount()) );
 	Q_ASSERT( !cellText.isEmpty() );
@@ -63,7 +63,7 @@ int QTableWidgetBase::rowOf(int colKey, const QString &cellText)
 	return -1;
 }
 
-void QTableWidgetBase::setCellText(int row, int col, const QString &text, Qt::ItemFlags itemFlags)
+void QROSDataTableWidget::setCellText(int row, int col, const QString &text, Qt::ItemFlags itemFlags)
 {
 	Q_ASSERT( (row >= -1) && (row < rowCount()) );
 	Q_ASSERT( (col >= 0) && (col < columnCount()) );
@@ -75,7 +75,7 @@ void QTableWidgetBase::setCellText(int row, int col, const QString &text, Qt::It
 	item(row, col)->setFlags(itemFlags | Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 }
 
-QString QTableWidgetBase::cellText(int row, int col, const QString &defaultValue) const
+QString QROSDataTableWidget::cellText(int row, int col, const QString &defaultValue) const
 {
 	Q_ASSERT( (row >= -1) && (row < rowCount()) );
 	Q_ASSERT( (col >= 0) && (col < columnCount()) );
@@ -86,7 +86,7 @@ QString QTableWidgetBase::cellText(int row, int col, const QString &defaultValue
 	return defaultValue;
 }
 
-int QTableWidgetBase::cellInt(int row, int col, int defaultValue) const
+int QROSDataTableWidget::cellInt(int row, int col, int defaultValue) const
 {
 	Q_ASSERT( (row >= -1) && (row < rowCount()) );
 	Q_ASSERT( (col >= 0) && (col < columnCount()) );
@@ -97,7 +97,7 @@ int QTableWidgetBase::cellInt(int row, int col, int defaultValue) const
 	return defaultValue;
 }
 
-void QTableWidgetBase::addCellRoutersID(int row, int col, const QString &routerName, const QString &rosObjectID)
+void QROSDataTableWidget::addCellRoutersID(int row, int col, const QString &routerName, const QString &rosObjectID)
 {
 	Q_ASSERT( (row >= -1) && (row < rowCount()) );
 	Q_ASSERT( (col >= 0) && (col < columnCount()) );
@@ -111,7 +111,7 @@ void QTableWidgetBase::addCellRoutersID(int row, int col, const QString &routerN
 	static_cast<QRoutersLineEdit*>(cellWidget(row, col))->addRouterID(routerName, rosObjectID);
 }
 
-void QTableWidgetBase::delCellRoutersID(int row, const QString &routerName)
+void QROSDataTableWidget::delCellRoutersID(int row, const QString &routerName)
 {
 	Q_ASSERT( (row >= -1) && (row < rowCount()) );
 	Q_ASSERT( (m_routerIDColumn >= 0) && (m_routerIDColumn < columnCount()) );
@@ -121,7 +121,7 @@ void QTableWidgetBase::delCellRoutersID(int row, const QString &routerName)
 	static_cast<QRoutersLineEdit*>(cellWidget(row, m_routerIDColumn))->delRouter(routerName);
 }
 
-const QRouterIDMap &QTableWidgetBase::routerIDMap(int row) const
+const QRouterIDMap &QROSDataTableWidget::routerIDMap(int row) const
 {
 	Q_ASSERT( (row >= -1) && (row < rowCount()) );
 	Q_ASSERT( (m_routerIDColumn >= 0) && (m_routerIDColumn < columnCount()) );
@@ -131,18 +131,40 @@ const QRouterIDMap &QTableWidgetBase::routerIDMap(int row) const
 	return static_cast<QRoutersLineEdit*>(cellWidget(row, m_routerIDColumn))->routerIDMap();
 }
 
-int QTableWidgetBase::rowOf(const ROSDataBase &rosData)
+void QROSDataTableWidget::setFancyItemDelegateForColumn(int column, QFancyItemDelegate *delegate)
+{
+	QTableWidget::setItemDelegateForColumn( column, delegate );
+	delegate->setAllowChangeCallback( [this] (const QModelIndex &index,const QString &newValue) {
+			return allowModelIndexDataChange(index, newValue);
+		} );
+}
+
+int QROSDataTableWidget::rowOf(const ROSDataBase &rosData)
 {
 	return rowOf(rosData.routerName(), rosData.rosObjectID());
 }
 
-void QTableWidgetBase::setupRow(int row, const ROSDataBase &rosData)
+// TODO: make this function pure virtual!
+void QROSDataTableWidget::updateROSData(ROSDataBase *rosData, int row, int, const QString &)
+{
+}
+
+bool QROSDataTableWidget::allowModelIndexDataChange(const QModelIndex &index, const QString &newData)
+{
+	ROSDataBase *rosData = getRosData(index.row());
+	updateROSData(rosData, index.row(), index.column(), newData);
+	emit dataModified( *rosData, routerIDMap(index.row()) );
+	delete rosData;
+	return false;
+}
+
+void QROSDataTableWidget::setupRow(int row, const ROSDataBase &rosData)
 {
 	if( (m_routerIDColumn != -1) || (m_routerColumn != -1) )
 		addCellRoutersID( row, (m_routerIDColumn != -1) ? m_routerIDColumn : m_routerColumn, rosData.routerName(), rosData.rosObjectID() );
 }
 
-void QTableWidgetBase::addNewRow(const ROSDataBase &rosData)
+void QROSDataTableWidget::addNewRow(const ROSDataBase &rosData)
 {
 	Q_ASSERT( rosData.routerName().isEmpty() );
 	Q_ASSERT( rosData.rosObjectID().isEmpty() );
@@ -156,7 +178,7 @@ void QTableWidgetBase::addNewRow(const ROSDataBase &rosData)
 	blockSignals(false);
 }
 
-void QTableWidgetBase::onROSModReply(const ROSDataBase &rosData)
+void QROSDataTableWidget::onROSModReply(const ROSDataBase &rosData)
 {
 	Q_ASSERT( !rosData.routerName().isEmpty() );
 	Q_ASSERT( !rosData.rosObjectID().isEmpty() );
@@ -171,7 +193,7 @@ void QTableWidgetBase::onROSModReply(const ROSDataBase &rosData)
 	blockSignals(false);
 }
 
-void QTableWidgetBase::onROSDelReply(const QString &routerName, const QString &rosObjectID)
+void QROSDataTableWidget::onROSDelReply(const QString &routerName, const QString &rosObjectID)
 {
 	// It's not an error because could be some lookup events before the table data has been populated.
 	if( (m_routerIDColumn == -1) && (m_routerColumn == -1) )
@@ -191,7 +213,7 @@ void QTableWidgetBase::onROSDelReply(const QString &routerName, const QString &r
 	blockSignals(false);
 }
 
-void QTableWidgetBase::removeData(int row)
+void QROSDataTableWidget::removeData(int row)
 {
 	if( (row != -1) )
 	{
@@ -202,7 +224,7 @@ void QTableWidgetBase::removeData(int row)
 	}
 }
 
-void QTableWidgetBase::onCellChanged(int row, int col)
+void QROSDataTableWidget::onCellChanged(int row, int col)
 {
 	Q_UNUSED(col);
 	ROSDataBase *rosData = getRosData(row);

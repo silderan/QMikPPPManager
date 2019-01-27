@@ -39,7 +39,7 @@ class QMikPPPManager : public QMainWindow
 	Q_OBJECT
 	Ui::QMikPPPManager *ui;
 	DlgCnfgConnect *dlgCnfgConnect;
-	QDlgDataBasePList m_dialogList;
+	QDlgMultiDataBasePList m_dialogList;
 
 	void pideUsuarios(const QString &routerName);
 	void pideCambios(const QString &routerName);

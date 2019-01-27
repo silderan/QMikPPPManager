@@ -10,7 +10,7 @@ namespace Ui
 	class DlgROSAPIUsers;
 }
 
-class DlgROSAPIUsers : public DlgDataBase
+class DlgROSAPIUsers : public QDlgMultiDataBase
 {
 	Q_OBJECT
 	Ui::DlgROSAPIUsers *ui;

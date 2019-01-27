@@ -3,11 +3,10 @@
 
 #include <QTableWidgetItem>
 
-#include "Widgets/QROSAPIUserLevelComboBox.h"
 #include "Widgets/QROSAPIUserTableWidget.h"
 
 DlgROSAPIUsers::DlgROSAPIUsers(QConfigData &configData, ROSMultiConnectManager &rosMultiConnectManager, QWidget *papi)
-	: DlgDataBase(configData, rosMultiConnectManager, papi)
+	: QDlgMultiDataBase(configData, rosMultiConnectManager, papi)
 	, ui(new Ui::DlgROSAPIUsers)
 {
 	ui->setupUi(this);

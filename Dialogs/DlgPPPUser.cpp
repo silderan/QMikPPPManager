@@ -1,4 +1,3 @@
-#include <QMessageBox>
 #include <QSpinBox>
 
 #include "DlgPPPUser.h"
@@ -6,7 +5,7 @@
 #include "DlgPPPLogViewer.h"
 
 DlgPPPUser::DlgPPPUser(QConfigData &configData, ROSMultiConnectManager &rosMultiConnectManager, QWidget *papi)
-	: DlgDataBase(configData, rosMultiConnectManager, papi)
+	: QDlgMultiDataBase(configData, rosMultiConnectManager, papi)
 	, ui(new Ui::DlgPPPUser)
 	, m_pppSecret("")
 	, m_pppActive("")
@@ -18,11 +17,6 @@ DlgPPPUser::DlgPPPUser(QConfigData &configData, ROSMultiConnectManager &rosMulti
 DlgPPPUser::~DlgPPPUser()
 {
 	delete ui;
-}
-
-void DlgPPPUser::raiseWarning(const QString &info)
-{
-	QMessageBox::warning(this, this->windowTitle(), info);
 }
 
 bool DlgPPPUser::currentEditing(const ROSPPPSecret &pppSecret)
@@ -93,74 +87,78 @@ bool DlgPPPUser::checkStringData(const QString &fieldName, const QString &origin
 	return true;
 }
 
-bool DlgPPPUser::checkGroupedData(const QGroupBox *group, const QString &fieldName, const QString &originalText, QString text, std::function<bool (ROSPPPSecret &, const QString &)> setFnc)
+bool DlgPPPUser::checkGroupedData(const QGroupBox *group,
+								  QString newText,
+								  std::function<const QString &(ROSPPPSecret &)> getFnc,
+								  std::function<bool (ROSPPPSecret &, const QString &)> setFnc,
+								  const QString &fieldName )
 {
 	if( group->isChecked() )
 	{
-		if( text.isEmpty() )
+		if( newText.isEmpty() )
 		{
 			raiseWarning( tr("El campo %1 no puede estar vacío si tienes el grupo habilitado").arg(fieldName) );
 			return false;
 		}
 	}
 	else
-		text.clear();
-	return checkStringData( fieldName, originalText, text, setFnc );
+		newText.clear();
+	return updateTextMember<ROSPPPSecret>( newText, m_pppSecret, getFnc, setFnc, fieldName );
 }
 
 bool DlgPPPUser::getPPPUserName()
 {
-	return checkStringData( tr("Nombre del usuario PPP"), m_pppSecret.userName(), ui->pppUserNameLineEdit->text(), &ROSPPPSecret::setUserName );
+	return updateTextMember<ROSPPPSecret>( ui->pppUserNameLineEdit->text(), m_pppSecret, &ROSPPPSecret::userName, &ROSPPPSecret::setUserName, tr("Nombre del usuario PPP") );
 }
 
 bool DlgPPPUser::getPPPUserPass()
 {
-	return checkStringData( tr("Contraseña del usuario PPP"), m_pppSecret.userPass(), ui->pppUserPassLineEdit->text(), &ROSPPPSecret::setUserPass );
+	return updateTextMember<ROSPPPSecret>( ui->pppUserPassLineEdit->text(), m_pppSecret, &ROSPPPSecret::userPass, &ROSPPPSecret::setUserPass, tr("Contraseña del usuario PPP") );
 }
 
 bool DlgPPPUser::getPPPProfile()
 {
-	return checkStringData( tr("Perfil del cliente"), m_pppSecret.originalProfile(), ui->pppProfileComboBox->currentText(), &ROSPPPSecret::setOriginalProfile );
+	return updateTextMember<ROSPPPSecret>( ui->pppProfileComboBox->currentText(), m_pppSecret, &ROSPPPSecret::originalProfile, &ROSPPPSecret::setOriginalProfile, tr("Perfil del cliente") );
 }
 
 bool DlgPPPUser::getClientName()
 {
-	return checkStringData( tr("Nombre del cliente"), m_pppSecret.clientName(), ui->clientNameLineEdit->text(), &ROSPPPSecret::setClientName );
+	return updateTextMember<ROSPPPSecret>( ui->clientNameLineEdit->text(), m_pppSecret, &ROSPPPSecret::clientName, &ROSPPPSecret::setClientName, tr("Nombre del cliente") );
 }
 
 bool DlgPPPUser::getClientAddress()
 {
-	return checkStringData( tr("Dirección del cliente"), m_pppSecret.clientAddress(), ui->clientAddressLineEdit->text(), &ROSPPPSecret::setClientAddress );
+	return updateTextMember<ROSPPPSecret>( ui->clientAddressLineEdit->text(), m_pppSecret, &ROSPPPSecret::clientAddress, &ROSPPPSecret::setClientAddress, tr("Dirección del cliente") );
 }
 
 bool DlgPPPUser::getClientInstaller()
 {
-	return checkStringData( tr("Nombre del instalador"), m_pppSecret.installerName(), ui->installerComboBox->currentText(), &ROSPPPSecret::setInstallerName );
+	return updateTextMember<ROSPPPSecret>( ui->installerComboBox->currentText(), m_pppSecret, &ROSPPPSecret::installerName, &ROSPPPSecret::setInstallerName, tr("Nombre del instalador") );
 }
 
 bool DlgPPPUser::getClientCity()
 {
-	return checkStringData( tr("Población de la instalación"), m_pppSecret.clientCity(), ui->clientCityComboBox->currentText(), &ROSPPPSecret::setClientCity );
+	return updateTextMember<ROSPPPSecret>( ui->clientCityComboBox->currentText(), m_pppSecret, &ROSPPPSecret::clientCity, &ROSPPPSecret::setClientCity, tr("Población instalación") );
 }
 
 bool DlgPPPUser::getClientPhones()
 {
-	return checkStringData( tr("Teléfonos de contacto"), m_pppSecret.clientPhones(), ui->clientPhonesLineEdit->text(), &ROSPPPSecret::setClientPhones );
+	return updateTextMember<ROSPPPSecret>( ui->clientPhonesLineEdit->text(), m_pppSecret, &ROSPPPSecret::clientPhones, &ROSPPPSecret::setClientPhones, tr("Teléfonos de contacto del cliente") );
 }
 
 bool DlgPPPUser::getClientEMail()
 {
-	return checkStringData( tr("Correo electrónico"), m_pppSecret.clientEmail(), ui->clientEmailLineEdit->text(), &ROSPPPSecret::setClientEmail );
+	return updateTextMember<ROSPPPSecret>( ui->clientEmailLineEdit->text(), m_pppSecret, &ROSPPPSecret::clientEmail, &ROSPPPSecret::setClientEmail, tr("Correo electrónico del cliente") );
 }
 
 bool DlgPPPUser::getClientNotes()
 {
-	return checkStringData( tr("Anotaciones sobre el cliente"), m_pppSecret.clientNotes(), ui->clientNotesLineEdit->text(), &ROSPPPSecret::setClientNotes );
+	return updateTextMember<ROSPPPSecret>( ui->clientNotesLineEdit->text(), m_pppSecret, &ROSPPPSecret::clientNotes, &ROSPPPSecret::setClientNotes, tr("Anotaciones sobre el cliente") );
 }
 
 bool DlgPPPUser::getInstallNotes()
 {
-	return checkStringData( tr("Anotaciones sobre la instalación"), m_pppSecret.installNotes(), ui->installNotesLineEdit->text(), &ROSPPPSecret::setInstallNotes );
+	return updateTextMember<ROSPPPSecret>( ui->installNotesLineEdit->text(), m_pppSecret, &ROSPPPSecret::installNotes, &ROSPPPSecret::setInstallNotes, tr("Anotaciones sobre la instalación") );
 }
 
 bool DlgPPPUser::getONTSN()
@@ -171,47 +169,47 @@ bool DlgPPPUser::getONTSN()
 		raiseWarning( tr("Debes seleccionar una ONT") );
 		return false;
 	}
-	return checkStringData( tr("Número de serie de la ONT"), m_pppSecret.ontSN(), s, &ROSPPPSecret::setONTSN );
+	return updateTextMember<ROSPPPSecret>( s, m_pppSecret, &ROSPPPSecret::ontSN, &ROSPPPSecret::setONTSN, tr("Número de serie de la ONT") );
 }
 
 bool DlgPPPUser::getVoIPPhone()
 {
-	return checkGroupedData( ui->voipGroupBox, tr("Número de teléfono SIP"), m_pppSecret.voipPhoneNumber(), ui->voipPhoneNumber->text(), &ROSPPPSecret::setVoIPPhoneNumber );
+	return checkGroupedData( ui->voipGroupBox, ui->voipPhoneNumber->text(), &ROSPPPSecret::voipPhoneNumber, &ROSPPPSecret::setVoIPPhoneNumber, tr("Número de teléfono SIP") );
 }
 
 bool DlgPPPUser::getVoIPSIPServer()
 {
-	return checkGroupedData( ui->voipGroupBox, tr("URL del servidor SIP"), m_pppSecret.voipSIPServer(), ui->voipServerLineEdit->text(), &ROSPPPSecret::setVoIPSIPServer );
+	return checkGroupedData( ui->voipGroupBox, ui->voipServerLineEdit->text(), &ROSPPPSecret::voipSIPServer, &ROSPPPSecret::setVoIPSIPServer, tr("URL del servidor SIP") );
 }
 
 bool DlgPPPUser::getVoIPUserName()
 {
-	return checkGroupedData( ui->voipGroupBox, tr("Nombre de Usuario SIP"), m_pppSecret.voipSIPUserName(), ui->voipUserName->text(), &ROSPPPSecret::setVoIPSIPUserName );
+	return checkGroupedData( ui->voipGroupBox, ui->voipUserName->text(), &ROSPPPSecret::voipSIPUserName, &ROSPPPSecret::setVoIPSIPUserName, tr("Nombre de Usuario SIP") );
 }
 
 bool DlgPPPUser::getVoIPUserPass()
 {
-	return checkGroupedData( ui->voipGroupBox, tr("Contraseña SIP"), m_pppSecret.voipSIPUserPass(), ui->voipUserPass->text(), &ROSPPPSecret::setVoIPSIPUserPass );
+	return checkGroupedData( ui->voipGroupBox, ui->voipUserPass->text(), &ROSPPPSecret::voipSIPUserPass, &ROSPPPSecret::setVoIPSIPUserPass, tr("Contraseña SIP") );
 }
 
 bool DlgPPPUser::getWiFi2SSID()
 {
-	return checkGroupedData( ui->wifi2GroupBox, tr("SSID para el Wifi local a 2,4Ghz"), m_pppSecret.wifi2SSID(), ui->wifi2SSIDLineEdit->text(), &ROSPPPSecret::setWiFi2SSID );
+	return checkGroupedData( ui->wifi2GroupBox, ui->wifi2SSIDLineEdit->text(), &ROSPPPSecret::wifi2SSID, &ROSPPPSecret::setWiFi2SSID, tr("SSID para el Wifi local a 2,4Ghz") );
 }
 
 bool DlgPPPUser::getWiFi2WPA()
 {
-	return checkGroupedData( ui->wifi2GroupBox, tr("Contraseña WPA/WPA2 para el Wifi local a 2,4Ghz"), m_pppSecret.wifi2WPA(), ui->wifi2WPALineEdit->text(), &ROSPPPSecret::setWiFi2WPA );
+	return checkGroupedData( ui->wifi2GroupBox, ui->wifi2WPALineEdit->text(), &ROSPPPSecret::wifi2WPA, &ROSPPPSecret::setWiFi2WPA, tr("Contraseña WPA/WPA2 para el Wifi local a 2,4Ghz") );
 }
 
 bool DlgPPPUser::getWiFi5SSID()
 {
-	return checkGroupedData( ui->wifi5GroupBox, tr("SSID para el Wifi local a 5Ghz"), m_pppSecret.wifi5SSID(), ui->wifi5SSIDLineEdit->text(), &ROSPPPSecret::setWiFi5SSID );
+	return checkGroupedData( ui->wifi5GroupBox, ui->wifi5SSIDLineEdit->text(), &ROSPPPSecret::wifi5SSID, &ROSPPPSecret::setWiFi5SSID, tr("SSID para el Wifi local a 5Ghz") );
 }
 
 bool DlgPPPUser::getWiFi5WPA()
 {
-	return checkGroupedData( ui->wifi5GroupBox, tr("Contraseña WPA/WPA2 para el Wifi local a 5Ghz"), m_pppSecret.wifi5WPA(), ui->wifi5WPALineEdit->text(), &ROSPPPSecret::setWiFi5WPA );
+	return checkGroupedData( ui->wifi5GroupBox, ui->wifi5WPALineEdit->text(), &ROSPPPSecret::wifi5WPA, &ROSPPPSecret::setWiFi5WPA, tr("Contraseña WPA/WPA2 para el Wifi local a 5Ghz") );
 }
 
 bool DlgPPPUser::getLocalIP()
@@ -298,7 +296,7 @@ void DlgPPPUser::updateStaticIPComboBox()
 	if( (profileGroup = configData().clientProfileMap().groupName(profileName)).isEmpty() )
 		raiseWarning( tr("El perfil perfil $1 no está asociado a ningún grupo y no se puede saber las IPs públicas disponibles sin un grupo válido.") );
 
-	ui->staticIPComboBox->setup( tr("No (IP dinámica)"),
+	ui->staticIPComboBox->setup( tr("No (IP dinámica)"), "",
 								 configData().staticIPv4RangeListMap().staticIPv4StringList(profileGroup),
 								 rosMultiConnectManager().staticIPv4List(), m_pppSecret.staticIP().isValid() ? m_pppSecret.staticIP().toString() : QString() );
 
@@ -479,11 +477,10 @@ void DlgPPPUser::onEditUserRequest(const QPPPSecretMap &pppSecretMap, const ROSP
 	else
 	{
 		updateDialog();
+		on_pppUserPassCreateButton_clicked();
 
 #ifndef QT_NO_DEBUG
 		ui->pppUserNameLineEdit->setText( QString("RandomUserName%1").arg(qrand(), 4, 16, QChar('0')) );
-		ui->pppUserPassLineEdit->setText( QString("%1%2").arg(qrand(), 4, 16, QChar('0')).arg(qrand(), 4, 16, QChar('0')) );
-#endif
 		ui->pppProfileComboBox->setCurrentText( tr("Escoge perfil") );
 		ui->installerComboBox->setCurrentText( "a" );
 		ui->clientNameLineEdit->setText( "b" );
@@ -493,6 +490,7 @@ void DlgPPPUser::onEditUserRequest(const QPPPSecretMap &pppSecretMap, const ROSP
 		ui->clientEmailLineEdit->setText( "f" );
 		ui->clientNotesLineEdit->setText( "g" );
 		ui->installNotesLineEdit->setText( "h" );
+#endif
 	}
 	show();
 }
@@ -500,7 +498,7 @@ void DlgPPPUser::onEditUserRequest(const QPPPSecretMap &pppSecretMap, const ROSP
 void DlgPPPUser::hideEvent(QHideEvent *event)
 {
 	clear();
-	return DlgDataBase::hideEvent(event);
+	return QDlgMultiDataBase::hideEvent(event);
 }
 
 void DlgPPPUser::on_applyDataButton_clicked()
@@ -534,4 +532,78 @@ void DlgPPPUser::on_clientLogsButton_clicked()
 {
 	DlgPPPLogViewer dlgPPPLogViewer( m_pppSecret.userName(), this );
 	dlgPPPLogViewer.exec();
+}
+
+#include <QGuiApplication>
+#include <QClipboard>
+void DlgPPPUser::on_pppUserNameCopyButton_clicked()
+{
+	QClipboard *cb = QGuiApplication::clipboard();
+	cb->setText(ui->pppUserNameLineEdit->text());
+	ui->pppUserNameLineEdit->setFocus();
+	ui->pppUserNameLineEdit->selectAll();
+}
+
+void DlgPPPUser::on_pppUserPassCopyButton_clicked()
+{
+	QClipboard *cb = QGuiApplication::clipboard();
+	cb->setText(ui->pppUserPassLineEdit->text());
+	ui->pppUserPassLineEdit->setFocus();
+	ui->pppUserPassLineEdit->selectAll();
+}
+
+void DlgPPPUser::on_pppUserPassCreateButton_clicked()
+{
+	QDateTime d = QDateTime::currentDateTime();
+
+	QString str = d.toString("ddMMyyyyhhmm");
+	ui->pppUserPassLineEdit->setText(str);
+}
+
+void DlgPPPUser::on_copyInfoButton_clicked()
+{
+	/* Formato creado:
+	 * <nombre> <User>/<Pass>
+	 * <dirección> <Pueblo>
+	 * <teléfonos>
+	 * Contrato [alta/baja] de <perfil>. Estado actual [activo <fecha> /inactivo <fecha>]
+	 * (Tiene VozIP, DVR, etc)
+	 * (Notas)
+	 * */
+	QString txt = tr("%1 (%2/%3)").arg(ui->clientNameLineEdit->text(), ui->pppUserNameLineEdit->text(), ui->pppUserPassLineEdit->text());
+	txt.append( tr("\n%1. %2." ).arg(ui->clientAddressLineEdit->text(), ui->clientCityComboBox->currentText()));
+	txt.append( tr("\n%1").arg( ui->clientPhonesLineEdit->text().isEmpty()? tr("Sin teléfonos conocidos.") : tr("Teléfono: %1").arg(ui->clientPhonesLineEdit->text()) ) );
+	txt.append( tr("\nServicio: %1%2").arg( ServiceState::readableString(m_pppSecret.serviceState()),
+										   ServiceState::isActiveState(m_pppSecret.serviceState())
+										 ? tr(". Perfil: %1").arg(m_pppSecret.originalProfile())
+										 : "") );
+	txt.append( tr("\nEstado: %1").arg(m_pppActive.rosObjectID().isEmpty()
+									   ? tr("Desconectado desde %1").arg(m_pppSecret.lastLogOff().toString("dd/MM/yyyy hh:mm:ss"))
+									   : tr("Conectado desde %1").arg(m_pppActive.uptime().toString("dd/MM/yyyy hh:mm:ss"))) );
+
+	if( !m_pppSecret.voipSIPServer().isEmpty() )
+	{
+		txt.append( tr("\nVoIP: %1 ").arg(m_pppSecret.voipPhoneNumber()) );
+		if( m_pppSecret.voipPhoneNumber() != m_pppSecret.voipSIPUserName() )
+			txt.append( QString("(%1/%2)").arg(m_pppSecret.voipSIPUserName(),m_pppSecret.voipSIPUserPass()) );
+		else
+			txt.append( QString("(%1)").arg(m_pppSecret.voipSIPUserPass()) );
+	}
+	if( !m_pppSecret.wifi2SSID().isEmpty() )
+		txt.append( tr("\nWiFi2: SSID=%1 PASS=%2").arg(m_pppSecret.wifi2SSID(),m_pppSecret.wifi2WPA()) );
+
+	if( !m_pppSecret.wifi5SSID().isEmpty() )
+		txt.append( tr("\nWiFi5: SSID=%1 PASS=%2").arg(m_pppSecret.wifi5SSID(),m_pppSecret.wifi5WPA()) );
+
+	if( m_pppSecret.installLANIP().isValid() )
+		txt.append( tr("\nLAN IP: %1 ").arg(m_pppSecret.installLANIP().toString()) );
+	if( m_pppSecret.installLANDMZ().isValid() )
+		txt.append( tr("\nDMZ: %1 ").arg(m_pppSecret.installLANDMZ().toString()) );
+	foreach( auto port, m_pppSecret.portForwardList() )
+		txt.append( tr("\nPuerto %1").arg(port.toSaveString()) );
+
+	if( !ui->installNotesLineEdit->text().isEmpty() )
+		txt.append( tr("\nNotas: %1").arg(ui->installNotesLineEdit->text()) );
+
+	QGuiApplication::clipboard()->setText(txt);
 }

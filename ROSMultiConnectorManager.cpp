@@ -99,6 +99,15 @@ QStringList ROSMultiConnectManager::rosNameList(DataTypeID dataTypeID, std::func
 	return rtn;
 }
 
+QStringList ROSMultiConnectManager::rosAPIUserNameList() const
+{
+	return rosNameList(DataTypeID::APIUser, [] (const ROSDataBase *rosData) {
+		Q_ASSERT(dynamic_cast<const ROSAPIUser*>(rosData));
+
+		return static_cast<const ROSAPIUser*>(rosData)->userName();
+	} );
+}
+
 QStringList ROSMultiConnectManager::rosAPIUsersGrupList() const
 {
 	return rosNameList(DataTypeID::APIUsersGroup, [] (const ROSDataBase *rosData) {

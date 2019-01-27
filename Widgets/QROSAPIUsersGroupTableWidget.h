@@ -1,9 +1,9 @@
 #ifndef QROSAPIUSERSGROUPTABLEWIDGET_H
 #define QROSAPIUSERSGROUPTABLEWIDGET_H
 
-#include "QTableWidgetBase.h"
+#include "QROSDataTableWidget.h"
 
-class QROSAPIUsersGroupTableWidget : public QTableWidgetBase
+class QROSAPIUsersGroupTableWidget : public QROSDataTableWidget
 {
 	Q_OBJECT
 
