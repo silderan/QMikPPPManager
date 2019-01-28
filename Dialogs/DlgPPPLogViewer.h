@@ -18,6 +18,8 @@ class DlgPPPLogViewer : public QDialog
 public:
 	explicit DlgPPPLogViewer(const QString &userName = QString(), QWidget *parent = Q_NULLPTR);
 	~DlgPPPLogViewer();
+private slots:
+	void on_compactLogsButton_clicked();
 };
 
 #endif // DLGPPPLOGVIEWER_H
