@@ -24,6 +24,9 @@ qint64 fromROSStringTimeToSecs(const QString &rosTime);
 
 QStringList allColumnTexts(const QAbstractItemModel *model, int col, Qt::ItemDataRole role = Qt::EditRole);
 
+void raiseWarning(QWidget *papi, const QString &info, QString title = QString());
+void raiseInfo(QWidget *papi, const QString &info, QString title = QString());
+
 #ifdef UNIT_TESTS_UTILS
 	void UTests();
 #endif

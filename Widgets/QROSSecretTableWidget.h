@@ -162,7 +162,7 @@ public:
 	void onROSModReply(const ROSDataBase &rosData);
 	void onROSDelReply(const QString &routerName, DataTypeID dataTypeID, const QString &rosObjectID);
 	void onROSDone(const QString &routerName, DataTypeID dataTypeID);
-	void updateConfig();
+	void onConfigChanged();
 	void exportUsersData();
 
 	QStringList usedStaticIPs() const;

@@ -33,23 +33,18 @@ public:
 	explicit DlgCnfgConnect(QWidget *parent, ROSMultiConnectManager &rosMultiConnectManager);
     ~DlgCnfgConnect();
 
-private slots:
-	void addRow(int row = -1, const QString &hostAddr = QString(), quint16 hostPort = 8728, const QString &routerState = QString());
-	void removeCurrentRow();
-	void on_connectButton_clicked();
-	void on_acceptButton_clicked();
-	void on_cancelButton_clicked();
-
-public slots:
 	void onComError(const QString &errorString, const QString &routerName);
 	void onROSError(const QString &routerName, const QString &errorString);
 	void onRouterConnected(const QString &routerName);
 	void onRouterDisconnected(const QString &routerName);
 	void onLogued(const QString &routerName);
+	void onConfigChanged();
 
-signals:
-	void connectToHosts();
-	void globalConfigChanged();
+private slots:
+	void addRow(int row = -1, const QString &hostAddr = QString(), quint16 hostPort = 8728, const QString &routerState = QString());
+	void removeCurrentRow();
+	void on_acceptButton_clicked();
+	void on_cancelButton_clicked();
 };
 
 #endif // DLGCNFGCONNECT_H

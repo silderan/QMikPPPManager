@@ -72,6 +72,17 @@ bool ROSMultiConnectManager::areAllConnected() const
 	return true;
 }
 
+bool ROSMultiConnectManager::allDone(DataTypeID dataTypeID, const QString &routerName) const
+{
+	foreach( ROSPPPoEManager *pppoeManager, m_rosPppoeManagerMap)
+	{
+		if( routerName.isEmpty() || (routerName == pppoeManager->routerName()) )
+			if( !pppoeManager->done(dataTypeID) )
+				return false;
+	}
+	return true;
+}
+
 ROSDataBasePList ROSMultiConnectManager::rosDataList(DataTypeID dataTypeID, const QString &routerName) const
 {
 	ROSDataBasePList rtn;

@@ -226,7 +226,6 @@ public:
 	QStringList poblaciones() const;
 	IPv4List ipsEstaticasUsadas() const;
 
-	static QConfigData::NivelUsuario nivelMinimoEdicion(Columnas col);
 	const QSecretsList &secrets() const { return m_secrets; }
 
 signals:

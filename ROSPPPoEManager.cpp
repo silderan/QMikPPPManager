@@ -83,6 +83,11 @@ ROSDataBasePList ROSPPPoEManager::rosDataList(DataTypeID dataTypeID) const
 	return rosDataManager(dataTypeID).rosDataList();
 }
 
+bool ROSPPPoEManager::done(DataTypeID dataTypeID) const
+{
+	return rosDataManager(dataTypeID).done();
+}
+
 void ROSPPPoEManager::updateRemoteData(const ROSDataBase &newROSData, const QString &rosObjectID)
 {
 	ROSDataManagerBase &rosDataManagerBase = rosDataManager(newROSData.dataTypeID());

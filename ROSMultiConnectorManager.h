@@ -33,6 +33,7 @@ public:
 
 	bool areAllDisconnected()const;
 	bool areAllConnected()const;
+	bool allDone(DataTypeID dataTypeID, const QString &routerName = QString()) const;
 
 	void sendCancel(const QString &tag, const QString &routerName = QString());
 	void connectHosts(const QString &routerName = QString());

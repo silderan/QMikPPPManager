@@ -58,13 +58,16 @@ class QMikPPPManager : public QMainWindow
 	void actualizaPerfilRemoto(QSecretData *sd);
 	void actualizaIPRemota(QSecretData *sd);
 
-	void setNivelUsuario(QConfigData::NivelUsuario lvl);
 	void filtraFilas();
 
 	bool codigoClienteValido(const QString &code, const QSecretData *sdOri);
 
 	bool checkRouterUsersIntegrity()const;
 	void onAllROSAPIUsersReceived();
+
+	void updateGUIAccess();
+	void setUserLevel(ROSAPIUser::Level userLevel);
+	void checkAPISupervisor();
 
 private slots:
 	void setStatusText(QString errorString, const QString routerName = QString());
@@ -85,8 +88,6 @@ private slots:
 	void on_cbFiltro_currentIndexChanged(int);
 
 	void on_connectButton_clicked();
-	void on_exportButton_clicked();
-	void on_portScanButton_clicked();
 	void on_localConfigButton_clicked();
 	void on_connectionConfigButton_clicked();
 	void on_advancedConfigButton_clicked();

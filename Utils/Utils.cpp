@@ -165,3 +165,14 @@ void Utils::UTests()
 	UT_COMPARE( fromROSStringTimeToSecs("2w 3d 4h 5m 6s"), (2*7*24*60*60 + 3*24*60*60 + 4*60*60 + 5*60 + 6) );
 }
 #endif
+
+#include <QMessageBox>
+void Utils::raiseWarning(QWidget *papi, const QString &info, QString title)
+{
+	QMessageBox::warning(papi, title.isEmpty() ? papi->windowTitle() : title, info );
+}
+
+void Utils::raiseInfo(QWidget *papi, const QString &info, QString title)
+{
+	QMessageBox::information( papi, title.isEmpty() ? papi->windowTitle() : title, info );
+}

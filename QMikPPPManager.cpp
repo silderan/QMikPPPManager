@@ -65,7 +65,6 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 
 	connect( ui->usersTable, &QROSSecretTableWidget::editPPPUser,this, &QMikPPPManager::onPPPEditRequest );
 
-	setNivelUsuario(QConfigData::SinPermisos);
 	ui->cbFiltro->addItem( "Cualquiera", 0 );
 	ui->cbFiltro->addItem( "Nombre", FILTRO_NOMBRE );
 	ui->cbFiltro->addItem( "Usuario", FILTRO_USUARIO );
@@ -81,6 +80,14 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 
 	onAllRoutersDisconnected();
 	ui->usersTable->horizontalHeader()->setFixedHeight(20);
+
+	setUserLevel(ROSAPIUser::Level::NoRights);
+	if( gGlobalConfig.connectInfoList().isEmpty() )
+	{
+		Utils::raiseInfo( this, tr("Parece que es la primera vez que se inicia el programa en este entorno.\nConfigura el acceso a los routers.") );
+		on_connectionConfigButton_clicked();
+	}
+	ui->connectButton->setDisabled(gGlobalConfig.connectInfoList().isEmpty());
 }
 
 QMikPPPManager::~QMikPPPManager()
@@ -103,10 +110,16 @@ QMikPPPManager::~QMikPPPManager()
 void QMikPPPManager::updateConfig()
 {
 	if( gGlobalConfig.isWindowMaximized() )
-		this->showMaximized();
+		showMaximized();
 	else
-		this->resize(gGlobalConfig.anchoPantalla(), gGlobalConfig.altoPantalla());
-	ui->usersTable->updateConfig();
+		resize(gGlobalConfig.anchoPantalla(), gGlobalConfig.altoPantalla());
+	ui->usersTable->onConfigChanged();
+
+	if( dlgCnfgConnect != Q_NULLPTR )
+		dlgCnfgConnect->onConfigChanged();
+
+	foreach( QDlgMultiDataBase *dlg, m_dialogList )
+		dlg->onConfigChanged();
 }
 
 void QMikPPPManager::setStatusText(QString errorString, const QString routerName)
@@ -198,6 +211,11 @@ void QMikPPPManager::onROSError(const QString &routerName, const QString &errorS
 
 void QMikPPPManager::onROSModReply(const ROSDataBase &rosData)
 {
+	if( rosData.dataTypeID() == DataTypeID::APIUser )
+	{
+		if( static_cast<const ROSAPIUser&>(rosData).userName() == gGlobalConfig.userName() )
+			setUserLevel(static_cast<const ROSAPIUser&>(rosData).userLevel());
+	}
 	foreach( QDlgMultiDataBase *dlg, m_dialogList )
 		dlg->onROSModReply(rosData);
 	ui->usersTable->onROSModReply(rosData);
@@ -215,7 +233,10 @@ void QMikPPPManager::onROSDone(const QString &routerName, DataTypeID dataTypeID)
 	switch( dataTypeID )
 	{
 	case DataTypeID::ErrorTypeID:	break;
-	case DataTypeID::APIUser:		setStatusText( tr("Usuarios API recibidos"), routerName );			break;
+	case DataTypeID::APIUser:
+		checkAPISupervisor();
+		setStatusText( tr("Usuarios API recibidos"), routerName );
+		break;
 	case DataTypeID::APIUsersGroup:	setStatusText( tr("Grupos de usuarios API recibidos"), routerName );break;
 	case DataTypeID::PPPProfile:	setStatusText( tr("Perfiles PPP recibidos"), routerName );			break;
 	case DataTypeID::Interface:		setStatusText( tr("Interfices recibidos"), routerName );			break;
@@ -265,38 +286,6 @@ void QMikPPPManager::reiniciaConexionRemota(QSecretData *sd)
 //	}
 }
 
-void QMikPPPManager::setNivelUsuario(QConfigData::NivelUsuario lvl)
-{
-//	gGlobalConfig.setNivelUsuario(lvl);
-//	switch( gGlobalConfig.nivelUsuario() )
-//	{
-//	case QConfigData::SinPermisos:
-//		ui->twUsuarios->setEnabled(false);
-//		ui->addUserButton->setEnabled(false);
-//		ui->advancedConfigButton->setEnabled(false);
-//		break;
-//	case QConfigData::Comercial:	// El comercial puede verlo todo, por lo tanto, le dejo entrar en todos los sitios.
-//		ui->addUserButton->setEnabled(false);
-//		ui->twUsuarios->setEnabled(true);
-//		ui->advancedConfigButton->setEnabled(false);
-//		break;
-//	case QConfigData::Instalador:
-//		ui->addUserButton->setEnabled(true);
-//		ui->twUsuarios->setEnabled(true);
-//		ui->advancedConfigButton->setEnabled(false);
-//		break;
-//	case QConfigData::Administrador:
-//		ui->addUserButton->setEnabled(true);
-//		ui->twUsuarios->setEnabled(true);
-//		ui->advancedConfigButton->setEnabled(false);
-//		break;
-//	case QConfigData::Supervisor:
-//		ui->addUserButton->setEnabled(true);
-//		ui->twUsuarios->setEnabled(true);
-//		ui->advancedConfigButton->setEnabled(true);
-//		break;
-//	}
-}
 
 void QMikPPPManager::filtraFilas()
 {
@@ -308,24 +297,24 @@ void QMikPPPManager::filtraFilas()
 // El código de cliente no corresponde a otro cliente (se pregunta qué hacer en este caso)
 bool QMikPPPManager::codigoClienteValido(const QString &code, const QSecretData *sdOri)
 {
-	QSecretData *sd;
-	if( code.toInt() <= 0 )
-	{
-		QMessageBox::warning(this, tr("Código de cliente"), tr("El código de cliente debe ser un número mayor que 0") );
-		return false;
-	}
-	if( code.toInt() > 99999 )
-	{
-		QMessageBox::warning(this, tr("Código de cliente"), tr("El código de cliente debe ser un número positivo menor que 99999") );
-		return false;
-	}
+//	QSecretData *sd;
+//	if( code.toInt() <= 0 )
+//	{
+//		QMessageBox::warning(this, tr("Código de cliente"), tr("El código de cliente debe ser un número mayor que 0") );
+//		return false;
+//	}
+//	if( code.toInt() > 99999 )
+//	{
+//		QMessageBox::warning(this, tr("Código de cliente"), tr("El código de cliente debe ser un número positivo menor que 99999") );
+//		return false;
+//	}
 
 //	if( ((sd = ui->twUsuarios->secrets().findDataByClientCode(code, sdOri)) != Q_NULLPTR) &&
 //		(QMessageBox::question(this, tr("Código de cliente"), tr("El código de cliente %1 corresponde a %2 y quieres asociarlo a %3.\n¿Es correcto?")
 //							  .arg(code)
 //							  .arg(sd->usuario())
 //							  .arg(sdOri->nombre()), QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes) )
-			return false;
+//			return false;
 	return true;
 }
 
@@ -357,7 +346,85 @@ void QMikPPPManager::onAllROSAPIUsersReceived()
 //		setStatusText(routerName, info);
 //		QMessageBox::warning(Q_NULLPTR, tr("Información de usuario"), info);
 //	}
-//	this->setWindowTitle(QString("%1 - %2 [%4]").arg("Mikrotik PPP Manager", nombre, grupo));
+	//	this->setWindowTitle(QString("%1 - %2 [%4]").arg("Mikrotik PPP Manager", nombre, grupo));
+}
+
+void QMikPPPManager::updateGUIAccess()
+{
+	switch( gGlobalConfig.userLevel() )
+	{
+	case ROSAPIUser::Level::NoRights:
+		ui->usersTable->setEnabled(false);
+		ui->pppLogsButton->setHidden(true);
+		ui->advancedConfigButton->setHidden(true);
+		ui->pppProfilesButton->setHidden(true);
+		ui->apiUsersButton->setHidden(true);
+		ui->addUserButton->setHidden(true);
+		ui->pppLogsButton->setHidden(true);
+		break;
+	case ROSAPIUser::Level::Comercial:
+		ui->usersTable->setEnabled(true);
+		ui->pppLogsButton->setHidden(true);
+		ui->advancedConfigButton->setHidden(true);
+		ui->pppProfilesButton->setHidden(true);
+		ui->apiUsersButton->setHidden(true);
+		ui->addUserButton->setHidden(false);
+		ui->pppLogsButton->setHidden(true);
+		return;
+	case ROSAPIUser::Level::Instalator:
+		ui->usersTable->setEnabled(true);
+		ui->pppLogsButton->setHidden(true);
+		ui->advancedConfigButton->setHidden(true);
+		ui->pppProfilesButton->setHidden(true);
+		ui->apiUsersButton->setHidden(true);
+		ui->addUserButton->setHidden(false);
+		ui->pppLogsButton->setHidden(true);
+		break;
+	case ROSAPIUser::Level::Administrator:
+		ui->usersTable->setEnabled(true);
+		ui->pppLogsButton->setHidden(true);
+		ui->advancedConfigButton->setHidden(true);
+		ui->pppProfilesButton->setHidden(true);
+		ui->apiUsersButton->setHidden(true);
+		ui->addUserButton->setHidden(false);
+		ui->pppLogsButton->setHidden(false);
+		break;
+	case ROSAPIUser::Level::Supervisor:
+		ui->usersTable->setEnabled(true);
+		ui->pppLogsButton->setHidden(false);
+		ui->advancedConfigButton->setHidden(false);
+		ui->pppProfilesButton->setHidden(false);
+		ui->apiUsersButton->setHidden(false);
+		ui->addUserButton->setHidden(false);
+		ui->pppLogsButton->setHidden(false);
+		break;
+	}
+}
+
+void QMikPPPManager::setUserLevel(ROSAPIUser::Level userLevel)
+{
+	gGlobalConfig.setUserLevel(userLevel);
+	updateGUIAccess();
+	updateConfig();
+}
+
+void QMikPPPManager::checkAPISupervisor()
+{
+	if( multiConnectionManager.allDone(DataTypeID::APIUser) )
+	{
+		foreach( ROSDataBase *rosData, multiConnectionManager.rosDataList(DataTypeID::APIUser) )
+		{
+			if( static_cast<ROSAPIUser*>(rosData)->userLevel() == ROSAPIUser::Supervisor )
+				return;
+		}
+		ui->apiUsersButton->setHidden(false);
+		ui->apiUsersButton->setEnabled(true);
+		// There is no supervisor.
+		// Let's inform user and elevate it.
+		Utils::raiseInfo( this, tr( "No hay ningún usuario supervisor configurado.\n"
+									"Configura tu usuario para convertirte en supervisor o crea otro nuevo y conéctate con él para empezar configurar el sistema.\n"
+									"Asegúrate antes de continuar de tener los permisos necesarios en los routers para poder modificar los usarios.") );
+	}
 }
 
 void QMikPPPManager::on_leFiltro_textChanged(const QString &)
@@ -387,10 +454,8 @@ void QMikPPPManager::on_connectButton_clicked()
 #else
 	if( gGlobalConfig.connectInfoList().isEmpty() )
 	{
-		QMessageBox::information( this, objectName(), tr("No hay ninguna conexión configurada. Configúrala para poderte conectar.") );
-
-		if( gGlobalConfig.connectInfoList().isEmpty() )
-			return;
+		Utils::raiseInfo( this, tr("No hay ninguna conexión configurada. Configúrala para poderte conectar.") );
+		return;
 	}
 	// If all router are disconnected, copy data from config. Otherwise, just reconect.
 	// That means that router config can be changed only when no connections is active.
@@ -415,23 +480,6 @@ void QMikPPPManager::on_disconnectButton_clicked()
 	multiConnectionManager.disconnectHosts(false);
 }
 
-void QMikPPPManager::on_exportButton_clicked()
-{
-//	if( !ui->twUsuarios->count() )
-//		QMessageBox::warning(this, objectName(), tr("Ningún usuario descargado del servidor."));
-//	else
-//	{
-//		DlgExportar dlg(this, ui->twUsuarios);
-//		dlg.exec();
-//	}
-}
-
-void QMikPPPManager::on_portScanButton_clicked()
-{
-//	DlgPortScan dlg(this, ui->twUsuarios);
-//	dlg.exec();
-}
-
 void QMikPPPManager::on_localConfigButton_clicked()
 {
 	DlgLookConfig dlg(this);
@@ -451,7 +499,8 @@ void QMikPPPManager::on_connectionConfigButton_clicked()
 	if( dlgCnfgConnect == Q_NULLPTR )
 		dlgCnfgConnect = new DlgCnfgConnect(this, multiConnectionManager);
 
-	dlgCnfgConnect->show();
+	dlgCnfgConnect->exec();
+	ui->connectButton->setDisabled(gGlobalConfig.connectInfoList().isEmpty());
 }
 
 void QMikPPPManager::on_advancedConfigButton_clicked()

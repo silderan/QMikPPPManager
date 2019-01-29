@@ -330,9 +330,6 @@ QWidget *QSecretDataDelegate::createEditor(QWidget *parent,
 									   const QStyleOptionViewItem &/*option*/,
 									   const QModelIndex &index ) const
 {
-	if( gGlobalConfig.nivelUsuario() < QSecretDataModel::nivelMinimoEdicion(static_cast<QSecretDataModel::Columnas>(index.column())) )
-		return Q_NULLPTR;
-
 	switch( index.column() )
 	{
 	case QSecretDataModel::ColUsuario:
@@ -808,46 +805,4 @@ IPv4List QSecretDataModel::ipsEstaticasUsadas() const
 		if( !m_secrets[i].IPEstatica().isEmpty() )
 			ips.append( IPv4(m_secrets[i].IPEstatica()) );
 	return ips;
-}
-
-QConfigData::NivelUsuario QSecretDataModel::nivelMinimoEdicion(QSecretDataModel::Columnas col)
-{
-	switch( col )
-	{
-	case ColCCliente:
-		return QConfigData::Comercial;
-	case ColNumber:
-		return QConfigData::Supervisor;
-	case ColUsuario:
-		return QConfigData::Administrador;
-	case ColPerfil:
-		return QConfigData::Administrador;
-	case ColContrato:
-		return QConfigData::Administrador;
-	case ColEstado:
-		return QConfigData::Supervisor;
-	case ColIP:
-		return QConfigData::Administrador;
-	case ColNombre:
-		return QConfigData::Instalador;
-	case ColDireccion:
-		return QConfigData::Instalador;
-	case ColPoblacion:
-		return QConfigData::Instalador;
-	case ColTelefonos:
-		return QConfigData::Instalador;
-	case ColInstalador:
-		return QConfigData::Administrador;
-	case ColVendedor:
-		return QConfigData::Administrador;
-	case ColEMail:
-		return QConfigData::Instalador;
-	case ColUsaIPPublica:
-		return QConfigData::Instalador;
-	case ColNotas:
-		return QConfigData::Instalador;
-	case NumColumnas:
-		return QConfigData::Supervisor;
-	}
-	return QConfigData::Supervisor;
 }

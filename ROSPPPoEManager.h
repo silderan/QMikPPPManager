@@ -48,6 +48,7 @@ public:
 	ROSAPIUsersGroupManager &rosApiUsersGroupManager()	{ return m_rosAPIUsersGroupManager;	}
 	ROSPPPProfileManager &rosPPPProfileManager()		{ return m_rosPPPProfileManager;	}
 	ROSDataBasePList rosDataList(DataTypeID dataTypeID) const;
+	bool done(DataTypeID dataTypeID) const;
 
 	void requestRemoteData(DataTypeID dataTypeID);
 	void updateRemoteData(const ROSDataBase &newROSData, const QString &rosObjectID);

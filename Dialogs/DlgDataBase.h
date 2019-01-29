@@ -55,6 +55,7 @@ public:
 	{
 		return updateMemberData<T, QString>(newFieldData, rosData, getFnc, setFnc, fieldName);
 	}
+	virtual void onConfigChanged()	{	}
 };
 
 class QNewROSDataDialogBase : public QDialogBase

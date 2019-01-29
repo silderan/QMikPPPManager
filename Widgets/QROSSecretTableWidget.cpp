@@ -424,7 +424,7 @@ void QROSSecretTableWidget::onROSDone(const QString &routerName, DataTypeID data
 		resizeColumnsToContents();
 }
 
-void QROSSecretTableWidget::updateConfig()
+void QROSSecretTableWidget::onConfigChanged()
 {
 	QFont tableFont = font();
 	tableFont.setPixelSize( gGlobalConfig.tableCellLook().m_fontSize );

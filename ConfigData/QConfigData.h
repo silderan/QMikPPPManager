@@ -12,34 +12,23 @@
 #include "ConnectInfo.h"
 #include "ClientProfile.h"
 #include "TableCellLook.h"
+#include "ROSData/ROSAPIUser.h"
 
 class QConfigData
 {
-public:
-	// El órden es importante porque en un sitio se controla qué puede editar cada uno y
-	// se hace una comparación por el valor.
-	enum NivelUsuario
-	{
-		SinPermisos,			// No puede hacer nada.
-		Comercial,				// No puede modificar nada.
-		Instalador,				// No puede modificar perfiles ni desactivar cuentas.
-		Administrador,			// No puede modificar la configuración del programa.
-		Supervisor				// Puede hacerlo todo.
-	};
-
 private:
-	QString m_userName;
-	QString m_userPass;
-
 	QString m_userFName;
 	QString m_rosFName;
 	QString m_rosProtectedFName;
+
+	QString m_userName;
+	QString m_userPass;
+	ROSAPIUser::Level m_userLevel;
 
 	QClientProfileMap m_clientProfileMap;			// La configuración global de los perfiles de clientes.
 
 	QStringList m_instaladores;			// Lista de nombres instaladores.
 	QStringList m_comerciales;			// Lista de nombres de los comerciales/vendedores.
-	NivelUsuario m_nivelUsuario;
 	IPv4RangeListMap m_staticIPv4RangeListMap;		// Lista de rangos de IP estáticas. (key=ProfileGroup: key=IPv4RangeList)
 
 	QString m_exportFile;				// Fichero al que se exporta.
@@ -62,22 +51,22 @@ public:
 	static const QString tagNuevo;
 	static const QString tagAPIUser;
 
-	void defaults()
-	{
-		setNivelUsuario(SinPermisos);
-	}
-
 #ifdef QT_DEBUG
-	QConfigData() : m_userFName(QDir::homePath()+"/PPPManagerUserDebug.ini"), m_rosFName("PPPManagerROSDebug.ini"), m_rosProtectedFName("PPPManagerROSProtectedDebug.ini")
+	QConfigData()
+		: m_userFName(QDir::homePath()+"/PPPManagerUserDebug.ini")
+		, m_rosFName("PPPManagerROSDebug.ini")
+		, m_rosProtectedFName("PPPManagerROSProtectedDebug.ini")
 #else
-	QConfigData() : m_userFName(QDir::homePath()+"/PPPManagerUser.ini"), m_rosFName("PPPManagerROS.ini"), m_rosProtectedFName("PPPManagerROSProtected.ini")
+	QConfigData()
+		: m_userFName(QDir::homePath()+"/PPPManagerUser.ini")
+		, m_rosFName("PPPManagerROS.ini")
+		, m_rosProtectedFName("PPPManagerROSProtected.ini")
 #endif
-	{
-		defaults();
-	}
+		, m_userLevel(ROSAPIUser::Level::NoRights)
+	{	}
 	~QConfigData()
-	{
-	}
+	{	}
+
 	void loadLocalUserData();
 	void loadGlobalData();
 	void loadGlobalProtectedData();
@@ -95,6 +84,9 @@ public:
 
 	const QString &userPass() const				{ return m_userPass;	}
 	void setUserPass(const QString &userPass)	{ m_userPass = userPass;}
+
+	ROSAPIUser::Level userLevel() const				{ return m_userLevel;	}
+	void setUserLevel(ROSAPIUser::Level ul)			{ m_userLevel = ul;		}
 
 	bool isWindowMaximized() const					{ return m_pantallaMaximizada;		}
 	void setWindowMaximized(bool maximizada = true)	{ m_pantallaMaximizada = maximizada;}
@@ -129,9 +121,6 @@ public:
 	QComboBox *setupCBVendedores(QComboBox *cb, const QString &select);
 
 	QComboBox *setupCBPoblaciones(QComboBox *cb, const QStringList &poblaciones, const QString &poblacion = QString());
-
-	QConfigData::NivelUsuario nivelUsuario() const { return m_nivelUsuario; }
-	void setNivelUsuario(const QConfigData::NivelUsuario &n) { m_nivelUsuario = n; }
 
 	// TODO: Make it configurable!
 	QMap<QString, quint16> openPortsMap();

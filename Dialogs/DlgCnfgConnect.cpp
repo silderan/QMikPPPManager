@@ -157,19 +157,6 @@ void DlgCnfgConnect::setRouterStatus(const QString &routerName, const QString &e
 	}
 }
 
-void DlgCnfgConnect::on_connectButton_clicked()
-{
-	copyDataToGlobalConfig();
-	gGlobalConfig.saveGlobalData();
-	gGlobalConfig.saveLocalUserData();
-	emit globalConfigChanged();
-
-	if( gGlobalConfig.connectInfoList().count() )
-		emit connectToHosts();
-	else
-		WARNING( tr("No has configurado ningún host para poderte conectar") );
-}
-
 void DlgCnfgConnect::on_acceptButton_clicked()
 {
 	if( checkData() )
@@ -177,7 +164,6 @@ void DlgCnfgConnect::on_acceptButton_clicked()
 		copyDataToGlobalConfig();
 		gGlobalConfig.saveGlobalData();
 		gGlobalConfig.saveLocalUserData();
-		emit globalConfigChanged();
 		accept();
 	}
 }
@@ -210,4 +196,9 @@ void DlgCnfgConnect::onRouterDisconnected(const QString &routerName)
 void DlgCnfgConnect::onLogued(const QString &routerName)
 {
 	setRouterStatus(routerName, tr("Logado") );
+}
+
+void DlgCnfgConnect::onConfigChanged()
+{
+	// TODO
 }
