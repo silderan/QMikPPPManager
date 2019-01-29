@@ -5,7 +5,6 @@
 #include <QList>
 #include <QObject>
 #include <QTimer>
-
 #include "QSecretData.h"
 #include "ROSData/ROSSecret.h"
 
@@ -50,6 +49,9 @@ Q_OBJECT
 	QString m_appUserName;	// Usuario que está usando el programa.
 	QPPPLogDataList m_pppLogDataList;
 	QTimer flushTimer;
+	int m_logsReaded;
+	int m_filesReaded;
+	qint64 m_msReading;
 
 	QString currentFName(const QString &pre) const;
 	QString currentGlobalFName() const;
@@ -60,12 +62,15 @@ Q_OBJECT
 	void addPPPLog(const PPPLogData &pppLogData);
 	void logIfChanges(const QString &pppUserName, const QString &field, const QString &oldValue, const QString &newValue);
 
-	void readLogs(const QString &logFName, const QString &userName, QPPPLogDataList &pppLogdataList) const;
+	void readLogs(const QString &logFName, const QString &userName, QPPPLogDataList &pppLogdataList);
 
 public:
 	QPPPLogger(QObject *papi = Q_NULLPTR);
 	~QPPPLogger();
 	void setUserName(const QString &appUserName) { m_appUserName = appUserName;	}
+	int logsReaded() const	{ return m_logsReaded;	}
+	int filesReaded() const	{ return m_filesReaded;	}
+	qint64 msReading()const { return m_msReading;	}
 
 public slots:
 	void flush();
@@ -77,7 +82,7 @@ public slots:
 	void logAddingSecret(const ROSPPPSecret &pppSecret);
 	void logDeletingSecret(const ROSPPPSecret &pppSecret);
 	void logChangingSecret(const ROSPPPSecret &oldSecret, const ROSPPPSecret &newSecret);
-	QPPPLogDataList readLogs(const QString &userName = QString()) const;
+	QPPPLogDataList readLogs(const QString &userName = QString());
 };
 
 extern QPPPLogger logService;

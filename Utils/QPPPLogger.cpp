@@ -2,8 +2,9 @@
 #include <QFile>
 #include <QTextStream>
 #include <QApplication>
+#include <QElapsedTimer>
 
-void QPPPLogger::readLogs(const QString &logFName, const QString &userName, QPPPLogDataList &pppLogdataList) const
+void QPPPLogger::readLogs(const QString &logFName, const QString &userName, QPPPLogDataList &pppLogdataList)
 {
 	QFile f(logFName);
 
@@ -13,9 +14,15 @@ void QPPPLogger::readLogs(const QString &logFName, const QString &userName, QPPP
 	{
 		QStringList lineBits;
 		PPPLogData pppLogData;
+		m_filesReaded++;
+
 		while( !f.atEnd() )
 		{
-			lineBits = QString().fromLatin1(f.readLine().trimmed()).split('\t');
+			m_logsReaded++;
+			QByteArray line = f.readLine();
+			if( line.at(line.count()-1) == '\n' )
+				line.resize(line.count()-1);
+			lineBits = QString().fromLatin1(line.trimmed()).split('\t');
 			if( lineBits.count() >= 4 )
 			{
 				pppLogData.timestamp = lineBits[0];
@@ -44,6 +51,13 @@ void QPPPLogger::readLogs(const QString &logFName, const QString &userName, QPPP
 						pppLogData.newValue = "Activo";
 					}
 					else
+					if( lineBits[3].startsWith("Creado nuevo usuario con perfil ") )
+					{
+						pppLogData.field = tr("Nuevo usuario");
+						pppLogData.oldValue = "Activo indefinido";
+						pppLogData.newValue = lineBits[3].mid(32);
+					}
+					else
 					{
 						QRegExp reg( "([\\w á-ú]*) ha cambiado de '([^']*)' a '([^']*)'" );
 						if( reg.indexIn(lineBits[3]) > -1 )
@@ -63,7 +77,8 @@ void QPPPLogger::readLogs(const QString &logFName, const QString &userName, QPPP
 				if( userName.isEmpty() || (pppLogData.pppUserName == userName) ||
 						// This weird comparations are necessary for users where the userName changed over time.
 						(pppLogData.oldValue == userName) || (pppLogData.newValue == userName) )
-					pppLogdataList.append( pppLogData  );
+					if( !pppLogdataList.contains(pppLogData) )
+						pppLogdataList.append( pppLogData  );
 			}
 		}
 		f.close();
@@ -110,14 +125,20 @@ void QPPPLogger::flush()
 }
 
 
-QPPPLogDataList QPPPLogger::readLogs(const QString &userName) const
+QPPPLogDataList QPPPLogger::readLogs(const QString &userName)
 {
 	QPPPLogDataList rtn;
 	QStringList files = QDir(QDir::toNativeSeparators(logDir())).entryList( QStringList() << "*.log", QDir::Files );
+
+	m_logsReaded = 0;
+	m_filesReaded = 0;
+	QElapsedTimer timer;
+	timer.start();
 	foreach( const QString &file, files )
 	{
 		readLogs( QString( "%1/%2").arg(QDir::toNativeSeparators(logDir()), file), userName, rtn );
 	}
+	m_msReading = timer.elapsed();
 	return rtn;
 }
 
