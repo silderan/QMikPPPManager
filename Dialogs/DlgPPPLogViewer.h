@@ -15,9 +15,18 @@ class DlgPPPLogViewer : public QDialog
 	Q_OBJECT
 	Ui::DlgPPPLogViewer *ui;
 
+	QPPPLogDataList m_pppLogDatalist;
+	QString m_userName;
+	bool m_localCompactButtonEnable;
+	bool m_localCompactButtonVisible;
+
+	void enableCompactButton(bool enable);
+	void showCompactButton(bool visible);
+
 public:
 	explicit DlgPPPLogViewer(const QString &userName = QString(), QWidget *parent = Q_NULLPTR);
 	~DlgPPPLogViewer();
+
 private slots:
 	void on_compactLogsButton_clicked();
 };

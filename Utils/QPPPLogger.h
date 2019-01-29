@@ -54,29 +54,34 @@ Q_OBJECT
 	qint64 m_msReading;
 
 	QString currentFName(const QString &pre) const;
-	QString currentGlobalFName() const;
-	QString currentUserFName() const;
-
 	void flush(QPPPLogDataList &pppLogDataList, const QString &logFName);
 	void startFlushing();
 	void addPPPLog(const PPPLogData &pppLogData);
 	void logIfChanges(const QString &pppUserName, const QString &field, const QString &oldValue, const QString &newValue);
 
+	QStringList allLogFiles() const;
 	void readLogs(const QString &logFName, const QString &userName, QPPPLogDataList &pppLogdataList);
 
 public:
 	QPPPLogger(QObject *papi = Q_NULLPTR);
 	~QPPPLogger();
+
+	QString currentGlobalFName() const;
+	QString currentUserFName() const;
+	QString currentCompactFName() const;
+
 	void setUserName(const QString &appUserName) { m_appUserName = appUserName;	}
 	int logsReaded() const	{ return m_logsReaded;	}
 	int filesReaded() const	{ return m_filesReaded;	}
 	qint64 msReading()const { return m_msReading;	}
+	bool compactAllFiles();
+	int removeOldFiles();
 
 public slots:
 	void flush();
 	void shutdown();
 
-	void setLogDir(const QString &logDir) { m_logDir = logDir;	}
+	void setLogDir(const QString &logDir) { m_logDir = QDir::toNativeSeparators(logDir);	}
 	const QString &logDir() const { return m_logDir;	}
 
 	void logAddingSecret(const ROSPPPSecret &pppSecret);

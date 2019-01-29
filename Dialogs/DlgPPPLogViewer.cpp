@@ -4,46 +4,54 @@
 #include <QElapsedTimer>
 #include <QTableWidgetItem>
 
-DlgPPPLogViewer::DlgPPPLogViewer(const QString &userName, QWidget *parent) :
-	QDialog(parent),
-	ui(new Ui::DlgPPPLogViewer)
+#include <QMessageBox>
+
+DlgPPPLogViewer::DlgPPPLogViewer(const QString &userName, QWidget *parent)
+	: QDialog(parent)
+	, ui(new Ui::DlgPPPLogViewer)
+	, m_userName(userName)
+	, m_localCompactButtonEnable(false)
+	, m_localCompactButtonVisible(false)
 {
 	ui->setupUi(this);
 	ui->logsTable->hide();
-	QPPPLogDataList pppLogDatalist = logService.readLogs(userName);
+	m_pppLogDatalist = logService.readLogs(m_userName);
 	QElapsedTimer m_viewTime;
 	m_viewTime.start();
 
-	if( userName.isEmpty() )
+	if( m_userName.isEmpty() )
 	{
+		showCompactButton(true);
 		ui->logsTable->setColumnCount(6);
 		ui->logsTable->setHorizontalHeaderLabels( QStringList() << "Hora" << "Quien" << "Cliente" << "Dato" << "Original" << "Nuevo" );
 		Q_ASSERT( ui->logsTable->columnCount() == 6 );
-		for( int row = 0; row < pppLogDatalist.count(); ++row )
+		for( int row = 0; row < m_pppLogDatalist.count(); ++row )
 		{
 			ui->logsTable->insertRow(row);
-			ui->logsTable->setItem( row, 0, new QTableWidgetItem(pppLogDatalist.at(row).timestamp) );
-			ui->logsTable->setItem( row, 1, new QTableWidgetItem(pppLogDatalist.at(row).appUserName) );
-			ui->logsTable->setItem( row, 2, new QTableWidgetItem(pppLogDatalist.at(row).pppUserName) );
-			ui->logsTable->setItem( row, 3, new QTableWidgetItem(pppLogDatalist.at(row).field) );
-			ui->logsTable->setItem( row, 4, new QTableWidgetItem(pppLogDatalist.at(row).oldValue) );
-			ui->logsTable->setItem( row, 5, new QTableWidgetItem(pppLogDatalist.at(row).newValue) );
+			ui->logsTable->setItem( row, 0, new QTableWidgetItem(m_pppLogDatalist.at(row).timestamp) );
+			ui->logsTable->setItem( row, 1, new QTableWidgetItem(m_pppLogDatalist.at(row).appUserName) );
+			ui->logsTable->setItem( row, 2, new QTableWidgetItem(m_pppLogDatalist.at(row).pppUserName) );
+			ui->logsTable->setItem( row, 3, new QTableWidgetItem(m_pppLogDatalist.at(row).field) );
+			ui->logsTable->setItem( row, 4, new QTableWidgetItem(m_pppLogDatalist.at(row).oldValue) );
+			ui->logsTable->setItem( row, 5, new QTableWidgetItem(m_pppLogDatalist.at(row).newValue) );
 		}
+		enableCompactButton( !m_pppLogDatalist.isEmpty() );
 	}
 	else
 	{
-		setWindowTitle( tr("Visor de registros del usuario %1").arg(userName));
+		ui->compactLogsButton->setHidden(true);
+		setWindowTitle( tr("Visor de registros del usuario %1").arg(m_userName));
 		ui->logsTable->setColumnCount(5);
 		ui->logsTable->setHorizontalHeaderLabels( QStringList() << "Hora" << "Quien" << "Dato" << "Original" << "Nuevo" );
 		Q_ASSERT( ui->logsTable->columnCount() == 5 );
-		for( int row = 0; row < pppLogDatalist.count(); ++row )
+		for( int row = 0; row < m_pppLogDatalist.count(); ++row )
 		{
 			ui->logsTable->insertRow(row);
-			ui->logsTable->setItem( row, 0, new QTableWidgetItem(pppLogDatalist.at(row).timestamp) );
-			ui->logsTable->setItem( row, 1, new QTableWidgetItem(pppLogDatalist.at(row).appUserName) );
-			ui->logsTable->setItem( row, 2, new QTableWidgetItem(pppLogDatalist.at(row).field) );
-			ui->logsTable->setItem( row, 3, new QTableWidgetItem(pppLogDatalist.at(row).oldValue) );
-			ui->logsTable->setItem( row, 4, new QTableWidgetItem(pppLogDatalist.at(row).newValue) );
+			ui->logsTable->setItem( row, 0, new QTableWidgetItem(m_pppLogDatalist.at(row).timestamp) );
+			ui->logsTable->setItem( row, 1, new QTableWidgetItem(m_pppLogDatalist.at(row).appUserName) );
+			ui->logsTable->setItem( row, 2, new QTableWidgetItem(m_pppLogDatalist.at(row).field) );
+			ui->logsTable->setItem( row, 3, new QTableWidgetItem(m_pppLogDatalist.at(row).oldValue) );
+			ui->logsTable->setItem( row, 4, new QTableWidgetItem(m_pppLogDatalist.at(row).newValue) );
 		}
 	}
 	qint64 msSetingUP = m_viewTime.restart();
@@ -55,13 +63,23 @@ DlgPPPLogViewer::DlgPPPLogViewer(const QString &userName, QWidget *parent) :
 	QString info = tr("Leidos %1 registros de %2 ficheros con %3 registros únicos encontrados en %4 ms\n")
 			.arg( logService.logsReaded() )
 			.arg( logService.filesReaded() )
-			.arg( pppLogDatalist.count() )
+			.arg( m_pppLogDatalist.count() )
 			.arg( logService.msReading() );
 	info.append( tr("Los %1 registros han sido organizados en %2 ms y mostrados en pantalla en %3 ms")
-				 .arg(pppLogDatalist.count())
+				 .arg(m_pppLogDatalist.count())
 				 .arg(msSetingUP)
 				 .arg(msShowing));
 	ui->infoLabel->setText(info);
+}
+
+void DlgPPPLogViewer::enableCompactButton(bool enable)
+{
+	ui->compactLogsButton->setEnabled( (gGlobalConfig.userLevel() == ROSAPIUser::Level::Supervisor) && (m_localCompactButtonEnable = enable) );
+}
+
+void DlgPPPLogViewer::showCompactButton(bool visible)
+{
+	ui->compactLogsButton->setVisible( (gGlobalConfig.userLevel() == ROSAPIUser::Level::Supervisor) && (m_localCompactButtonVisible = visible) );
 }
 
 DlgPPPLogViewer::~DlgPPPLogViewer()
@@ -71,5 +89,14 @@ DlgPPPLogViewer::~DlgPPPLogViewer()
 
 void DlgPPPLogViewer::on_compactLogsButton_clicked()
 {
-
+	// Compacting data only allowed when all files where readed.
+	// It's just for beign clearer to user. In fact, the compact algorith works allways with all records in all files.
+	if( m_userName.isEmpty() && !m_pppLogDatalist.isEmpty() )
+	{
+		if( logService.compactAllFiles() )
+		{
+			if( QMessageBox::information( this, tr("Compactar ficheros"), tr("Ficheros de registro compactados.\n¿Quieres borrar los ficheros usados en el proceso"), QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes )
+				QMessageBox::information( this, tr("Compactar ficheros"), tr("Borrados %1 ficheros al crear el fichero %2").arg(logService.removeOldFiles()).arg(logService.currentCompactFName()) );
+		}
+	}
 }

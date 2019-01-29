@@ -128,7 +128,7 @@ void QPPPLogger::flush()
 QPPPLogDataList QPPPLogger::readLogs(const QString &userName)
 {
 	QPPPLogDataList rtn;
-	QStringList files = QDir(QDir::toNativeSeparators(logDir())).entryList( QStringList() << "*.log", QDir::Files );
+	QStringList files = allLogFiles();
 
 	m_logsReaded = 0;
 	m_filesReaded = 0;
@@ -136,17 +136,46 @@ QPPPLogDataList QPPPLogger::readLogs(const QString &userName)
 	timer.start();
 	foreach( const QString &file, files )
 	{
-		readLogs( QString( "%1/%2").arg(QDir::toNativeSeparators(logDir()), file), userName, rtn );
+		readLogs( file, userName, rtn );
 	}
 	m_msReading = timer.elapsed();
 	return rtn;
 }
 
+bool QPPPLogger::compactAllFiles()
+{
+	QPPPLogDataList logs = readLogs();
+	if( logs.count() )
+	{
+		flush( logs, currentCompactFName() );
+		return true;
+	}
+	return false;
+}
+
+int QPPPLogger::removeOldFiles()
+{
+	int rtn = 0;
+	QStringList files = allLogFiles();
+	QString compactFName = currentCompactFName();
+
+	Q_ASSERT( files.contains(currentCompactFName()) );
+
+	foreach( const QString &file, files )
+	{
+		if( file != compactFName )
+			rtn += QFile(file).remove() ? 1 : 0;
+	}
+
+	return rtn;
+}
+
 QString QPPPLogger::currentFName(const QString &pre) const
 {
+	Q_ASSERT( !pre.contains(QRegExp("[\\\\\\/]")) );
 	int currentYear = QDate::currentDate().year();
 	int currentMonth = QDate::currentDate().month();
-	return QDir::toNativeSeparators(QString("%1/%2_%3-%4.log").arg(logDir(), pre).arg(currentMonth).arg(currentYear));
+	return QString("%1/%2_%3-%4.log").arg(logDir(), pre).arg(currentMonth).arg(currentYear);
 }
 
 QString QPPPLogger::currentGlobalFName() const
@@ -157,6 +186,11 @@ QString QPPPLogger::currentGlobalFName() const
 QString QPPPLogger::currentUserFName() const
 {
 	return currentFName(m_appUserName);
+}
+
+QString QPPPLogger::currentCompactFName() const
+{
+	return currentFName("Compacted");
 }
 
 void QPPPLogger::startFlushing()
@@ -196,6 +230,16 @@ void QPPPLogger::logIfChanges(const QString &pppUserName, const QString &field, 
 {
 	if( oldValue != newValue )
 		addPPPLog( PPPLogData(QDateTime::currentDateTimeUtc().toString("dd/MM/yyyy hh:mm:ss"), m_appUserName, pppUserName, field, oldValue, newValue) );
+}
+
+QStringList QPPPLogger::allLogFiles()const
+{
+	QStringList list = QDir( logDir()).entryList( QStringList() << "*.log", QDir::Files );
+
+	for( int i = list.count()-1; i >= 0; --i )
+		list[i] = QString( "%1/%2").arg( logDir(), list.at(i) );
+
+	return list;
 }
 
 void QPPPLogger::logAddingSecret(const ROSPPPSecret &pppSecret)
