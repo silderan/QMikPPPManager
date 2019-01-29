@@ -53,14 +53,14 @@ public:
 
 #ifdef QT_DEBUG
 	QConfigData()
-		: m_userFName(QDir::homePath()+"/PPPManagerUserDebug.ini")
-		, m_rosFName("PPPManagerROSDebug.ini")
-		, m_rosProtectedFName("PPPManagerROSProtectedDebug.ini")
+		: m_userFName(QDir::homePath()+"/PPPManager64UserDebug.ini")
+		, m_rosFName("PPPManager64ROSDebug.ini")
+		, m_rosProtectedFName("PPPManager64ROSProtectedDebug.ini")
 #else
 	QConfigData()
-		: m_userFName(QDir::homePath()+"/PPPManagerUser.ini")
-		, m_rosFName("PPPManagerROS.ini")
-		, m_rosProtectedFName("PPPManagerROSProtected.ini")
+		: m_userFName(QDir::homePath()+"/PPPManager64User.ini")
+		, m_rosFName("PPPManager64ROS.ini")
+		, m_rosProtectedFName("PPPManager64ROSProtected.ini")
 #endif
 		, m_userLevel(ROSAPIUser::Level::NoRights)
 	{	}

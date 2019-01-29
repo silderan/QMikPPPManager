@@ -95,7 +95,7 @@
         </widget>
        </item>
        <item row="2" column="0">
-        <widget class="QComboBox" name="serciveStateFilterComboBox"/>
+        <widget class="QComboBox" name="serviceStateFilterComboBox"/>
        </item>
       </layout>
      </widget>

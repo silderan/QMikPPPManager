@@ -66,12 +66,12 @@ QStringList QROSSecretTableWidget::columnsNames()
 		rtn = QStringList()
 				<< tr("Usuario")
 				<< tr("CCliente")
-				<< tr("Contrato")
+				<< tr("Servicio")
 				<< tr("Perfil")
 				<< tr("Estado")
 				<< tr("Router")
 				<< tr("IP")
-				<< tr("Nombre cliente")
+				<< tr("Nombre")
 				<< tr("Dirección")
 				<< tr("Población")
 				<< tr("Teléfonos")
@@ -146,6 +146,43 @@ bool QROSSecretTableWidget::shouldBeVisible(const QROSUserNameWidgetItem *userNa
 			if( rosPPPSecret.serviceState() != m_filterServiceState )
 				return false;
 			break;
+		}
+		if( !m_filterText.isEmpty() )
+		{
+			if( static_cast<int>(m_filterFields) == -1 )
+			{
+				return	rosPPPSecret.userName().contains(m_filterText) ||
+						rosPPPSecret.clientName().contains(m_filterText) ||
+						rosPPPSecret.clientAddress().contains(m_filterText) ||
+						rosPPPSecret.clientCity().contains(m_filterText) ||
+						rosPPPSecret.clientPhones().contains(m_filterText) ||
+						rosPPPSecret.clientEmail().contains(m_filterText) ||
+						rosPPPSecret.clientNotes().contains(m_filterText) ||
+						rosPPPSecret.installNotes().contains(m_filterText);
+			}
+			else
+			{
+				switch( m_filterFields )
+				{
+				case QROSSecretTableWidget::UserName:			return rosPPPSecret.userName().contains(m_filterText);
+				case QROSSecretTableWidget::ClientCode:			return rosPPPSecret.clientCode().contains(m_filterText);
+				case QROSSecretTableWidget::ServiceStatus:		return ServiceState::readableString(rosPPPSecret.serviceState()).contains(m_filterText);
+				case QROSSecretTableWidget::UserProfile:		return rosPPPSecret.originalProfile().contains(m_filterText);
+				case QROSSecretTableWidget::ActiveUserStatus:	return true;	// TODO: Maybe a date filter could be fine.
+				case QROSSecretTableWidget::ActiveRouter:		return userNameItem->pppActive.routerName().contains(m_filterText);
+				case QROSSecretTableWidget::RemoteIP:			return userNameItem->pppActive.currentIPv4().toString().startsWith(m_filterText);
+				case QROSSecretTableWidget::ClientName:			return rosPPPSecret.clientName().contains(m_filterText);
+				case QROSSecretTableWidget::ClientAddress:		return rosPPPSecret.clientAddress().contains(m_filterText);
+				case QROSSecretTableWidget::ClientCity:			return rosPPPSecret.clientCity().contains(m_filterText);
+				case QROSSecretTableWidget::ClientPhone:		return rosPPPSecret.clientPhones().contains(m_filterText);
+				case QROSSecretTableWidget::Installer:			return rosPPPSecret.installerName().contains(m_filterText);
+				case QROSSecretTableWidget::ClientEmail:		return rosPPPSecret.clientEmail().contains(m_filterText);
+				case QROSSecretTableWidget::ClientAnnotations:	return rosPPPSecret.clientNotes().contains(m_filterText);
+				case QROSSecretTableWidget::InstallAnnotations:	return rosPPPSecret.installNotes().contains(m_filterText);
+				case QROSSecretTableWidget::TotalColumns:
+					break;
+				}
+			}
 		}
 		return true;
 	}
@@ -483,10 +520,10 @@ QString QROSSecretTableWidget::currentIP(int row)
 	return QString();
 }
 
-void QROSSecretTableWidget::filter(const QString &text, QROSSecretTableWidget::FilterStates filterBits, ServiceState::Type filterStates)
+void QROSSecretTableWidget::filter(const QString &text, Columns col, ServiceState::Type filterStates)
 {
 	m_filterText = text;
-	m_filterFields = filterBits;
+	m_filterFields = col;
 	m_filterServiceState = filterStates;
 	applyFilter();
 }

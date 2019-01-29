@@ -58,8 +58,6 @@ class QMikPPPManager : public QMainWindow
 	void actualizaPerfilRemoto(QSecretData *sd);
 	void actualizaIPRemota(QSecretData *sd);
 
-	void filtraFilas();
-
 	bool codigoClienteValido(const QString &code, const QSecretData *sdOri);
 
 	bool checkRouterUsersIntegrity()const;
@@ -84,9 +82,6 @@ private slots:
 	void onAllRoutersDisconnected();
 	void onLogued(const QString &routerName);
 
-	void on_leFiltro_textChanged(const QString &);
-	void on_cbFiltro_currentIndexChanged(int);
-
 	void on_connectButton_clicked();
 	void on_localConfigButton_clicked();
 	void on_connectionConfigButton_clicked();
@@ -99,8 +94,8 @@ private slots:
 	void on_pppProfilesButton_clicked();
 
 	void onPPPEditRequest(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive);
-
 	void on_pppLogsButton_clicked();
+	void applyUsersRowFilter(QString);
 
 public slots:
 	void updateConfig();

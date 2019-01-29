@@ -63,27 +63,23 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 
 	connect( &multiConnectionManager, &ROSMultiConnectManager::logued, this, &QMikPPPManager::onLogued );
 
-	connect( ui->usersTable, &QROSSecretTableWidget::editPPPUser,this, &QMikPPPManager::onPPPEditRequest );
+	connect( ui->usersTable, &QROSSecretTableWidget::editPPPUser, this, &QMikPPPManager::onPPPEditRequest );
 
-	ui->fieldFilterComboBox->addItem( "Cualquiera", 0 );
-	ui->fieldFilterComboBox->addItem( "Nombre", FILTRO_NOMBRE );
-	ui->fieldFilterComboBox->addItem( "Usuario", FILTRO_USUARIO );
-	ui->fieldFilterComboBox->addItem( "Perfil", FILTRO_PERFIL );
-	ui->fieldFilterComboBox->addItem( "Dirección", FILTRO_DIRECCION );
-	ui->fieldFilterComboBox->addItem( "Población", FILTRO_POBLACION );
-	ui->fieldFilterComboBox->addItem( "EMail", FILTRO_EMAIL );
-	ui->fieldFilterComboBox->addItem( "Teléfonos", FILTRO_TELEFONOS );
-	ui->fieldFilterComboBox->addItem( "IP", FILTRO_IP );
-	ui->fieldFilterComboBox->addItem( "CCliente", FILTRO_CCLIENTE );
+	ui->fieldFilterComboBox->addItems( QStringList()
+									   << tr("Cualquiera")
+									   << ui->usersTable->columnsNames() );
+	ui->fieldFilterComboBox->setCurrentIndex(0);
 
-	ui->serciveStateFilterComboBox->blockSignals(true);
-	ui->serciveStateFilterComboBox->addItems( QStringList()
-											  << tr("Cualquier estado")
+	ui->serviceStateFilterComboBox->addItems( QStringList()
+											  << tr("Cualquier estado del servicio")
 											  << tr("Activos")
 											  << tr("Inactivos")
 											  << ServiceState::serviceStateNameList() );
-	ui->serciveStateFilterComboBox->setCurrentIndex( 0 ); // This sets the index to "any"
-	ui->serciveStateFilterComboBox->blockSignals(false);
+	ui->serviceStateFilterComboBox->setCurrentIndex( 0 ); // This sets the index to "any"
+
+	connect( ui->fieldFilterComboBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(applyUsersRowFilter(QString)) );
+	connect( ui->serviceStateFilterComboBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(applyUsersRowFilter(QString)) );
+	connect( ui->textFilterLineEdit, SIGNAL(textChanged(QString)), this, SLOT(applyUsersRowFilter(QString)) );
 
 	onAllRoutersDisconnected();
 	ui->usersTable->horizontalHeader()->setFixedHeight(20);
@@ -95,6 +91,16 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 		on_connectionConfigButton_clicked();
 	}
 	ui->connectButton->setDisabled(gGlobalConfig.connectInfoList().isEmpty());
+}
+
+void QMikPPPManager::applyUsersRowFilter(QString)
+{
+	int st = ui->serviceStateFilterComboBox->currentIndex() - (ui->serviceStateFilterComboBox->count() - ServiceState::serviceStateNameList().count());
+	int col = ui->fieldFilterComboBox->currentIndex() - (ui->fieldFilterComboBox->count() - QROSSecretTableWidget::Columns::TotalColumns);
+
+	ui->usersTable->filter( ui->textFilterLineEdit->text(),
+							static_cast<QROSSecretTableWidget::Columns>(col),
+							static_cast<ServiceState::Type>(st) );
 }
 
 QMikPPPManager::~QMikPPPManager()
@@ -294,15 +300,6 @@ void QMikPPPManager::reiniciaConexionRemota(QSecretData *sd)
 }
 
 
-void QMikPPPManager::filtraFilas()
-{
-	QROSSecretTableWidget::FilterStates fs;
-	fs.m_bits = ui->fieldFilterComboBox->currentData().toInt();
-	ServiceState::Type st = static_cast<ServiceState::Type>(ui->serciveStateFilterComboBox->currentIndex() - ServiceState::serviceStateNameList().count());
-
-	ui->usersTable->filter( ui->textFilterLineEdit->text(), fs, st );
-}
-
 // Comprueba si el código cliente es válido con los siguiente criterios.
 // Es un valor positivo.
 // El código de cliente no corresponde a otro cliente (se pregunta qué hacer en este caso)
@@ -436,16 +433,6 @@ void QMikPPPManager::checkAPISupervisor()
 									"Configura tu usuario para convertirte en supervisor o crea otro nuevo y conéctate con él para empezar configurar el sistema.\n"
 									"Asegúrate antes de continuar de tener los permisos necesarios en los routers para poder modificar los usarios.") );
 	}
-}
-
-void QMikPPPManager::on_leFiltro_textChanged(const QString &)
-{
-	filtraFilas();
-}
-
-void QMikPPPManager::on_cbFiltro_currentIndexChanged(int )
-{
-	filtraFilas();
 }
 
 void QMikPPPManager::on_connectButton_clicked()

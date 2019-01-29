@@ -111,17 +111,6 @@ public:
 		TotalColumns
 	};
 
-	union FilterStates
-	{
-		struct bits
-		{
-			int userNameBit:1;
-		}m_bit;
-		int m_bits;
-		FilterStates() : m_bits(0)
-		{	}
-	};
-
 private:
 	QMap<QString, QROSUserNameWidgetItem *> m_userNameMap;
 	QMap<QString, QROSUserNameWidgetItem *> m_secretIDMap;
@@ -130,7 +119,7 @@ private:
 
 	QString m_filterText;
 	ServiceState::Type m_filterServiceState;
-	FilterStates m_filterFields;
+	Columns m_filterFields;
 
 	QROSUserNameWidgetItem *addNewRow(const QString &userName);
 
@@ -174,7 +163,7 @@ public:
 	QString originalProfile(int row) const	{ return cellText(row, UserProfile); }
 	QString currentIP(int row);
 
-	void filter(const QString &text, FilterStates filterBits, ServiceState::Type filterStates);
+	void filter(const QString &text, Columns col, ServiceState::Type filterStates);
 
 	void clear();
 	void onROSModReply(const ROSDataBase &rosData);
