@@ -98,12 +98,12 @@ void QPPPLogger::flush(QPPPLogDataList &pppLogDataList, const QString &logFName)
 			QTextStream out(&f);
 			foreach( const PPPLogData &pppLogData, pppLogDataList )
 			{
-				out << tr("%1\t%2\t%3\t%4\t%5\t%6\n"). arg(pppLogData.timestamp,
-													   m_appUserName,
-													   pppLogData.pppUserName,
-													   pppLogData.field,
-													   pppLogData.oldValue,
-													   pppLogData.newValue);
+				out << tr("%1\t%2\t%3\t%4\t%5\t%6\n"). arg(	pppLogData.timestamp,
+															pppLogData.appUserName,
+															pppLogData.pppUserName,
+															pppLogData.field,
+															pppLogData.oldValue,
+															pppLogData.newValue );
 			}
 			pppLogDataList.clear();
 			f.flush();
