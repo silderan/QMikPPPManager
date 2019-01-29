@@ -112,6 +112,7 @@ public:
 		Installer,
 		ClientEmail,
 		ClientAnnotations,
+		InstallAnnotations,
 		TotalColumns
 	};
 
@@ -124,7 +125,7 @@ private:
 	void onROSActiveModReply(const ROSPPPActive &rosPPPActive);
 	void onROSActiveDelReply(const QString &routerName, const QString &rosObjectID);
 
-	void setupCellItem(int row, Columns col, const QString &cellText);
+	void setupCellItem(int row, Columns col, const QString &cellText, bool editable);
 	void setupServiceCellItem(int row, ServiceState::Type st);
 	void setupActiveStatusCellItem(int row, const QDateTime &uptime, const QDateTime &downtime);
 	void setupRemoteIPCellItem(int row, const IPv4 &remoteIP, const IPv4 &staticIP);

@@ -10,11 +10,40 @@ DlgNewROSAPIUser::DlgNewROSAPIUser(QWidget *papi)
 	ui->grupNameComboBox->addItems( multiConnectionManager.rosAPIUsersGrupList() );
 	ui->userLevelComboBox->addItems( ROSAPIUser::levelNames() );
 	connect( ui->acceptButton, &QAbstractButton::clicked, this, &QNewROSDataDialogBase::tryAccept<ROSAPIUser> );
+	updateGUI();
 }
 
 DlgNewROSAPIUser::~DlgNewROSAPIUser()
 {
 	delete ui;
+}
+
+void DlgNewROSAPIUser::updateGUI()
+{
+	switch( gGlobalConfig.userLevel() )
+	{
+	case ROSAPIUser::NoRights:
+		Q_ASSERT(false);
+		this->setDisabled(true);
+		ui->acceptButton->setVisible(false);
+		break;
+	case ROSAPIUser::Comercial:
+		setReadOnly(true);
+		ui->acceptButton->setVisible(false);
+		break;
+	case ROSAPIUser::Instalator:
+		setReadOnly(true);
+		ui->acceptButton->setVisible(false);
+		break;
+	case ROSAPIUser::Administrator:
+		setReadOnly(true);
+		ui->acceptButton->setVisible(false);
+		break;
+	case ROSAPIUser::Supervisor:
+		setReadOnly(false);
+		ui->acceptButton->setVisible(true);
+		break;
+	}
 }
 
 void DlgNewROSAPIUser::setROSData(ROSDataBase &rosData)
@@ -40,4 +69,9 @@ bool DlgNewROSAPIUser::getROSData(ROSDataBase &rosData) const
 			setTextMember<ROSAPIUser>( ui->userNameLineEdit->text(), rosData, &ROSAPIUser::setUserName, tr("Nombre de usuario") ) &&
 			setTextMember<ROSAPIUser>( ui->userPassLineEdit->text(), rosData, &ROSAPIUser::setUserPass, tr("Contraseña de usuario") ) &&
 			static_cast<ROSAPIUser&>(rosData).setUserLevel( ui->userLevelComboBox->currentText() );
+}
+
+void DlgNewROSAPIUser::onConfigChanged()
+{
+	updateGUI();
 }

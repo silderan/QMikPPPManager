@@ -67,6 +67,7 @@ class DlgPPPUser : public QDlgMultiDataBase
 	bool getLocalDMZ();
 	bool getLocalPorts();
 
+	void updateGUI();
 public:
 	DlgPPPUser(QConfigData &configData, ROSMultiConnectManager &rosMultiConnectManager, QWidget *papi);
 	~DlgPPPUser() override;
@@ -96,7 +97,11 @@ public slots:
 
 	// QWidget interface
 protected:
-	void hideEvent(QHideEvent *event) override;
+	void hideEvent(QHideEvent *event) Q_DECL_OVERRIDE;
+
+	// QDialogBase interface
+public:
+	void onConfigChanged() Q_DECL_OVERRIDE;
 };
 
 #endif // DLGPPPUSER_H

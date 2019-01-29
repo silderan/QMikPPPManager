@@ -77,7 +77,8 @@ QStringList QROSSecretTableWidget::columnsNames()
 				<< tr("Teléfonos")
 				<< tr("Instalador")
 				<< tr("Email")
-				<< tr("Notas") ;
+				<< tr("Notas Cliente")
+				<< tr("Notas Instalación") ;
 		Q_ASSERT( rtn.count() == TotalColumns );
 	}
 	return rtn;
@@ -212,10 +213,14 @@ QList<QROSUserNameWidgetItem *> QROSSecretTableWidget::selectedUsers()
 	return userNameItemList;
 }
 
-void QROSSecretTableWidget::setupCellItem(int row, Columns col, const QString &cellText)
+void QROSSecretTableWidget::setupCellItem(int row, Columns col, const QString &cellText, bool editable)
 {
 	if( item(row, col) == Q_NULLPTR )
+	{
 		setItem(row, col, new QTableWidgetItem(cellText));
+		if( !editable )
+			item( row, col)->setFlags(item(row, col)->flags() & ~Qt::ItemIsEditable);
+	}
 	else
 		item(row, col)->setText(cellText);
 }
@@ -230,7 +235,10 @@ void QROSSecretTableWidget::setupServiceCellItem(int row, ServiceState::Type st)
 void QROSSecretTableWidget::setupActiveStatusCellItem(int row, const QDateTime &uptime, const QDateTime &downtime)
 {
 	if( item(row, Columns::ActiveUserStatus) == Q_NULLPTR )
+	{
 		setItem(row, Columns::ActiveUserStatus, new QROSActiveStatusCellItem());
+		item( row, Columns::ActiveUserStatus)->setFlags(item(row, Columns::ActiveUserStatus)->flags() & ~Qt::ItemIsEditable);
+	}
 
 	static_cast<QROSActiveStatusCellItem*>(item(row, Columns::ActiveUserStatus))->setTimes(uptime, downtime);
 }
@@ -300,18 +308,19 @@ void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &pppSecret)
 	{
 		// Copy the item to the new name key.
 		m_userNameMap[pppSecret.userName()] = m_userNameMap.take( item(userNameItem->row(), Columns::UserName)->text() );
-		setupCellItem(userNameItem->row(), UserName,				pppSecret.userName() );
+		setupCellItem(userNameItem->row(), UserName,				pppSecret.userName(), false );
 	}
 
-	setupCellItem( userNameItem->row(), Columns::ClientCode,		pppSecret.clientCode() );
-	setupCellItem( userNameItem->row(), Columns::UserProfile,		pppSecret.originalProfile() );
-	setupCellItem( userNameItem->row(), Columns::ClientName,		pppSecret.clientName() );
-	setupCellItem( userNameItem->row(), Columns::ClientAddress,		pppSecret.clientAddress() );
-	setupCellItem( userNameItem->row(), Columns::ClientCity,		pppSecret.clientCity() );
-	setupCellItem( userNameItem->row(), Columns::ClientPhone,		pppSecret.clientPhones() );
-	setupCellItem( userNameItem->row(), Columns::Installer,			pppSecret.installerName() );
-	setupCellItem( userNameItem->row(), Columns::ClientEmail,		pppSecret.clientEmail() );
-	setupCellItem( userNameItem->row(), Columns::ClientAnnotations,	pppSecret.clientNotes() );
+	setupCellItem( userNameItem->row(), Columns::ClientCode,		pppSecret.clientCode(), true );
+	setupCellItem( userNameItem->row(), Columns::UserProfile,		pppSecret.originalProfile(), true );
+	setupCellItem( userNameItem->row(), Columns::ClientName,		pppSecret.clientName(), true );
+	setupCellItem( userNameItem->row(), Columns::ClientAddress,		pppSecret.clientAddress(), true );
+	setupCellItem( userNameItem->row(), Columns::ClientCity,		pppSecret.clientCity(), true );
+	setupCellItem( userNameItem->row(), Columns::ClientPhone,		pppSecret.clientPhones(), true );
+	setupCellItem( userNameItem->row(), Columns::Installer,			pppSecret.installerName(), true );
+	setupCellItem( userNameItem->row(), Columns::ClientEmail,		pppSecret.clientEmail(), true );
+	setupCellItem( userNameItem->row(), Columns::ClientAnnotations,	pppSecret.clientNotes(), true );
+	setupCellItem( userNameItem->row(), Columns::InstallAnnotations,pppSecret.installNotes(), true );
 
 	// This columns can be filled by active data before the secred was reported. So, here will set data only if they're empty.
 	// TODO: Last logg off must show the last (date-nearest) value because every router will has diferent time-stamp.
@@ -320,7 +329,7 @@ void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &pppSecret)
 		setupActiveStatusCellItem( userNameItem->row(), QDateTime(), pppSecret.lastLogOff() );
 
 	if( item(userNameItem->row(), Columns::ActiveRouter) == Q_NULLPTR )
-		setupCellItem( userNameItem->row(), Columns::ActiveRouter,	tr("Ninguno") );
+		setupCellItem( userNameItem->row(), Columns::ActiveRouter,	tr("Ninguno"), false );
 
 	setupRemoteIPCellItem( userNameItem );
 
@@ -374,7 +383,7 @@ void QROSSecretTableWidget::onROSActiveModReply(const ROSPPPActive &rosPPPActive
 
 	setupActiveStatusCellItem( userNameItem->row(), rosPPPActive.uptime(), QDateTime() );
 	setupRemoteIPCellItem( userNameItem );
-	setupCellItem( userNameItem->row(), Columns::ActiveRouter, rosPPPActive.routerName() );
+	setupCellItem( userNameItem->row(), Columns::ActiveRouter, rosPPPActive.routerName(), false );
 	blockSignals(false);
 }
 
@@ -391,7 +400,7 @@ void QROSSecretTableWidget::onROSActiveDelReply(const QString &routerName, const
 		{
 			blockSignals(true);
 			setupActiveStatusCellItem( userNameItem->row(), QDateTime(), QDateTime::currentDateTime() );
-			setupCellItem( userNameItem->row(), Columns::ActiveRouter, tr("Ninguno") );
+			setupCellItem( userNameItem->row(), Columns::ActiveRouter, tr("Ninguno"), false );
 			setupRemoteIPCellItem( userNameItem );
 			m_activeIDMap.remove(rosObjectID);
 			blockSignals(false);
@@ -474,6 +483,9 @@ QStringList QROSSecretTableWidget::staticIPs(int row) const
 
 bool QROSSecretTableWidget::allowCellChange(const QModelIndex &index, const QString &newText)
 {
+	if( (gGlobalConfig.userLevel() <= ROSAPIUser::Level::Comercial) )
+		return false;
+
 	QROSUserNameWidgetItem *userNameItem = userNameWidgetItem(index.row());
 	Q_ASSERT(userNameItem);
 	ROSPPPSecret newSecret = userNameItem->pppSecretMap.first();
@@ -489,18 +501,26 @@ bool QROSSecretTableWidget::allowCellChange(const QModelIndex &index, const QStr
 			Q_ASSERT(false);
 			break;
 		case QROSSecretTableWidget::ClientCode:
-			fieldName = tr("Código de cliente");
-			setFnc = &ROSPPPSecret::setClientCode;
+			if( (gGlobalConfig.userLevel() == ROSAPIUser::Level::Administrator) ||
+				(gGlobalConfig.userLevel() == ROSAPIUser::Level::Supervisor) )
+			{
+				fieldName = tr("Código de cliente");
+				setFnc = &ROSPPPSecret::setClientCode;
+			}
 			break;
 		case QROSSecretTableWidget::ServiceStatus:
-			// This is not a string, so cannot be set by setFnc
-			newSecret.setServiceState( ServiceState::fromNameString(newText) );
-			if( ServiceState::isActiveState(newSecret.serviceState()) && (newSecret.pppProfileName() == gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName()) )
-				newSecret.setPPPProfileName(newSecret.originalProfile());
-			else
-			if( !ServiceState::isActiveState(newSecret.serviceState()) && (newSecret.pppProfileName() != gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName()) )
-				newSecret.setPPPProfileName(gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName());
-			multiConnectionManager.updateRemoteData(newSecret, userNameItem->pppSecretMap.toRouterIDMap());
+			if( (gGlobalConfig.userLevel() == ROSAPIUser::Level::Administrator) ||
+				(gGlobalConfig.userLevel() == ROSAPIUser::Level::Supervisor) )
+			{
+				// This is not a string, so cannot be set by setFnc
+				newSecret.setServiceState( ServiceState::fromNameString(newText) );
+				if( ServiceState::isActiveState(newSecret.serviceState()) && (newSecret.pppProfileName() == gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName()) )
+					newSecret.setPPPProfileName(newSecret.originalProfile());
+				else
+					if( !ServiceState::isActiveState(newSecret.serviceState()) && (newSecret.pppProfileName() != gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName()) )
+						newSecret.setPPPProfileName(gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName());
+				multiConnectionManager.updateRemoteData(newSecret, userNameItem->pppSecretMap.toRouterIDMap());
+			}
 			break;
 		case QROSSecretTableWidget::UserProfile:
 			// This is a special case where two fields changes at once.
@@ -547,6 +567,10 @@ bool QROSSecretTableWidget::allowCellChange(const QModelIndex &index, const QStr
 		case QROSSecretTableWidget::ClientAnnotations:
 			fieldName = tr("Notas sobre el cliente");
 			setFnc = &ROSPPPSecret::setClientNotes;
+			break;
+		case QROSSecretTableWidget::InstallAnnotations:
+			fieldName = tr("Notas sobre la instalación");
+			setFnc = &ROSPPPSecret::setInstallNotes;
 			break;
 		case QROSSecretTableWidget::TotalColumns:
 			Q_ASSERT(false);

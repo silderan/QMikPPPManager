@@ -1,6 +1,12 @@
 #include "DlgDataBase.h"
 
 #include <QMessageBox>
+#include <QLineEdit>
+#include <QSpinBox>
+#include <QTableWidget>
+#include <QTreeWidget>
+#include <QListWidget>
+#include <QAbstractButton>
 
 QDialogBase::QDialogBase(QWidget *papi) : QDialog(papi)
 {
@@ -12,6 +18,47 @@ void QDialogBase::raiseWarning(const QString &info, const QString &field) const
 		QMessageBox::warning( const_cast<QDialogBase*>(this), windowTitle(), info );
 	else
 		QMessageBox::warning( const_cast<QDialogBase*>(this), windowTitle(), tr("El campo '%1' %2").arg(field, info) );
+}
+
+QObjectList QDialogBase::allChildren(QObject *papi)
+{
+	QObjectList rtn;
+	if( papi )
+	{
+		foreach( QObject *ob, papi->children() )
+		{
+			rtn += ob;
+			rtn += allChildren(ob);
+		}
+	}
+	return rtn;
+}
+
+void QDialogBase::setReadOnly(bool readOnly)
+{
+	foreach( QObject *ob, allChildren(this) )
+	{
+		if( qobject_cast<QLineEdit*>(ob) != Q_NULLPTR )
+			qobject_cast<QLineEdit*>(ob)->setReadOnly(readOnly);
+		else
+		if( qobject_cast<QSpinBox*>(ob) != Q_NULLPTR )
+			qobject_cast<QSpinBox*>(ob)->setReadOnly(readOnly);
+		else
+		if( qobject_cast<QComboBox*>(ob) != Q_NULLPTR )
+			qobject_cast<QComboBox*>(ob)->setDisabled(readOnly);
+		else
+		if( qobject_cast<QTableView*>(ob) != Q_NULLPTR )
+			qobject_cast<QTableView*>(ob)->setDisabled(readOnly);
+		else
+		if( qobject_cast<QListView*>(ob) != Q_NULLPTR )
+			qobject_cast<QListView*>(ob)->setDisabled(readOnly);
+		else
+		if( qobject_cast<QTreeView*>(ob) != Q_NULLPTR )
+			qobject_cast<QTreeView*>(ob)->setDisabled(readOnly);
+		else
+		if( qobject_cast<QAbstractButton*>(ob) != Q_NULLPTR )
+			qobject_cast<QAbstractButton*>(ob)->setDisabled(readOnly);
+	}
 }
 
 bool QNewROSDataDialogBase::exec(ROSDataBase &rosData)

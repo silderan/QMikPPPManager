@@ -252,6 +252,40 @@ bool DlgPPPUser::getLocalPorts()
 	return true;
 }
 
+void DlgPPPUser::updateGUI()
+{
+	switch( configData().userLevel() )
+	{
+	case ROSAPIUser::NoRights:
+		reject();
+		break;
+	case ROSAPIUser::Comercial:
+		setReadOnly(true);
+		ui->applyDataButton->setVisible(false);
+		ui->clientLogsButton->setVisible(false);
+		break;
+	case ROSAPIUser::Instalator:
+		setReadOnly(false);
+		ui->applyDataButton->setVisible(true);
+		ui->clientLogsButton->setVisible(false);
+		ui->pppUserPassCreateButton->setEnabled(true);
+		break;
+	case ROSAPIUser::Administrator:
+		setReadOnly(false);
+		ui->pppUserNameLineEdit->setReadOnly(true);
+		ui->pppUserPassLineEdit->setReadOnly(true);
+		ui->pppUserPassCreateButton->setEnabled(false);
+		ui->applyDataButton->setVisible(true);
+		ui->clientLogsButton->setVisible(true);
+		break;
+	case ROSAPIUser::Supervisor:
+		setReadOnly(false);
+		ui->applyDataButton->setVisible(true);
+		ui->clientLogsButton->setVisible(true);
+		break;
+	}
+}
+
 void DlgPPPUser::onConfigDataChanged()
 {
 	updateInstallersComboBox();
@@ -606,4 +640,10 @@ void DlgPPPUser::on_copyInfoButton_clicked()
 		txt.append( tr("\nNotas: %1").arg(ui->installNotesLineEdit->text()) );
 
 	QGuiApplication::clipboard()->setText(txt);
+}
+
+
+void DlgPPPUser::onConfigChanged()
+{
+	updateGUI();
 }

@@ -56,6 +56,8 @@ public:
 		return updateMemberData<T, QString>(newFieldData, rosData, getFnc, setFnc, fieldName);
 	}
 	virtual void onConfigChanged()	{	}
+	QObjectList allChildren(QObject *papi);
+	void setReadOnly(bool readOnly);
 };
 
 class QNewROSDataDialogBase : public QDialogBase
