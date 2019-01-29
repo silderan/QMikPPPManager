@@ -65,18 +65,25 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 
 	connect( ui->usersTable, &QROSSecretTableWidget::editPPPUser,this, &QMikPPPManager::onPPPEditRequest );
 
-	ui->cbFiltro->addItem( "Cualquiera", 0 );
-	ui->cbFiltro->addItem( "Nombre", FILTRO_NOMBRE );
-	ui->cbFiltro->addItem( "Usuario", FILTRO_USUARIO );
-	ui->cbFiltro->addItem( "Perfil", FILTRO_PERFIL );
-	ui->cbFiltro->addItem( "Dirección", FILTRO_DIRECCION );
-	ui->cbFiltro->addItem( "Población", FILTRO_POBLACION );
-	ui->cbFiltro->addItem( "EMail", FILTRO_EMAIL );
-	ui->cbFiltro->addItem( "Teléfonos", FILTRO_TELEFONOS );
-	ui->cbFiltro->addItem( "IP", FILTRO_IP );
-	ui->cbFiltro->addItem( "CCliente", FILTRO_CCLIENTE );
-	ui->cbFiltro->addItem( "Alta", FILTRO_ALTA );
-	ui->cbFiltro->addItem( "Baja", FILTRO_BAJA );
+	ui->fieldFilterComboBox->addItem( "Cualquiera", 0 );
+	ui->fieldFilterComboBox->addItem( "Nombre", FILTRO_NOMBRE );
+	ui->fieldFilterComboBox->addItem( "Usuario", FILTRO_USUARIO );
+	ui->fieldFilterComboBox->addItem( "Perfil", FILTRO_PERFIL );
+	ui->fieldFilterComboBox->addItem( "Dirección", FILTRO_DIRECCION );
+	ui->fieldFilterComboBox->addItem( "Población", FILTRO_POBLACION );
+	ui->fieldFilterComboBox->addItem( "EMail", FILTRO_EMAIL );
+	ui->fieldFilterComboBox->addItem( "Teléfonos", FILTRO_TELEFONOS );
+	ui->fieldFilterComboBox->addItem( "IP", FILTRO_IP );
+	ui->fieldFilterComboBox->addItem( "CCliente", FILTRO_CCLIENTE );
+
+	ui->serciveStateFilterComboBox->blockSignals(true);
+	ui->serciveStateFilterComboBox->addItems( QStringList()
+											  << tr("Cualquier estado")
+											  << tr("Activos")
+											  << tr("Inactivos")
+											  << ServiceState::serviceStateNameList() );
+	ui->serciveStateFilterComboBox->setCurrentIndex( 0 ); // This sets the index to "any"
+	ui->serciveStateFilterComboBox->blockSignals(false);
 
 	onAllRoutersDisconnected();
 	ui->usersTable->horizontalHeader()->setFixedHeight(20);
@@ -289,7 +296,11 @@ void QMikPPPManager::reiniciaConexionRemota(QSecretData *sd)
 
 void QMikPPPManager::filtraFilas()
 {
-//	ui->twUsuarios->filterRows(ui->leFiltro->text(), ui->cbFiltro->currentData().toInt());
+	QROSSecretTableWidget::FilterStates fs;
+	fs.m_bits = ui->fieldFilterComboBox->currentData().toInt();
+	ServiceState::Type st = static_cast<ServiceState::Type>(ui->serciveStateFilterComboBox->currentIndex() - ServiceState::serviceStateNameList().count());
+
+	ui->usersTable->filter( ui->textFilterLineEdit->text(), fs, st );
 }
 
 // Comprueba si el código cliente es válido con los siguiente criterios.
@@ -434,16 +445,6 @@ void QMikPPPManager::on_leFiltro_textChanged(const QString &)
 
 void QMikPPPManager::on_cbFiltro_currentIndexChanged(int )
 {
-	switch( ui->cbFiltro->currentData().toInt() )
-	{
-	case FILTRO_ALTA:
-	case FILTRO_BAJA:
-		ui->leFiltro->setDisabled(true);
-		break;
-	default:
-		ui->leFiltro->setDisabled(false);
-		break;
-	}
 	filtraFilas();
 }
 

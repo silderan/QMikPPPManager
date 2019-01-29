@@ -90,11 +90,6 @@ class QROSSecretTableWidget : public QTableWidget
 {
 	Q_OBJECT
 
-	QMap<QString, QROSUserNameWidgetItem *> m_userNameMap;
-	QMap<QString, QROSUserNameWidgetItem *> m_secretIDMap;
-	QMap<QString, QROSUserNameWidgetItem *> m_activeIDMap;
-	QStringList m_usedStaticIPList;	// For the static IP delegate, to know IPs to hide.
-
 public:
 	enum Columns
 	{
@@ -116,7 +111,27 @@ public:
 		TotalColumns
 	};
 
+	union FilterStates
+	{
+		struct bits
+		{
+			int userNameBit:1;
+		}m_bit;
+		int m_bits;
+		FilterStates() : m_bits(0)
+		{	}
+	};
+
 private:
+	QMap<QString, QROSUserNameWidgetItem *> m_userNameMap;
+	QMap<QString, QROSUserNameWidgetItem *> m_secretIDMap;
+	QMap<QString, QROSUserNameWidgetItem *> m_activeIDMap;
+	QStringList m_usedStaticIPList;	// For the static IP delegate, to know IPs to hide.
+
+	QString m_filterText;
+	ServiceState::Type m_filterServiceState;
+	FilterStates m_filterFields;
+
 	QROSUserNameWidgetItem *addNewRow(const QString &userName);
 
 	void onROSSecretModReply(const ROSPPPSecret &rosPPPSecret);
@@ -142,10 +157,10 @@ private:
 
 	void raiseWarning( const QString &info ) const;
 	bool checkStringData(ROSPPPSecret &pppSecret, const QString &fieldName, const QString &text, std::function<bool(ROSPPPSecret &, const QString &)> setFnc) const;
+	void applyFilter();
 
 public:
 	explicit QROSSecretTableWidget(QWidget *papi = Q_NULLPTR);
-	void applyFilter();
 
 	static QStringList columnsNames();
 
@@ -158,6 +173,8 @@ public:
 	QString cellText(int row, Columns col) const;
 	QString originalProfile(int row) const	{ return cellText(row, UserProfile); }
 	QString currentIP(int row);
+
+	void filter(const QString &text, FilterStates filterBits, ServiceState::Type filterStates);
 
 	void clear();
 	void onROSModReply(const ROSDataBase &rosData);

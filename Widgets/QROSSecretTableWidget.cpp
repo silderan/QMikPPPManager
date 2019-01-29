@@ -84,7 +84,9 @@ QStringList QROSSecretTableWidget::columnsNames()
 	return rtn;
 }
 
-QROSSecretTableWidget::QROSSecretTableWidget(QWidget *papi) : QTableWidget(papi)
+QROSSecretTableWidget::QROSSecretTableWidget(QWidget *papi)
+	: QTableWidget(papi)
+	, m_filterServiceState( static_cast<ServiceState::Type>(-3))
 {
 	setColumnCount( columnsNames().count() );
 	setHorizontalHeaderLabels( columnsNames() );
@@ -125,9 +127,28 @@ QROSSecretTableWidget::QROSSecretTableWidget(QWidget *papi) : QTableWidget(papi)
 
 bool QROSSecretTableWidget::shouldBeVisible(const QROSUserNameWidgetItem *userNameItem)
 {
-	foreach( const ROSPPPSecret &rosPPPSecret, userNameItem->pppSecretMap )
-		if( gGlobalConfig.clientProfileMap().containsProfileName(rosPPPSecret.pppProfileName()) )
-			return true;
+	const ROSPPPSecret &rosPPPSecret = userNameItem->pppSecretMap.first();
+	if( gGlobalConfig.clientProfileMap().containsProfileName(rosPPPSecret.pppProfileName()) )
+	{
+		switch( static_cast<int>(m_filterServiceState) )
+		{
+		case -3:	// Meaning: All cases.
+			break;
+		case -2:	// Meaning Active only.
+			if( !ServiceState::isActiveState(rosPPPSecret.serviceState()) )
+				return false;
+			break;
+		case -1:	// Meaning inactives only.
+			if( ServiceState::isActiveState(rosPPPSecret.serviceState()) )
+				return false;
+			break;
+		default:
+			if( rosPPPSecret.serviceState() != m_filterServiceState )
+				return false;
+			break;
+		}
+		return true;
+	}
 	return false;
 }
 
@@ -460,6 +481,14 @@ QString QROSSecretTableWidget::currentIP(int row)
 			return static_cast<QRemoteIPCellItem*>(item(row, Columns::RemoteIP))->staticIP().toString();
 	}
 	return QString();
+}
+
+void QROSSecretTableWidget::filter(const QString &text, QROSSecretTableWidget::FilterStates filterBits, ServiceState::Type filterStates)
+{
+	m_filterText = text;
+	m_filterFields = filterBits;
+	m_filterServiceState = filterStates;
+	applyFilter();
 }
 
 QStringList QROSSecretTableWidget::usedStaticIPs() const

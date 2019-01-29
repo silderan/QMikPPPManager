@@ -82,10 +82,10 @@
         <number>4</number>
        </property>
        <item row="1" column="0">
-        <widget class="QComboBox" name="cbFiltro"/>
+        <widget class="QComboBox" name="fieldFilterComboBox"/>
        </item>
        <item row="0" column="0">
-        <widget class="QLineEdit" name="leFiltro">
+        <widget class="QLineEdit" name="textFilterLineEdit">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -93,6 +93,9 @@
           </sizepolicy>
          </property>
         </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QComboBox" name="serciveStateFilterComboBox"/>
        </item>
       </layout>
      </widget>
