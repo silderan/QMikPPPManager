@@ -22,7 +22,7 @@ void QPPPLogger::readLogs(const QString &logFName, const QString &userName, QPPP
 			QByteArray line = f.readLine();
 			if( line.at(line.count()-1) == '\n' )
 				line.resize(line.count()-1);
-			lineBits = QString().fromLatin1(line.trimmed()).split('\t');
+			lineBits = QString::fromLatin1(line).split('\t');
 			if( lineBits.count() >= 4 )
 			{
 				pppLogData.timestamp = lineBits[0];
@@ -59,7 +59,7 @@ void QPPPLogger::readLogs(const QString &logFName, const QString &userName, QPPP
 					}
 					else
 					{
-						QRegExp reg( "([\\w á-ú]*) ha cambiado de '([^']*)' a '([^']*)'" );
+						QRegExp reg( " ([\\w á-ú]*) ha cambiado de '([^']*)' a '([^']*)'" );
 						if( reg.indexIn(lineBits[3]) > -1 )
 						{
 							if( reg.cap().count() > 1) pppLogData.field = reg.cap(1);
