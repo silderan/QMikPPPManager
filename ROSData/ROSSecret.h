@@ -29,6 +29,20 @@ struct ServiceState
 	static QString readableString(const ServiceState::Type &type);
 	static const QStringList &serviceStateNameList();
 };
+struct ServiceStateScheduler
+{
+	ServiceState::Type newState;
+	QDate changeDate;
+
+	ServiceStateScheduler(ServiceState::Type state = ServiceState::Type::ActiveUndefined)
+		: newState(state)
+	{	}
+};
+
+class ServiceStateSchedulerList : public QList<ServiceStateScheduler>
+{
+
+};
 
 class ROSPPPSecret : public ROSDataBase
 {
@@ -66,6 +80,7 @@ private:
 	QPortForwardList m_portForwardList;
 	IPv4 m_staticIP;
 	ServiceState::Type m_serviceState;
+	ServiceStateSchedulerList m_serviceStateSchedulerList;
 	bool m_needsPublicIP;
 
 	void parseCommentString(const QString &commentString);
@@ -93,13 +108,13 @@ public:
 	bool setUserPass(const QString &userPass)	{ return updateMember(m_userPass, userPass, userPassPattern, 8);	}
 
 	const QString & pppProfileName() const		{ return m_profile;		}
-	bool setPPPProfileName(const QString &profile)	{ return updateMember(m_profile, profile, profilePattern, 2);	}
+	bool setPPPProfileName(const QString &profile)	{ return updateMember(m_profile, profile, profilePattern, 4);	}
 
 	const QDateTime &lastLogOff() const			{ return m_lastLogOff;	}
 	bool setLastLogOff(const QDateTime &l)		{ m_lastLogOff = l;	 return true;	}
 
 	const QString & originalProfile() const		{ return m_originalProfile;	}
-	bool setOriginalProfile(const QString &pfl)	{ return updateNonROSMember(m_originalProfile, pfl, profilePattern, 2); }
+	bool setOriginalProfile(const QString &pfl)	{ return updateNonROSMember(m_originalProfile, pfl, profilePattern, -4); }
 
 	const QString & clientCode() const			{ return m_clientCode;	}
 	bool setClientCode(const QString &cc)		{ return updateNonROSMember(m_clientCode, cc, basicNonROSMemberPatern, 0);	}

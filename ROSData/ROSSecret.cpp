@@ -25,7 +25,7 @@ QString ServiceState::toSaveString(const ServiceState::Type type)
 ServiceState::Type ServiceState::fromSaveString(const QString &c)
 {
 	// c="[AU|AT|CN|CT|CH|CR|CU]"
-	if( c.count() == 2 )
+	if( c.count() >= 2 )
 	{
 		QByteArray ba = c.toLatin1();
 		const char *data = ba.constData();
@@ -48,22 +48,6 @@ ServiceState::Type ServiceState::fromSaveString(const QString &c)
 			default:	return ServiceState::CanceledUndefined;
 			}
 		}
-	}
-	else
-	if( !c.isEmpty() )
-	{
-		if( c.contains("lta") )
-			return ServiceState::ActiveUndefined;
-		else
-		if( c.contains("emporal") )
-			return ServiceState::CanceledTemporally;
-		else
-		if( c.contains("retira") )
-			return ServiceState::CanceledRetired;
-		else
-		if( c.contains("debe") )
-			return ServiceState::CanceledNoPay;
-		return ServiceState::CanceledUndefined;
 	}
 	return ServiceState::ActiveUndefined;
 }
@@ -121,10 +105,38 @@ const QString &ROSPPPSecret::commentString() const
 		if( !voipPhoneNumber().isEmpty() )
 			voipSaveString = QString("%1 %2 %3 %4").arg(voipPhoneNumber(), voipSIPServer(), voipSIPUserName(), voipSIPUserPass());
 
+		QString serviceStateString;
+		switch( m_serviceState )
+		{
+		case ServiceState::ActiveUndefined:		break;	// No data needed at all.
+		case ServiceState::ActiveTemporally:
+			serviceStateString += QString("%1>").arg(ServiceState::toSaveString(m_serviceState));
+			foreach( const ServiceStateScheduler &sss, m_serviceStateSchedulerList )
+			{
+				serviceStateString.append(QString("%1,%2,").arg(ServiceState::toSaveString(sss.newState),
+																sss.changeDate.toString("dd.MM.yyyy")) );
+			}
+			break;
+		case ServiceState::CanceledTemporally:
+			serviceStateString += QString("%1|%2>").arg(ServiceState::toSaveString(m_serviceState), m_originalProfile);
+			foreach( const ServiceStateScheduler &sss, m_serviceStateSchedulerList )
+			{
+				serviceStateString.append(QString("%1,%2,").arg(ServiceState::toSaveString(sss.newState),
+																sss.changeDate.toString("dd.MM.yyyy")) );
+			}
+			break;
+		case ServiceState::CanceledNoPay:
+		case ServiceState::CanceledTechnically:
+		case ServiceState::CanceledRetired:
+		case ServiceState::CanceledUndefined:
+			serviceStateString += QString("%1|%2").arg(ServiceState::toSaveString(m_serviceState), m_originalProfile);
+			break;
+		}
+
 		const_cast<ROSPPPSecret*>(this)->
 		m_commentString =
 			QString("%1$%2$%3$%4$%5$%6$%7$%8$%9$%10$%11$%12$%13$%14$%15")
-				.arg(originalProfile())
+				.arg(serviceStateString)
 				.arg(clientName())
 				.arg(clientAddress())
 				.arg(clientCity())
@@ -153,9 +165,12 @@ void ROSPPPSecret::parseCommentString(const QString &commentString)
 		QString wifiSaveString;
 		QString lanSaveString;
 		QString voipSaveString;
+		QString profileString;
+		QString serviceStateString;
+		QStringList data;
 		switch( i )
 		{
-		case 15:	setServiceState( fields[--i] );					[[clang::fallthrough]];
+		case 15:	serviceStateString	= fields[--i];				[[clang::fallthrough]];
 		case 14:	lanSaveString		= fields[--i];				[[clang::fallthrough]];
 		case 13:	m_clientCode		= fields[--i];				[[clang::fallthrough]];
 		case 12:	voipSaveString		= fields[--i];				[[clang::fallthrough]];
@@ -169,8 +184,57 @@ void ROSPPPSecret::parseCommentString(const QString &commentString)
 		case 4:		m_clientCity		= fields[--i];				[[clang::fallthrough]];
 		case 3:		m_clientAddress		= fields[--i];				[[clang::fallthrough]];
 		case 2:		m_clientName		= fields[--i];
-					m_originalProfile	= fields[--i];
+					profileString		= fields[--i];
 			break;
+		}
+		if( profileString.isEmpty() )	// There is no information. It's active indefined.
+		{
+			m_serviceState = ServiceState::ActiveUndefined;
+			m_originalProfile.clear();
+		}
+		else
+		if( profileString.count() == 2 )
+		{
+			setServiceState( profileString );
+			m_originalProfile.clear();
+		}
+		else
+		// ServiceStateCode[|<OriginalProfile>][>Scheduler,List,Coma,Separated]
+		if( (profileString.count() >= 3) && ((profileString.at(2) == '|') || (profileString.at(2) == '>')) )
+		{
+			setServiceState( profileString );
+			i = profileString.indexOf('>', 3);
+			if( i != -1 )
+			{
+				m_originalProfile = profileString.mid(3, i-3);
+				data = profileString.mid(i+1).split(',', QString::SkipEmptyParts);
+				Q_ASSERT( (data.count() % 2) == 0 );
+				for( i = 0; i < data.count(); i += 2 )
+				{
+					ServiceStateScheduler sss;
+					sss.newState = ServiceState::fromSaveString( data[i] );
+					sss.changeDate.fromString( data[1+1], "dd.MM.yyyy" );
+				}
+			}
+			else
+				m_originalProfile = profileString.mid(3);
+		}
+		else
+		{
+			m_originalProfile = profileString;
+			if( serviceStateString.contains("lta") )
+				m_serviceState = ServiceState::ActiveUndefined;
+			else
+			if( serviceStateString.contains("emporal") )
+				m_serviceState = ServiceState::CanceledTemporally;
+			else
+			if( serviceStateString.contains("retira") )
+				m_serviceState = ServiceState::CanceledRetired;
+			else
+			if( serviceStateString.contains("debe") )
+				m_serviceState = ServiceState::CanceledNoPay;
+			else
+				m_serviceState = ServiceState::CanceledUndefined;
 		}
 		m_wifi2SSID.clear();
 		m_wifi2WPA.clear();
@@ -207,7 +271,7 @@ void ROSPPPSecret::parseCommentString(const QString &commentString)
 				voipSaveString.clear();
 			}
 		}
-		QStringList data = voipSaveString.split(' ');
+		data = voipSaveString.split(' ');
 		if( data.count() == 4 )
 		{
 			m_voipPhoneNumber	= data[0];
@@ -287,11 +351,10 @@ ROS::QSentence &ROSPPPSecret::toSentence(ROS::QSentence &sentence) const
 
 bool ROSPPPSecret::hasSameData(const ROSDataBase &rosData) const
 {
-	return
-		(m_userName == static_cast<const ROSPPPSecret &>(rosData).m_userName) &&
-		(m_userPass == static_cast<const ROSPPPSecret &>(rosData).m_userPass) &&
-		(m_profile == static_cast<const ROSPPPSecret &>(rosData).m_profile) &&
-		(m_staticIP == static_cast<const ROSPPPSecret &>(rosData).m_staticIP) &&
+	return	(m_userName == static_cast<const ROSPPPSecret &>(rosData).m_userName) &&
+			(m_userPass == static_cast<const ROSPPPSecret &>(rosData).m_userPass) &&
+			(m_profile == static_cast<const ROSPPPSecret &>(rosData).m_profile) &&
+			(m_staticIP == static_cast<const ROSPPPSecret &>(rosData).m_staticIP) &&
 			(commentString() == static_cast<const ROSPPPSecret &>(rosData).commentString());
 }
 

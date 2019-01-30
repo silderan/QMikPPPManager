@@ -370,7 +370,7 @@ void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &pppSecret)
 	}
 
 	setupCellItem( userNameItem->row(), Columns::ClientCode,		pppSecret.clientCode(), true );
-	setupCellItem( userNameItem->row(), Columns::UserProfile,		pppSecret.originalProfile(), true );
+	setupCellItem( userNameItem->row(), Columns::UserProfile,		ServiceState::isActiveState(pppSecret.serviceState()) ? pppSecret.pppProfileName() : pppSecret.originalProfile(), true );
 	setupCellItem( userNameItem->row(), Columns::ClientName,		pppSecret.clientName(), true );
 	setupCellItem( userNameItem->row(), Columns::ClientAddress,		pppSecret.clientAddress(), true );
 	setupCellItem( userNameItem->row(), Columns::ClientCity,		pppSecret.clientCity(), true );
@@ -558,6 +558,7 @@ bool QROSSecretTableWidget::allowCellChange(const QModelIndex &index, const QStr
 
 	std::function<bool(ROSPPPSecret &, const QString &)> setFnc;
 	QString fieldName;
+	bool needReconect = false;
 
 	if( userNameItem )
 	{
@@ -581,16 +582,29 @@ bool QROSSecretTableWidget::allowCellChange(const QModelIndex &index, const QStr
 				// This is not a string, so cannot be set by setFnc
 				newSecret.setServiceState( ServiceState::fromNameString(newText) );
 				if( ServiceState::isActiveState(newSecret.serviceState()) && (newSecret.pppProfileName() == gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName()) )
+				{
 					newSecret.setPPPProfileName(newSecret.originalProfile());
+					newSecret.setOriginalProfile("");
+				}
 				else
-					if( !ServiceState::isActiveState(newSecret.serviceState()) && (newSecret.pppProfileName() != gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName()) )
-						newSecret.setPPPProfileName(gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName());
+				if( !ServiceState::isActiveState(newSecret.serviceState()) && (newSecret.pppProfileName() != gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName()) )
+				{
+					newSecret.setOriginalProfile(newSecret.pppProfileName());
+					newSecret.setPPPProfileName(gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName());
+				}
 				multiConnectionManager.updateRemoteData(newSecret, userNameItem->pppSecretMap.toRouterIDMap());
+				needReconect = true;
 			}
 			break;
 		case QROSSecretTableWidget::UserProfile:
 			// This is a special case where two fields changes at once.
-			newSecret.setOriginalProfile(newText);
+			if( ServiceState::isActiveState(newSecret.serviceState()) )
+			{
+				newSecret.setPPPProfileName(newText);
+				needReconect = true;
+			}
+			else
+				newSecret.setOriginalProfile(newText);
 			if( newSecret.pppProfileName() != gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName() )
 				newSecret.setPPPProfileName(newText);
 			multiConnectionManager.updateRemoteData(newSecret, userNameItem->pppSecretMap.toRouterIDMap());
@@ -605,6 +619,7 @@ bool QROSSecretTableWidget::allowCellChange(const QModelIndex &index, const QStr
 			// This is not a string, so cannot be set by setFnc
 			newSecret.setStaticIP( IPv4(newText) );
 			multiConnectionManager.updateRemoteData(newSecret, userNameItem->pppSecretMap.toRouterIDMap());
+			needReconect = true;
 			break;
 		case QROSSecretTableWidget::ClientName:
 			fieldName = tr("Nombre del cliente");
@@ -646,6 +661,8 @@ bool QROSSecretTableWidget::allowCellChange(const QModelIndex &index, const QStr
 
 	if( !fieldName.isEmpty() && checkStringData( newSecret, fieldName, newText, setFnc) )
 		multiConnectionManager.updateRemoteData(newSecret, userNameItem->pppSecretMap.toRouterIDMap());
+	if( needReconect && !userNameItem->pppActive.rosObjectID().isEmpty() )
+		multiConnectionManager.updateRemoteData( userNameItem->pppActive );
 	return false;
 }
 
