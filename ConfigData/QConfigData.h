@@ -41,8 +41,8 @@ private:
 
 	// Apariencia de las tablas
 	TableCellLook m_tableCellLook;
+	QList<int> m_columnsHidden;
 
-public:
 	static const QString tagSecret;
 	static const QString tagLSecret;
 	static const QString tagPerfil;
@@ -51,6 +51,7 @@ public:
 	static const QString tagNuevo;
 	static const QString tagAPIUser;
 
+public:
 #ifdef QT_DEBUG
 	QConfigData()
 		: m_userFName(QDir::homePath()+"/PPPManager64UserDebug.ini")
@@ -63,6 +64,9 @@ public:
 		, m_rosProtectedFName("PPPManager64ROSProtected.ini")
 #endif
 		, m_userLevel(ROSAPIUser::Level::NoRights)
+		, m_pantallaMaximizada(true)
+		, m_anchoPantalla(1280)
+		, m_altoPantalla(720)
 	{	}
 	~QConfigData()
 	{	}
@@ -110,6 +114,9 @@ public:
 
 	const IPv4RangeListMap &staticIPv4RangeListMap() const	{ return m_staticIPv4RangeListMap;	}
 	IPv4RangeListMap &staticIPv4RangeListMap()				{ return m_staticIPv4RangeListMap;	}
+
+	const QList<int> &columnsHidden() const			{ return m_columnsHidden;	}
+	QList<int> &columnsHidden()						{ return m_columnsHidden;	}
 
 	TableCellLook &tableCellLook()					{ return m_tableCellLook;	}
 

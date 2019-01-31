@@ -98,8 +98,8 @@ public:
 		ServiceStatus,
 		UserProfile,
 		ActiveUserStatus,
-		ActiveRouter,
 		RemoteIP,
+		ActiveRouter,
 		ClientName,
 		ClientAddress,
 		ClientCity,
@@ -151,7 +151,10 @@ private:
 public:
 	explicit QROSSecretTableWidget(QWidget *papi = Q_NULLPTR);
 
+	QList<int> findData(const QString &text, QList<Columns> columns, bool exactMatch);
+
 	static QStringList columnsNames();
+	void setColumnHidden(int col, bool hidden);
 
 	QROSUserNameWidgetItem *userNameWidgetItem(int row);
 	const QROSUserNameWidgetItem *userNameWidgetItem(int row) const;

@@ -66,14 +66,14 @@ QMikPPPManager::QMikPPPManager(QWidget *parent) :
 	connect( ui->usersTable, &QROSSecretTableWidget::editPPPUser, this, &QMikPPPManager::onPPPEditRequest );
 
 	ui->fieldFilterComboBox->addItems( QStringList()
-									   << tr("Cualquiera")
+									   << tr("Cualquier dato")
 									   << ui->usersTable->columnsNames() );
 	ui->fieldFilterComboBox->setCurrentIndex(0);
 
 	ui->serviceStateFilterComboBox->addItems( QStringList()
 											  << tr("Cualquier estado del servicio")
 											  << tr("Activos")
-											  << tr("Inactivos")
+											  << tr("Cancelados")
 											  << ServiceState::serviceStateNameList() );
 	ui->serviceStateFilterComboBox->setCurrentIndex( 0 ); // This sets the index to "any"
 
@@ -263,98 +263,6 @@ void QMikPPPManager::onROSDone(const QString &routerName, DataTypeID dataTypeID)
 	foreach( QDlgMultiDataBase *dlg, m_dialogList )
 		dlg->onROSDone(routerName, dataTypeID);
 	ui->usersTable->onROSDone(routerName, dataTypeID);
-}
-
-void QMikPPPManager::pideUsuarios(const QString &routerName)
-{
-	ROS::QSentence s("/ppp/secret/getall");
-	s.setTag( gGlobalConfig.tagSecret );
-	s.addQuery("#|");
-	multiConnectionManager.sendSentence( routerName, s );
-
-	s.setCommand("/ppp/secret/listen");
-	s.setTag( gGlobalConfig.tagLSecret );
-	multiConnectionManager.sendSentence( routerName, s );
-}
-
-void QMikPPPManager::pideActivos(const QString &routerName)
-{
-	multiConnectionManager.sendSentence( routerName, "/ppp/active/getall", gGlobalConfig.tagActivo );
-}
-
-void QMikPPPManager::pideCambios(const QString &routerName)
-{
-	multiConnectionManager.sendSentence( routerName, "/ppp/active/listen", gGlobalConfig.tagLActivo );
-}
-
-void QMikPPPManager::reiniciaConexionRemota(QSecretData *sd)
-{
-	// TODO: To do so, need to know the router where the pppoe user is loged.
-//	if( !sd->sesionID().isEmpty() )
-//	{
-//		ROS::QSentence s("/ppp/active/remove");
-//		s.setID(sd->sesionID());
-//		s.setTag("ReconnectClient");
-//		mktAPI.sendSentence(s);
-//	}
-}
-
-
-// Comprueba si el código cliente es válido con los siguiente criterios.
-// Es un valor positivo.
-// El código de cliente no corresponde a otro cliente (se pregunta qué hacer en este caso)
-bool QMikPPPManager::codigoClienteValido(const QString &code, const QSecretData *sdOri)
-{
-//	QSecretData *sd;
-//	if( code.toInt() <= 0 )
-//	{
-//		QMessageBox::warning(this, tr("Código de cliente"), tr("El código de cliente debe ser un número mayor que 0") );
-//		return false;
-//	}
-//	if( code.toInt() > 99999 )
-//	{
-//		QMessageBox::warning(this, tr("Código de cliente"), tr("El código de cliente debe ser un número positivo menor que 99999") );
-//		return false;
-//	}
-
-//	if( ((sd = ui->twUsuarios->secrets().findDataByClientCode(code, sdOri)) != Q_NULLPTR) &&
-//		(QMessageBox::question(this, tr("Código de cliente"), tr("El código de cliente %1 corresponde a %2 y quieres asociarlo a %3.\n¿Es correcto?")
-//							  .arg(code)
-//							  .arg(sd->usuario())
-//							  .arg(sdOri->nombre()), QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes) )
-//			return false;
-	return true;
-}
-
-bool QMikPPPManager::checkRouterUsersIntegrity() const
-{
-	// TODO Comprobar que todos los usuarios que pueden logarse al router están en todos los routers por igual.
-	return true;
-}
-
-void QMikPPPManager::onAllROSAPIUsersReceived()
-{
-//	if( (grupo.compare("full") == 0) || (grupo.compare("Supervisores") == 0) )
-//		setNivelUsuario(QConfigData::Supervisor);
-//	else
-//	if( grupo.compare("Instaladores", Qt::CaseInsensitive) == 0 )
-//		setNivelUsuario(QConfigData::Instalador);
-//	else
-//	if( grupo.compare("Administradores", Qt::CaseInsensitive) == 0 )
-//		setNivelUsuario(QConfigData::Administrador);
-//	else
-//	if( grupo.compare("Comerciales", Qt::CaseInsensitive) == 0 )
-//	{
-//		setNivelUsuario(QConfigData::Comercial);
-//	}
-//	else
-//	{
-//		QString info = tr("Usuario %1 pertenece al grupo %2 y no tiene permisos para hacer nada.").arg(nombre, grupo);
-//		setNivelUsuario(QConfigData::SinPermisos);
-//		setStatusText(routerName, info);
-//		QMessageBox::warning(Q_NULLPTR, tr("Información de usuario"), info);
-//	}
-	//	this->setWindowTitle(QString("%1 - %2 [%4]").arg("Mikrotik PPP Manager", nombre, grupo));
 }
 
 void QMikPPPManager::updateGUIAccess()

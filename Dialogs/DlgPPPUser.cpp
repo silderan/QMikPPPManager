@@ -118,8 +118,8 @@ bool DlgPPPUser::getPPPUserPass()
 
 bool DlgPPPUser::getPPPProfile()
 {
-	if( ServiceState::isActiveState(m_pppSecret.serviceState()) )
-		return updateTextMember<ROSPPPSecret>( ui->pppProfileComboBox->currentText(), m_pppSecret, &ROSPPPSecret::pppProfileName, &ROSPPPSecret::setPPPProfileName, tr("Perfil del cliente") );
+	if( !ServiceState::isCanceledState(m_pppSecret.serviceState()) )
+		updateTextMember<ROSPPPSecret>( ui->pppProfileComboBox->currentText(), m_pppSecret, &ROSPPPSecret::pppProfileName, &ROSPPPSecret::setPPPProfileName, tr("Perfil del cliente") );
 	return updateTextMember<ROSPPPSecret>( ui->pppProfileComboBox->currentText(), m_pppSecret, &ROSPPPSecret::originalProfile, &ROSPPPSecret::setOriginalProfile, tr("Perfil del cliente") );
 }
 
@@ -610,7 +610,7 @@ void DlgPPPUser::on_copyInfoButton_clicked()
 	txt.append( tr("\n%1. %2." ).arg(ui->clientAddressLineEdit->text(), ui->clientCityComboBox->currentText()));
 	txt.append( tr("\n%1").arg( ui->clientPhonesLineEdit->text().isEmpty()? tr("Sin teléfonos conocidos.") : tr("Teléfono: %1").arg(ui->clientPhonesLineEdit->text()) ) );
 	txt.append( tr("\nServicio: %1%2").arg( ServiceState::readableString(m_pppSecret.serviceState()),
-										   ServiceState::isActiveState(m_pppSecret.serviceState())
+										   !ServiceState::isCanceledState(m_pppSecret.serviceState())
 										 ? tr(". Perfil: %1").arg(m_pppSecret.originalProfile())
 										 : "") );
 	txt.append( tr("\nEstado: %1").arg(m_pppActive.rosObjectID().isEmpty()

@@ -45,3 +45,24 @@ ROSDataBase *QROSAPIUsersGroupTableWidget::getRosData(int row)
 	groupData->setPolicy( cellText(row, Policy).split(',') );
 	return groupData;
 }
+
+void QROSAPIUsersGroupTableWidget::updateROSData(ROSDataBase *rosData, int row, int changedColumn, const QString &newValue)
+{
+	Q_UNUSED(row);
+
+	switch( static_cast<Columns>(changedColumn) )
+	{
+	case QROSAPIUsersGroupTableWidget::GroupName:
+		static_cast<ROSAPIUsersGroup*>(rosData)->setGroupName(newValue);
+		break;
+	case QROSAPIUsersGroupTableWidget::Policy:
+		static_cast<ROSAPIUsersGroup*>(rosData)->setPolicy(newValue.split(','));
+		break;
+	case QROSAPIUsersGroupTableWidget::Routers:
+		Q_ASSERT(false);
+		break;
+	case QROSAPIUsersGroupTableWidget::TotalColumns:
+		Q_ASSERT(false);
+		break;
+	}
+}

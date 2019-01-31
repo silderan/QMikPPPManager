@@ -22,7 +22,7 @@ struct ServiceState
 		CanceledUndefined
 	};
 
-	static bool isActiveState(ServiceState::Type type);
+	static bool isCanceledState(ServiceState::Type type);
 	static QString toSaveString(const ServiceState::Type type);
 	static ServiceState::Type fromSaveString(const QString &saveString);
 	static ServiceState::Type fromNameString(const QString &nameString);

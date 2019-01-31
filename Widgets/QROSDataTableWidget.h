@@ -59,7 +59,7 @@ protected:
 	// Internally called one column has been changed but before it's actually changed in table.
 	// Base function does nothing because the only known data are router-id.
 	// So, derived classes must override this funcion and update data of the rosData member up to changedColumn.
-	virtual void updateROSData(ROSDataBase *rosData, int row, int changedColumn, const QString &newValue);
+	virtual void updateROSData(ROSDataBase *rosData, int row, int changedColumn, const QString &newValue) = 0;
 	// Called by delegates before data changes.
 	// Base funcion returns false and sends data to ROS. With this, data shown in table remains untouched and just will be
 	// updated when it comes from ROS. Un case of ROS error, as local data remained unchanged, is consistent with remote one.

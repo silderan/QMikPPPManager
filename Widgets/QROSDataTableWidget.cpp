@@ -144,11 +144,6 @@ int QROSDataTableWidget::rowOf(const ROSDataBase &rosData)
 	return rowOf(rosData.routerName(), rosData.rosObjectID());
 }
 
-// TODO: make this function pure virtual!
-void QROSDataTableWidget::updateROSData(ROSDataBase *rosData, int row, int, const QString &)
-{
-}
-
 bool QROSDataTableWidget::allowModelIndexDataChange(const QModelIndex &index, const QString &newData)
 {
 	ROSDataBase *rosData = getRosData(index.row());

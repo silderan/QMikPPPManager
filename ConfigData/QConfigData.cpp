@@ -72,6 +72,7 @@ QComboBox *QConfigData::setupComboBox(QComboBox *cb, bool editable, const QStrin
 #define LKEY_ANCHO_PANTALLA	("ancho-pantalla")
 #define LKEY_ALTO_PANTALLA	("alto-pantalla")
 #define LKEY_MAXIMIZADA		("pantalla-maximmizada")
+#define LKEY_COLSHIDDEN		("columns-hidden")
 
 // Global protected data keys.
 #define GPKEY_COMERCIALES			("comerciales")
@@ -90,6 +91,9 @@ void QConfigData::loadLocalUserData()
 	m_anchoPantalla			= cnfgData[LKEY_ANCHO_PANTALLA].toInt();
 	m_altoPantalla			= cnfgData[LKEY_ALTO_PANTALLA].toInt();
 	m_pantallaMaximizada	= cnfgData[LKEY_MAXIMIZADA] == "true";
+	m_columnsHidden.clear();
+	foreach( const QString &col, cnfgData[LKEY_COLSHIDDEN].split(',', QString::SkipEmptyParts) )
+		m_columnsHidden.append( col.toInt() );
 
 	m_tableCellLook.load(cnfgData);
 }
@@ -125,6 +129,10 @@ void QConfigData::saveLocalUserData() const
 	cnfgData[LKEY_ANCHO_PANTALLA] = QString::number(m_anchoPantalla);
 	cnfgData[LKEY_ALTO_PANTALLA] = QString::number(m_altoPantalla);
 	cnfgData[LKEY_MAXIMIZADA] = m_pantallaMaximizada ? "true" : "false";
+
+	cnfgData[LKEY_COLSHIDDEN].clear();
+	foreach( int col, m_columnsHidden )
+		cnfgData[LKEY_COLSHIDDEN].append( QString("%1,").arg(col) );
 
 	m_tableCellLook.save(cnfgData);
 	QIniFile::save(m_userFName, cnfgData);

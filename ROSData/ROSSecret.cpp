@@ -2,9 +2,9 @@
 
 #include "../Utils/Utils.h"
 
-bool ServiceState::isActiveState(ServiceState::Type type)
+bool ServiceState::isCanceledState(ServiceState::Type type)
 {
-	return  type <= ServiceState::ActiveTemporally;
+	return  type > ServiceState::ActiveTemporally;
 }
 
 QString ServiceState::toSaveString(const ServiceState::Type type)
@@ -106,8 +106,6 @@ const QString &ROSPPPSecret::commentString() const
 			voipSaveString = QString("%1 %2 %3 %4").arg(voipPhoneNumber(), voipSIPServer(), voipSIPUserName(), voipSIPUserPass());
 
 		QString serviceStateString;
-		Remodelar esto para que se trabaje siempre con el originalProfile. (Es más fácil de loguear y de tratar en la tabla)
-		Luego, aqui, guardar el originalProfile() sólo si es necesario (si es diferente al profile, en caso de servicioCancelado )
 		switch( m_serviceState )
 		{
 		case ServiceState::ActiveUndefined:		break;	// No data needed at all.
@@ -192,13 +190,13 @@ void ROSPPPSecret::parseCommentString(const QString &commentString)
 		if( profileString.isEmpty() )	// There is no information. It's active indefined.
 		{
 			m_serviceState = ServiceState::ActiveUndefined;
-			m_originalProfile.clear();
+			m_originalProfile = m_profile;
 		}
 		else
 		if( profileString.count() == 2 )
 		{
 			setServiceState( profileString );
-			m_originalProfile.clear();
+			m_originalProfile = m_profile;
 		}
 		else
 		// ServiceStateCode[|<OriginalProfile>][>Scheduler,List,Coma,Separated]

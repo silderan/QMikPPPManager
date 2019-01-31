@@ -23,9 +23,11 @@ public:
 
 	// QTableWidgetBase interface
 protected:
-	void setupRow(int row, const ROSDataBase &rosData) override;
-	int rowOf(const ROSDataBase &rosData) override;
-	ROSDataBase *getRosData(int row) override;
+	void setupRow(int row, const ROSDataBase &rosData) Q_DECL_OVERRIDE;
+	int rowOf(const ROSDataBase &rosData) Q_DECL_OVERRIDE;
+	ROSDataBase *getRosData(int row) Q_DECL_OVERRIDE;
+
+	void updateROSData(ROSDataBase *rosData, int row, int changedColumn, const QString &newValue) Q_DECL_OVERRIDE;
 };
 
 #endif // QROSAPIUSERSGROUPTABLEWIDGET_H
