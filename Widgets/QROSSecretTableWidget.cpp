@@ -596,17 +596,18 @@ bool QROSSecretTableWidget::allowCellChange(const QModelIndex &index, const QStr
 				needReconect = true;
 			}
 			break;
-		case QROSSecretTableWidget::UserProfile:
-			// This is a special case where two fields changes at once.
+		case QROSSecretTableWidget::UserProfile: // This is a special case where two fields changes at once.
 			if( ServiceState::isActiveState(newSecret.serviceState()) )
 			{
 				newSecret.setPPPProfileName(newText);
-				needReconect = true;
+				newSecret.setOriginalProfile("");
 			}
 			else
+			{
+				newSecret.setPPPProfileName( gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName() );
 				newSecret.setOriginalProfile(newText);
-			if( newSecret.pppProfileName() != gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName() )
-				newSecret.setPPPProfileName(newText);
+			}
+			needReconect = true;
 			multiConnectionManager.updateRemoteData(newSecret, userNameItem->pppSecretMap.toRouterIDMap());
 			break;
 		case QROSSecretTableWidget::ActiveUserStatus:
@@ -659,24 +660,27 @@ bool QROSSecretTableWidget::allowCellChange(const QModelIndex &index, const QStr
 		}
 	}
 
-	if( !fieldName.isEmpty() && checkStringData( newSecret, fieldName, newText, setFnc) )
+	if( !fieldName.isEmpty() && checkStringData(newSecret, fieldName, newText, setFnc) )
 		multiConnectionManager.updateRemoteData(newSecret, userNameItem->pppSecretMap.toRouterIDMap());
-	if( needReconect && !userNameItem->pppActive.rosObjectID().isEmpty() )
-		multiConnectionManager.updateRemoteData( userNameItem->pppActive );
+	if( needReconect )
+		disconnectUser(userNameItem->row());
 	return false;
+}
+
+void QROSSecretTableWidget::disconnectUser(int row)
+{
+	ROSPPPActive &rosActive = userNameWidgetItem(row)->pppActive;
+	if( !rosActive.rosObjectID().isEmpty() && !rosActive.deleting() )
+	{
+		rosActive.setDeleting(true);
+		multiConnectionManager.updateRemoteData(rosActive);
+	}
 }
 
 void QROSSecretTableWidget::disconnectSelected()
 {
 	foreach( const QModelIndex &index, selectedIndexes() )
-	{
-		ROSPPPActive &rosActive = userNameWidgetItem(index.row())->pppActive;
-		if( !rosActive.rosObjectID().isEmpty() && !rosActive.deleting() )
-		{
-			rosActive.setDeleting(true);
-			multiConnectionManager.updateRemoteData(rosActive);
-		}
-	}
+		disconnectUser(index.row());
 }
 
 void QROSSecretTableWidget::deleteUser(const QString &userName, bool sure) const

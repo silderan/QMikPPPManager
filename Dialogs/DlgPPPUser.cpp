@@ -118,6 +118,8 @@ bool DlgPPPUser::getPPPUserPass()
 
 bool DlgPPPUser::getPPPProfile()
 {
+	if( ServiceState::isActiveState(m_pppSecret.serviceState()) )
+		return updateTextMember<ROSPPPSecret>( ui->pppProfileComboBox->currentText(), m_pppSecret, &ROSPPPSecret::pppProfileName, &ROSPPPSecret::setPPPProfileName, tr("Perfil del cliente") );
 	return updateTextMember<ROSPPPSecret>( ui->pppProfileComboBox->currentText(), m_pppSecret, &ROSPPPSecret::originalProfile, &ROSPPPSecret::setOriginalProfile, tr("Perfil del cliente") );
 }
 

@@ -177,6 +177,7 @@ public:
 
 	bool allowCellChange(const QModelIndex &index,const QString &newText);
 
+	void disconnectUser(int row);
 	void disconnectSelected();
 
 	void deleteUser(const QString &userName, bool sure = false) const;

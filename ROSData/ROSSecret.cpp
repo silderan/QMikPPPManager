@@ -106,6 +106,8 @@ const QString &ROSPPPSecret::commentString() const
 			voipSaveString = QString("%1 %2 %3 %4").arg(voipPhoneNumber(), voipSIPServer(), voipSIPUserName(), voipSIPUserPass());
 
 		QString serviceStateString;
+		Remodelar esto para que se trabaje siempre con el originalProfile. (Es más fácil de loguear y de tratar en la tabla)
+		Luego, aqui, guardar el originalProfile() sólo si es necesario (si es diferente al profile, en caso de servicioCancelado )
 		switch( m_serviceState )
 		{
 		case ServiceState::ActiveUndefined:		break;	// No data needed at all.
@@ -208,12 +210,14 @@ void ROSPPPSecret::parseCommentString(const QString &commentString)
 			{
 				m_originalProfile = profileString.mid(3, i-3);
 				data = profileString.mid(i+1).split(',', QString::SkipEmptyParts);
-				Q_ASSERT( (data.count() % 2) == 0 );
-				for( i = 0; i < data.count(); i += 2 )
+				if( (data.count() % 2) == 0 )
 				{
-					ServiceStateScheduler sss;
-					sss.newState = ServiceState::fromSaveString( data[i] );
-					sss.changeDate.fromString( data[1+1], "dd.MM.yyyy" );
+					for( i = 0; i < data.count(); i += 2 )
+					{
+						ServiceStateScheduler sss;
+						sss.newState = ServiceState::fromSaveString( data[i] );
+						sss.changeDate.fromString( data[1+1], "dd.MM.yyyy" );
+					}
 				}
 			}
 			else
@@ -222,19 +226,21 @@ void ROSPPPSecret::parseCommentString(const QString &commentString)
 		else
 		{
 			m_originalProfile = profileString;
-			if( serviceStateString.contains("lta") )
-				m_serviceState = ServiceState::ActiveUndefined;
+			if( (profileString == m_profile) || serviceStateString.contains("lta") )
+				m_serviceState = ServiceState::Type::ActiveUndefined;
 			else
-			if( serviceStateString.contains("emporal") )
-				m_serviceState = ServiceState::CanceledTemporally;
-			else
-			if( serviceStateString.contains("retira") )
-				m_serviceState = ServiceState::CanceledRetired;
-			else
-			if( serviceStateString.contains("debe") )
-				m_serviceState = ServiceState::CanceledNoPay;
-			else
-				m_serviceState = ServiceState::CanceledUndefined;
+			{
+				if( serviceStateString.contains("emporal") )
+					m_serviceState = ServiceState::CanceledTemporally;
+				else
+				if( serviceStateString.contains("retira") )
+					m_serviceState = ServiceState::CanceledRetired;
+				else
+				if( serviceStateString.contains("debe") )
+					m_serviceState = ServiceState::CanceledNoPay;
+				else
+					m_serviceState = ServiceState::CanceledUndefined;
+			}
 		}
 		m_wifi2SSID.clear();
 		m_wifi2WPA.clear();
