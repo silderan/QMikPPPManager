@@ -815,13 +815,16 @@ void QROSSecretTableWidget::contextMenuEvent(QContextMenuEvent *event)
 		const ROSPPPActive &rosActive = userNameItem->pppActive;
 		if( rosActive.currentIPv4().isValid() )
 		{
-			openBrowser.setTitle( tr("Abrir http://%1:...").arg(rosActive.currentIPv4().toString()) );
-			QMapIterator<QString, quint16> it(gGlobalConfig.openPortsMap());
-			while( it.hasNext() )
+			openBrowser.setTitle( tr("Abrir web %1 ...").arg(rosActive.currentIPv4().toString()) );
+
+			OpenBrowserInfoList obl(userNameItem->pppSecretMap.first().portForwardList());
+			obl += gGlobalConfig.openBrowserInfoList();
+
+			foreach( OpenBrowserInfo obf, obl )
 			{
-				it.next();
-				QString url = QString("http://%1:%2").arg(rosActive.currentIPv4().toString()).arg(it.value());
-				QAction *ac = openBrowser.addAction( QString("puerto %1 (%2)").arg(it.value()).arg(it.key()) );
+				obf.ip = rosActive.currentIPv4().toString();
+				QString url = obf.toURL();
+				QAction *ac = openBrowser.addAction( QString("puerto %1 (%2)").arg(obf.port, obf.name) );
 				connect( ac, &QAction::triggered, [url] () { QDesktopServices::openUrl( QUrl(url) ); } );
 			}
 			rootMenu.addMenu( &openBrowser );

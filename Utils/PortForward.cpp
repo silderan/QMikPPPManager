@@ -75,70 +75,75 @@ QPortSpinBox::QPortSpinBox(quint16 port, QWidget *papi) : QSpinBox(papi)
 QString PortForward::toSaveString() const
 {
 	QString rtn;
-	// tcp:8080>192.168.1.1
-	if( (m_publicPortTo == m_privatePortTo) && (m_publicPortTo == m_publicPortFrom) )
-		return QString("%1:%2>%3").arg( IPProtocol::toString(m_protocol), QString::number(m_publicPortTo), m_destIP.toString() );
+	// name=tcp:8080>192.168.1.1
+	if( (m_publicPortEnd == m_privatePortEnd) && (m_publicPortEnd == m_publicPortIni) )
+		return QString("%1=%2:%3>%4").arg( m_name, IPProtocol::toString(m_protocol), QString::number(m_publicPortEnd), m_destIP.toString() );
 
-	// tcp:8080>192.168.1.1:80
-	if( m_publicPortTo == m_publicPortFrom )
-		return QString("%1:%2>%3:%4").arg( IPProtocol::toString(m_protocol), QString::number(m_publicPortTo), m_destIP.toString(), QString::number(m_privatePortTo) );
+	// name=tcp:8080>192.168.1.1:80
+	if( m_publicPortEnd == m_publicPortIni )
+		return QString("%1=%2:%3>%4:%5").arg( m_name, IPProtocol::toString(m_protocol), QString::number(m_publicPortEnd), m_destIP.toString(), QString::number(m_privatePortEnd) );
 
-	// tcp:8080-8088>192.168.1.1:80-88
-	return QString("%1:%2-%3>%4:%5-%6").arg( IPProtocol::toString(m_protocol),
-											 QString::number(m_publicPortFrom), QString::number(m_publicPortTo),
+	// name=tcp:8080-8088>192.168.1.1:80-88
+	return QString("%1=%2:%3-%4>%5:%6-%7").arg( m_name, IPProtocol::toString(m_protocol),
+											 QString::number(m_publicPortIni), QString::number(m_publicPortEnd),
 											 m_destIP.toString(),
-											 QString::number(m_privatePortFrom), QString::number(m_privatePortTo) );
+											 QString::number(m_privatePortIni), QString::number(m_privatePortEnd) );
 }
 
 void PortForward::fromSaveString(const QString &saveString)
 {
-	QStringList data = saveString.split( QRegExp("[:\\->]") );
-	if( data.count() == 3 )
-	{
-		setProtocol( data[0] );
-		m_publicPortFrom = static_cast<quint16>(data[1].toUInt());
-		m_destIP.fromString( data[2] );
-		m_publicPortTo = m_privatePortTo = m_privatePortFrom = m_publicPortFrom;
-	}
-	else
+	QStringList data = saveString.split( QRegExp("[=:\\->]") );
 	if( data.count() == 4 )
 	{
-		setProtocol( data[0] );
-		m_publicPortFrom = static_cast<quint16>(data[1].toUInt());
-		m_destIP.fromString( data[2] );
-		m_privatePortFrom = static_cast<quint16>(data[3].toUInt());
-		m_publicPortTo = m_publicPortFrom;
-		m_privatePortTo = m_privatePortFrom;
+		m_name = data[0];
+		setProtocol( data[1] );
+		m_publicPortIni = static_cast<quint16>(data[2].toUInt());
+		m_destIP.fromString( data[3] );
+		m_publicPortEnd = m_privatePortEnd = m_privatePortIni = m_publicPortIni;
+	}
+	else
+	if( data.count() == 5 )
+	{
+		m_name = data[0];
+		setProtocol( data[1] );
+		m_publicPortIni = static_cast<quint16>(data[2].toUInt());
+		m_destIP.fromString( data[3] );
+		m_privatePortIni = static_cast<quint16>(data[4].toUInt());
+		m_publicPortEnd = m_publicPortIni;
+		m_privatePortEnd = m_privatePortIni;
 	}
 	else
 	if( data.count() == 6 )
 	{
-		setProtocol( data[0] );
-		m_publicPortFrom = static_cast<quint16>(data[1].toUInt());
-		m_publicPortTo = static_cast<quint16>(data[2].toUInt());
-		m_destIP.fromString( data[3] );
-		m_privatePortFrom = static_cast<quint16>(data[4].toUInt());
-		m_privatePortTo = static_cast<quint16>(data[5].toUInt());
+		m_name = data[0];
+		setProtocol( data[1] );
+		m_publicPortIni = static_cast<quint16>(data[2].toUInt());
+		m_publicPortEnd = static_cast<quint16>(data[3].toUInt());
+		m_destIP.fromString( data[4] );
+		m_privatePortIni = static_cast<quint16>(data[5].toUInt());
+		m_privatePortEnd = static_cast<quint16>(data[6].toUInt());
 	}
 }
 
 bool PortForward::operator ==(const PortForward &other) const
 {
-	return	(m_destIP == other.m_destIP) &&
-			(m_publicPortTo == other.m_publicPortTo) &&
-			(m_publicPortFrom == other.m_publicPortFrom) &&
-			(m_privatePortTo == other.m_privatePortTo) &&
-			(m_privatePortFrom == other.m_privatePortFrom) &&
+	return	(m_name == other.m_name) &&
+			(m_destIP == other.m_destIP) &&
+			(m_publicPortEnd == other.m_publicPortEnd) &&
+			(m_publicPortIni == other.m_publicPortIni) &&
+			(m_privatePortEnd == other.m_privatePortEnd) &&
+			(m_privatePortIni == other.m_privatePortIni) &&
 			(m_protocol == other.m_protocol);
 }
 
 bool PortForward::operator !=(const PortForward &other) const
 {
-	return	(m_destIP != other.m_destIP) ||
-			(m_publicPortTo != other.m_publicPortTo) ||
-			(m_publicPortFrom != other.m_publicPortFrom) ||
-			(m_privatePortTo != other.m_privatePortTo) ||
-			(m_privatePortFrom != other.m_privatePortFrom) ||
+	return	(m_name != other.m_name) ||
+			(m_destIP != other.m_destIP) ||
+			(m_publicPortEnd != other.m_publicPortEnd) ||
+			(m_publicPortIni != other.m_publicPortIni) ||
+			(m_privatePortEnd != other.m_privatePortEnd) ||
+			(m_privatePortIni != other.m_privatePortIni) ||
 			(m_protocol != other.m_protocol);
 }
 

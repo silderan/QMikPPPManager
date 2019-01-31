@@ -1,15 +1,20 @@
 #include "QPortForwardTableWidget.h"
 
+#include <QHeaderView>
+
 QPortForwardTableWidget::QPortForwardTableWidget(QWidget *papi) : QTableWidget(papi)
 {
-	setColumnCount( 6 );
+	setColumnCount( 7 );
 	setHorizontalHeaderLabels( QStringList()
-							   << tr("Protcolo")
+							   << tr("Nombre")
+							   << tr("Protocolo")
 							   << tr("Publico Desde")
 							   << tr("Publico Hasta")
 							   << tr("Privado Desde")
 							   << tr("Privado Hasta")
 							   << tr("IP Destino") );
+
+	Q_ASSERT( horizontalHeader()->count() );
 }
 
 void QPortForwardTableWidget::addPortForwardRow(const PortForward &port)
@@ -17,25 +22,31 @@ void QPortForwardTableWidget::addPortForwardRow(const PortForward &port)
 	int row = rowCount();
 	insertRow(row);
 
-	setCellWidget( row, 0, new QIPProtocolComboBox(port.protocol()) );
-	setCellWidget( row, 1, new QPortSpinBox(port.publicPortFrom()) );
-	setCellWidget( row, 2, new QPortSpinBox(port.publicPortTo()) );
-	setCellWidget( row, 3, new QPortSpinBox(port.privatePortFrom()) );
-	setCellWidget( row, 4, new QPortSpinBox(port.privatePortTo()) );
-	setItem( row, 5, new QTableWidgetItem(port.destIP().toString()) );
-}
+	setCellWidget( row, Columns::Protocol,			new QIPProtocolComboBox(port.protocol()) );
+	setCellWidget( row, Columns::PublicPortIni,		new QPortSpinBox(port.publicPortIni()) );
+	setCellWidget( row, Columns::PublicPortEnd,		new QPortSpinBox(port.publicPortEnd()) );
+	setCellWidget( row, Columns::PrivatePortIni,	new QPortSpinBox(port.privatePortIni()) );
+	setCellWidget( row, Columns::PrivatePortEnd,	new QPortSpinBox(port.privatePortEnd()) );
 
+	setItem( row, Columns::Name,	new QTableWidgetItem(port.name()) );
+	setItem( row, Columns::IP,		new QTableWidgetItem(port.destIP().toString()) );
+}
 
 PortForward QPortForwardTableWidget::portForwardRow(int row)
 {
 	m_lastError.clear();
-	QString prot = static_cast<QComboBox*>(cellWidget(row, 0))->currentText();
-	quint16 publicPortFrom = static_cast<quint16>(static_cast<QSpinBox*>(cellWidget(row, 1))->value());
-	quint16 publicPortTo = static_cast<quint16>(static_cast<QSpinBox*>(cellWidget(row, 2))->value());
-	quint16 privatePortFrom = static_cast<quint16>(static_cast<QSpinBox*>(cellWidget(row, 3))->value());
-	quint16 privatePortTo = static_cast<quint16>(static_cast<QSpinBox*>(cellWidget(row, 4))->value());
-	IPv4 destIP( item(row, 5)->text() );
 
+	QString prot			= static_cast<QComboBox*>(cellWidget(row, Columns::Protocol))->currentText();
+	quint16 publicPortFrom	= static_cast<quint16>(static_cast<QSpinBox*>(cellWidget(row, Columns::PublicPortIni))->value());
+	quint16 publicPortTo	= static_cast<quint16>(static_cast<QSpinBox*>(cellWidget(row, Columns::PublicPortEnd))->value());
+	quint16 privatePortFrom	= static_cast<quint16>(static_cast<QSpinBox*>(cellWidget(row, Columns::PrivatePortIni))->value());
+	quint16 privatePortTo	= static_cast<quint16>(static_cast<QSpinBox*>(cellWidget(row, Columns::PrivatePortEnd))->value());
+	QString name = item(row, Columns::Name)->text();
+	IPv4 destIP( item(row, Columns::IP)->text() );
+
+	if( name.isEmpty() )
+		m_lastError = tr("Debes poner un nombre informativo para la redirección de puertos de la linea %1").arg(row);
+	else
 	if( !destIP.isValid() )
 		m_lastError = tr("La IP destino para la redirección de puertos de la linea %1 no es válida").arg(row);
 	else
@@ -73,7 +84,7 @@ PortForward QPortForwardTableWidget::portForwardRow(int row)
 				m_lastError = tr("El protocolo en la linea %1 no es válido").arg(row);
 			else
 			{
-				return PortForward( IPProtocol::fromString(prot), publicPortFrom, publicPortTo, privatePortFrom, privatePortTo, destIP );
+				return PortForward( name, IPProtocol::fromString(prot), publicPortFrom, publicPortTo, privatePortFrom, privatePortTo, destIP );
 			}
 		}
 	}

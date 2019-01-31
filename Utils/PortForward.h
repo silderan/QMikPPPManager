@@ -45,52 +45,58 @@ public:
 
 class PortForward
 {
+	QString m_name;
 	IPProtocol::Type m_protocol;
 
-	quint16 m_publicPortFrom;
-	quint16 m_publicPortTo;
-	quint16 m_privatePortFrom;
-	quint16 m_privatePortTo;
+	quint16 m_publicPortIni;
+	quint16 m_publicPortEnd;
+	quint16 m_privatePortIni;
+	quint16 m_privatePortEnd;
 	IPv4 m_destIP;
 
 public:
-	PortForward() :
-		m_protocol(IPProtocol::Unkown)
-	  , m_publicPortFrom(0)
-	  , m_publicPortTo(0)
-	  , m_privatePortFrom(0)
-	  , m_privatePortTo(0)
+	PortForward()
+		: m_protocol(IPProtocol::Unkown)
+		, m_publicPortIni(0)
+		, m_publicPortEnd(0)
+		, m_privatePortIni(0)
+		, m_privatePortEnd(0)
 	{	}
-	PortForward(const IPProtocol::Type &protocol, quint16 publicPort, quint16 privatePort, IPv4 destIP) :
-		m_protocol( protocol )
-	  , m_publicPortFrom(publicPort)
-	  , m_publicPortTo(publicPort)
-	  , m_privatePortFrom(privatePort)
-	  , m_privatePortTo(privatePort)
-	  , m_destIP(destIP)
+	PortForward(const QString name, const IPProtocol::Type &protocol, quint16 publicPort, quint16 privatePort, IPv4 destIP)
+		: m_name(name)
+		, m_protocol( protocol )
+		, m_publicPortIni(publicPort)
+		, m_publicPortEnd(publicPort)
+		, m_privatePortIni(privatePort)
+		, m_privatePortEnd(privatePort)
+		, m_destIP(destIP)
 	{	}
-	PortForward(const IPProtocol::Type &protocol, quint16 publicPortFrom, quint16 publicPortTo, quint16 privatePortFrom, quint16 privatePortTo, IPv4 destIP) :
-		m_protocol( protocol )
-	  , m_publicPortFrom(publicPortFrom)
-	  , m_publicPortTo(publicPortTo)
-	  , m_privatePortFrom(privatePortFrom)
-	  , m_privatePortTo(privatePortTo)
-	  , m_destIP(destIP)
+	PortForward(const QString name, const IPProtocol::Type &protocol, quint16 publicPortIni, quint16 publicPortEnd, quint16 privatePortIni, quint16 privatePortEnd, IPv4 destIP)
+		: m_name(name)
+		, m_protocol( protocol )
+		, m_publicPortIni(publicPortIni)
+		, m_publicPortEnd(publicPortEnd)
+		, m_privatePortIni(privatePortIni)
+		, m_privatePortEnd(privatePortEnd)
+		, m_destIP(destIP)
 	{	}
 	explicit PortForward(const QString &saveString)
 	{
 		fromSaveString(saveString);
 	}
 
+	const QString &name() const		{ return m_name;	}
+	void setName(const QString &n)	{ m_name = n;		}
+
 	const IPProtocol::Type &protocol() const			{ return m_protocol;	}
 	void setProtocol(const IPProtocol::Type &protocol)	{ m_protocol = protocol;  }
 	void setProtocol(const QString &protocol)			{ setProtocol( IPProtocol::fromString(protocol) ); }
 
-	quint16 publicPortFrom() const		{ return m_publicPortFrom;	}
-	quint16 publicPortTo() const		{ return m_publicPortTo;	}
+	quint16 publicPortIni() const		{ return m_publicPortIni;	}
+	quint16 publicPortEnd() const		{ return m_publicPortEnd;	}
 
-	quint16 privatePortFrom() const		{ return m_privatePortFrom;	}
-	quint16 privatePortTo() const		{ return m_privatePortTo;	}
+	quint16 privatePortIni() const		{ return m_privatePortIni;	}
+	quint16 privatePortEnd() const		{ return m_privatePortEnd;	}
 
 	IPv4 destIP() const					{ return m_destIP;	}
 

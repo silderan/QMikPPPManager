@@ -9,6 +9,18 @@ class QPortForwardTableWidget : public QTableWidget
 {
 	QString m_lastError;
 
+	enum Columns
+	{
+		Name,
+		Protocol,
+		PublicPortIni,
+		PublicPortEnd,
+		PrivatePortIni,
+		PrivatePortEnd,
+		IP,
+		Total
+	};
+
 	PortForward portForwardRow( int row );
 
 public:

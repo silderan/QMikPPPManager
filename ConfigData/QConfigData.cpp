@@ -35,15 +35,15 @@ QComboBox *QConfigData::setupCBPoblaciones(QComboBox *cb, const QStringList &pob
 	return setupComboBox(cb, true, poblacion, poblaciones);
 }
 
-QMap<QString, quint16> QConfigData::openPortsMap()
+OpenBrowserInfoList QConfigData::openBrowserInfoList()
 {
-	static QMap<QString, quint16> rtn;
+	static OpenBrowserInfoList rtn;
 	if( rtn.isEmpty() )
 	{
-		rtn[ QObject::tr("Estándar")] = 80;
-		rtn[ QObject::tr("VoIP ATA")] = 8080;
-		rtn[ QObject::tr("VoIP ATA'")] = 8888;
-		rtn[ QObject::tr("Router/AP interior")] = 2001;
+		rtn.append( OpenBrowserInfo(QObject::tr("Estándar"), "http", "80", "") );
+		rtn.append( OpenBrowserInfo(QObject::tr("VoIP ATA"), "http", "8080", "") );
+		rtn.append( OpenBrowserInfo(QObject::tr("VoIP ATA'"), "http", "8888", "") );
+		rtn.append( OpenBrowserInfo(QObject::tr("Router/AP interior"), "http", "2001", "") );
 	}
 	return rtn;
 }

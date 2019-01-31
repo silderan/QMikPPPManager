@@ -65,7 +65,8 @@ SOURCES += main.cpp\
     Widgets/QFancyComboBox.cpp \
     Widgets/QROSDataTableWidget.cpp \
     Dialogs/DlgNewROSAPIUser.cpp \
-    Dialogs/DlgExportUserData.cpp
+    Dialogs/DlgExportUserData.cpp \
+    Utils/OpenBrowserInfo.cpp
 
 HEADERS  += QMikPPPManager.h \
     Utils/IPv4Range.h \
@@ -131,7 +132,8 @@ HEADERS  += QMikPPPManager.h \
     Widgets/QSpeedTableWidget.h \
     Widgets/QROSDataTableWidget.h \
     Dialogs/DlgNewROSAPIUser.h \
-    Dialogs/DlgExportUserData.h
+    Dialogs/DlgExportUserData.h \
+    Utils/OpenBrowserInfo.h
 
 FORMS    += QMikPPPManager.ui \
 	DlgNuevoUsuario.ui \

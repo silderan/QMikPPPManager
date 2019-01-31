@@ -13,6 +13,7 @@
 #include "ClientProfile.h"
 #include "TableCellLook.h"
 #include "ROSData/ROSAPIUser.h"
+#include "Utils/OpenBrowserInfo.h"
 
 class QConfigData
 {
@@ -130,7 +131,7 @@ public:
 	QComboBox *setupCBPoblaciones(QComboBox *cb, const QStringList &poblaciones, const QString &poblacion = QString());
 
 	// TODO: Make it configurable!
-	QMap<QString, quint16> openPortsMap();
+	OpenBrowserInfoList openBrowserInfoList();
 };
 
 extern QConfigData gGlobalConfig;

@@ -26,7 +26,15 @@ public:
 		Q_ASSERT( path.endsWith('/') );
 	}
 	virtual ~ROSDataManagerBase()
-	{	}
+	{
+		clear();
+	}
+	void clear()
+	{
+		foreach( ROSDataBase *rdb, m_idDataMapP )
+			delete rdb;
+		m_idDataMapP.clear();
+	}
 
 	const QString &routerName() const				{ return m_routerName;		}
 	void setRouterName(const QString &routerName)	{ m_routerName = routerName;}
