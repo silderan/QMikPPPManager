@@ -40,8 +40,6 @@ SOURCES += main.cpp\
     ConfigData/TableCellLook.cpp \
     ConfigData/ClientProfile.cpp \
     ConfigData/QConfigData.cpp \
-    QSecretData.cpp \
-    DlgNuevoUsuario.cpp \
     ROSMultiConnectorManager.cpp \
     ROSPPPoEManager.cpp \
     Dialogs/DlgCnfgConnect.cpp \
@@ -102,8 +100,6 @@ HEADERS  += QMikPPPManager.h \
     Widgets/QRoutersLineEdit.h \
 	Widgets/QPPPProfilesTableWidget.h \
     Widgets/QROSIPoolTableWidget.h \
-    QSecretData.h \
-    DlgNuevoUsuario.h \
     ROSMultiConnectorManager.h \
     ROSPPPoEManager.h \
     Dialogs/DlgConfiguracion.h \
