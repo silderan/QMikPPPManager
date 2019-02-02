@@ -28,22 +28,22 @@ QPPPProfilesTableWidget::QPPPProfilesTableWidget(QWidget *papi) :
 	QROSDataTableWidget(papi)
 {
 	setColumnCount(TotalColumns);
-	setRouterIDColumn(RoutersColumn);
+	setRouterIDColumn(Columns::Routers);
 	setHorizontalHeaderLabels( QStringList() << "Nombre" << "Velocidades" << "Direccion Router" << "Pool direcciones cliente" << "Bridge" << "Routers" );
 
-	setFancyItemDelegateForColumn( Columns::BridgeColumn, new QComboBoxItemDelegated( this, tr("Ninguno"), "", false,
+	setFancyItemDelegateForColumn( Columns::Bridge, new QComboBoxItemDelegated( this, tr("Ninguno"), "", false,
 													/*add list*/				[] (int)			{ return multiConnectionManager.bridgeNameList();	},
 													/*skip list*/				[] (int)			{ return QStringList(); } ) );
 
-	setFancyItemDelegateForColumn( Columns::LocalAddressColumn, new QComboBoxItemDelegated( this, tr("Ninguna"), "", false,
+	setFancyItemDelegateForColumn( Columns::LocalAddress, new QComboBoxItemDelegated( this, tr("Ninguna"), "", false,
 													/*add list*/				[] (int)			{ return multiConnectionManager.poolNameList();	},
 													/*skip list*/				[] (int)			{ return QStringList(); } ) );
 
-	setFancyItemDelegateForColumn( Columns::RemoteAddressColumn, new QComboBoxItemDelegated( this, tr("Ninguna"), "", false,
+	setFancyItemDelegateForColumn( Columns::RemoteAddress, new QComboBoxItemDelegated( this, tr("Ninguna"), "", false,
 													/*add list*/				[] (int)			{ return multiConnectionManager.poolNameList();	},
 													/*skip list*/				[] (int)			{ return QStringList(); } ) );
 
-	setItemDelegateForColumn( Columns::RateLimitColumn, new QSpeedTableWidgetItemDelegate() );
+	setItemDelegateForColumn( Columns::RateLimit, new QSpeedTableWidgetItemDelegate() );
 }
 
 QPPPProfilesTableWidget::~QPPPProfilesTableWidget()
@@ -56,26 +56,26 @@ void QPPPProfilesTableWidget::setupRow(int row, const ROSDataBase &rosData)
 	QROSDataTableWidget::setupRow(row, rosData);
 
 	const ROSPPPProfile &profileData = static_cast<const ROSPPPProfile &>(rosData);
-	setCellText( row, ProfileNameColumn, profileData.profileName(), Qt::ItemIsEditable );
-	setCellText( row, RateLimitColumn, profileData.rateLimit().toString(), Qt::ItemIsEditable );
-	setCellText( row, LocalAddressColumn, profileData.localAddress(), Qt::ItemIsEditable );
-	setCellText( row, RemoteAddressColumn, profileData.remoteAddress(), Qt::ItemIsEditable );
-	setCellText( row, BridgeColumn, profileData.bridgeName(), Qt::ItemIsEditable );
+	setCellText( row, Columns::ProfileName, profileData.profileName(), Qt::ItemIsEditable );
+	setCellText( row, Columns::RateLimit, profileData.rateLimit().toString(), Qt::ItemIsEditable );
+	setCellText( row, Columns::LocalAddress, profileData.localAddress(), Qt::ItemIsEditable );
+	setCellText( row, Columns::RemoteAddress, profileData.remoteAddress(), Qt::ItemIsEditable );
+	setCellText( row, Columns::Bridge, profileData.bridgeName(), Qt::ItemIsEditable );
 }
 
 int QPPPProfilesTableWidget::rowOf(const ROSDataBase &rosData)
 {
-	return QROSDataTableWidget::rowOf( ProfileNameColumn, static_cast<const ROSPPPProfile &>(rosData).profileName() );
+	return QROSDataTableWidget::rowOf( Columns::ProfileName, static_cast<const ROSPPPProfile &>(rosData).profileName() );
 }
 
 ROSDataBase *QPPPProfilesTableWidget::getRosData(int row)
 {
 	ROSPPPProfile *profileData = new ROSPPPProfile("");
-	profileData->setProfileName( cellText(row, ProfileNameColumn) );
-	profileData->rateLimit().fromString( cellText(row, RateLimitColumn) );
-	profileData->setLocalAddress( cellText(row, LocalAddressColumn) );
-	profileData->setRemoteAddress( cellText(row, RemoteAddressColumn) );
-	profileData->setBridgeName( cellText(row, BridgeColumn) );
+	profileData->setProfileName( cellText(row, Columns::ProfileName) );
+	profileData->rateLimit().fromString( cellText(row, Columns::RateLimit) );
+	profileData->setLocalAddress( cellText(row, Columns::LocalAddress) );
+	profileData->setRemoteAddress( cellText(row, Columns::RemoteAddress) );
+	profileData->setBridgeName( cellText(row, Columns::Bridge) );
 	return profileData;
 }
 
@@ -86,25 +86,25 @@ void QPPPProfilesTableWidget::updateROSData(ROSDataBase *rosData, int row, int c
 	ROSPPPProfile *profileData = static_cast<ROSPPPProfile*>(rosData);
 	switch( static_cast<Columns>(changedColumn) )
 	{
-	case QPPPProfilesTableWidget::ProfileNameColumn:
+	case Columns::ProfileName:
 		profileData->setProfileName(newValue);
 		break;
-	case QPPPProfilesTableWidget::RateLimitColumn:
+	case Columns::RateLimit:
 		profileData->rateLimit().fromString(newValue);
 		break;
-	case QPPPProfilesTableWidget::LocalAddressColumn:
+	case Columns::LocalAddress:
 		profileData->setLocalAddress(newValue);
 		break;
-	case QPPPProfilesTableWidget::RemoteAddressColumn:
+	case Columns::RemoteAddress:
 		profileData->setRemoteAddress(newValue);
 		break;
-	case QPPPProfilesTableWidget::BridgeColumn:
+	case Columns::Bridge:
 		profileData->setBridgeName(newValue);
 		break;
-	case QPPPProfilesTableWidget::RoutersColumn:
+	case Columns::Routers:
 		Q_ASSERT(false);
 		break;
-	case QPPPProfilesTableWidget::TotalColumns:
+	case Columns::TotalColumns:
 		Q_ASSERT(false);
 		break;
 	}

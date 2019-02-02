@@ -9,12 +9,12 @@ class QPPPProfilesTableWidget : public QROSDataTableWidget
 
 	enum Columns
 	{
-		ProfileNameColumn,
-		RateLimitColumn,
-		LocalAddressColumn,
-		RemoteAddressColumn,
-		BridgeColumn,
-		RoutersColumn,
+		ProfileName,
+		RateLimit,
+		LocalAddress,
+		RemoteAddress,
+		Bridge,
+		Routers,
 		TotalColumns
 	};
 

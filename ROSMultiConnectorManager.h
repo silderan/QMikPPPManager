@@ -69,16 +69,16 @@ public:
 	void requestAll(DataTypeID dataTypeID);
 
 	ROSDataBasePList rosDataList(DataTypeID dataTypeID, const QString &routerName = QString()) const;
-	QStringList rosNameList(DataTypeID dataTypeID, std::function<QString (const ROSDataBase *)> getFnc) const;
-	QStringList rosAPIUserNameList() const;
-	QStringList rosAPIUsersGrupList() const;
-	QStringList pppProfileNameList() const;
-	QStringList interfaceNameList(const QString &type = QString()) const;
-	QStringList bridgeNameList() const;
-	QStringList etherNameList() const;
-	QStringList poolNameList() const;
-	QStringList clientCities() const;
-	QStringList staticIPv4List() const;
+	QStringList rosNameList(DataTypeID dataTypeID, std::function<QString (const ROSDataBase *)> getFnc, const QString &routerName = QString()) const;
+	QStringList rosAPIUserNameList(const QString &routerName = QString()) const;
+	QStringList rosAPIUsersGrupList(const QString &routerName = QString()) const;
+	QStringList pppProfileNameList(const QString &routerName = QString()) const;
+	QStringList interfaceNameList(const QString &type, const QString &routerName = QString()) const;
+	QStringList bridgeNameList(const QString &routerName = QString()) const;
+	QStringList etherNameList(const QString &routerName = QString()) const;
+	QStringList poolNameList(const QString &routerName = QString()) const;
+	QStringList clientCities(const QString &routerName = QString()) const;
+	QStringList staticIPv4List(const QString &routerName = QString()) const;
 
 #ifdef SIMULATE_ROS_INPUTS
 	void simulateROSConnection();

@@ -115,11 +115,11 @@ ROSDataBasePList ROSMultiConnectManager::rosDataList(DataTypeID dataTypeID, cons
 	return rtn;
 }
 
-QStringList ROSMultiConnectManager::rosNameList(DataTypeID dataTypeID, std::function<QString (const ROSDataBase *)> getFnc) const
+QStringList ROSMultiConnectManager::rosNameList(DataTypeID dataTypeID, std::function<QString (const ROSDataBase *)> getFnc, const QString &routerName) const
 {
 	QStringList rtn;
 	QString t;
-	foreach( const ROSDataBase *rosData, rosDataList(dataTypeID) )
+	foreach( const ROSDataBase *rosData, rosDataList(dataTypeID, routerName) )
 	{
 		Q_ASSERT(rosData);
 		t = getFnc(rosData);
@@ -130,34 +130,34 @@ QStringList ROSMultiConnectManager::rosNameList(DataTypeID dataTypeID, std::func
 	return rtn;
 }
 
-QStringList ROSMultiConnectManager::rosAPIUserNameList() const
+QStringList ROSMultiConnectManager::rosAPIUserNameList(const QString &routerName) const
 {
 	return rosNameList(DataTypeID::APIUser, [] (const ROSDataBase *rosData) {
 		Q_ASSERT(dynamic_cast<const ROSAPIUser*>(rosData));
 
 		return static_cast<const ROSAPIUser*>(rosData)->userName();
-	} );
+	}, routerName );
 }
 
-QStringList ROSMultiConnectManager::rosAPIUsersGrupList() const
+QStringList ROSMultiConnectManager::rosAPIUsersGrupList(const QString &routerName) const
 {
 	return rosNameList(DataTypeID::APIUsersGroup, [] (const ROSDataBase *rosData) {
 		Q_ASSERT(dynamic_cast<const ROSAPIUsersGroup*>(rosData));
 
 		return static_cast<const ROSAPIUsersGroup*>(rosData)->groupName();
-	} );
+	}, routerName );
 }
 
-QStringList ROSMultiConnectManager::pppProfileNameList() const
+QStringList ROSMultiConnectManager::pppProfileNameList(const QString &routerName) const
 {
 	return rosNameList(DataTypeID::PPPProfile, [] (const ROSDataBase *rosData) {
 		Q_ASSERT(dynamic_cast<const ROSPPPProfile*>(rosData));
 
 		return static_cast<const ROSPPPProfile*>(rosData)->profileName();
-	} );
+	}, routerName );
 }
 
-QStringList ROSMultiConnectManager::interfaceNameList(const QString &type) const
+QStringList ROSMultiConnectManager::interfaceNameList(const QString &type, const QString &routerName) const
 {
 	return rosNameList(DataTypeID::Interface, [type](const ROSDataBase *rosDataBase) {
 		Q_ASSERT(dynamic_cast<const ROSInterface*>(rosDataBase));
@@ -165,44 +165,44 @@ QStringList ROSMultiConnectManager::interfaceNameList(const QString &type) const
 		if( type.isEmpty() || (static_cast<const ROSInterface*>(rosDataBase)->interfaceType() == type) )
 			return static_cast<const ROSInterface*>(rosDataBase)->interfaceName();
 		return QString();
-	} );
+	}, routerName );
 }
 
-QStringList ROSMultiConnectManager::bridgeNameList() const
+QStringList ROSMultiConnectManager::bridgeNameList(const QString &routerName) const
 {
-	return interfaceNameList("bridge");
+	return interfaceNameList("bridge", routerName);
 }
 
-QStringList ROSMultiConnectManager::etherNameList() const
+QStringList ROSMultiConnectManager::etherNameList(const QString &routerName) const
 {
-	return interfaceNameList("ether");
+	return interfaceNameList("ether", routerName);
 }
 
-QStringList ROSMultiConnectManager::poolNameList() const
+QStringList ROSMultiConnectManager::poolNameList(const QString &routerName) const
 {
 	return rosNameList(DataTypeID::IPPool, [](const ROSDataBase *rosDataBase) {
 		Q_ASSERT(dynamic_cast<const ROSIPPool*>(rosDataBase));
 
 		return static_cast<const ROSIPPool*>(rosDataBase)->poolName();
-	} );
+	}, routerName );
 }
 
-QStringList ROSMultiConnectManager::clientCities() const
+QStringList ROSMultiConnectManager::clientCities(const QString &routerName) const
 {
 	return rosNameList(DataTypeID::PPPSecret, [] (const ROSDataBase *rosData) {
 		Q_ASSERT(dynamic_cast<const ROSPPPSecret*>(rosData));
 
 		return static_cast<const ROSPPPSecret*>(rosData)->clientCity();
-	} );
+	}, routerName );
 }
 
-QStringList ROSMultiConnectManager::staticIPv4List() const
+QStringList ROSMultiConnectManager::staticIPv4List(const QString &routerName) const
 {
 	return rosNameList(DataTypeID::PPPSecret, [] (const ROSDataBase *rosData) {
 		Q_ASSERT(dynamic_cast<const ROSPPPSecret*>(rosData));
 
 		return static_cast<const ROSPPPSecret*>(rosData)->staticIP().toString();
-	} );
+	}, routerName );
 }
 
 void ROSMultiConnectManager::sendCancel(const QString &tag, const QString &routerName)
