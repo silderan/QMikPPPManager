@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network
+QT       += core gui network sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -64,7 +64,8 @@ SOURCES += main.cpp\
     Widgets/QROSDataTableWidget.cpp \
     Dialogs/DlgNewROSAPIUser.cpp \
     Dialogs/DlgExportUserData.cpp \
-    Utils/OpenBrowserInfo.cpp
+    Utils/OpenBrowserInfo.cpp \
+    RadiusManager/QRadiusManager.cpp
 
 HEADERS  += QMikPPPManager.h \
     Utils/IPv4Range.h \
@@ -129,7 +130,8 @@ HEADERS  += QMikPPPManager.h \
     Widgets/QROSDataTableWidget.h \
     Dialogs/DlgNewROSAPIUser.h \
     Dialogs/DlgExportUserData.h \
-    Utils/OpenBrowserInfo.h
+    Utils/OpenBrowserInfo.h \
+    RadiusManager/QRadiusManager.h
 
 FORMS    += QMikPPPManager.ui \
 	DlgNuevoUsuario.ui \

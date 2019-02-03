@@ -20,41 +20,7 @@
 
 #include "QConfigData.h"
 
-const QString QConfigData::tagSecret	= "Secret";
-const QString QConfigData::tagLSecret	= "LSecret";
-const QString QConfigData::tagPerfil	= "Perfil";
-const QString QConfigData::tagActivo	= "Activo";
-const QString QConfigData::tagLActivo	= "LACtivo";
-const QString QConfigData::tagNuevo		= "Nuevo";
-const QString QConfigData::tagAPIUser	= "APIUser";
-
 QConfigData gGlobalConfig;
-
-QComboBox *QConfigData::setupCBPerfiles(QComboBox *cb, const QString &select)
-{
-	return QConfigData::setupComboBox(cb, false, select, clientProfileMap().profileNames());
-}
-
-QComboBox *QConfigData::setupCBPerfilesUsables(QComboBox *cb, const QString &select)
-{
-	return QConfigData::setupComboBox(cb, false, select, clientProfileMap().regularProfileNames());
-}
-
-QComboBox *QConfigData::setupCBInstaladores(QComboBox *cb, const QString &select)
-{
-	return QConfigData::setupComboBox(cb, false, select, QStringList() << "no-definido" << instaladores() );
-}
-
-QComboBox *QConfigData::setupCBVendedores(QComboBox *cb, const QString &select)
-{
-	return QConfigData::setupComboBox(cb, true, select, comerciales()+instaladores() );
-}
-
-QComboBox *QConfigData::setupCBPoblaciones(QComboBox *cb, const QStringList &poblaciones, const QString &poblacion)
-{
-	return setupComboBox(cb, true, poblacion, poblaciones);
-}
-
 OpenBrowserInfoList QConfigData::openBrowserInfoList()
 {
 	static OpenBrowserInfoList rtn;
@@ -68,23 +34,6 @@ OpenBrowserInfoList QConfigData::openBrowserInfoList()
 	return rtn;
 }
 
-void QConfigData::select(QComboBox *cb, const QString &str)
-{
-	int i = cb->findText(str);
-	if( i != -1 )
-		cb->setCurrentIndex(i);
-	else
-		cb->setCurrentText(str);
-}
-
-QComboBox *QConfigData::setupComboBox(QComboBox *cb, bool editable, const QString &select, const QStringList &items)
-{
-	cb->setEditable(editable);
-	cb->addItems(items);
-	QConfigData::select(cb, select);
-	return cb;
-}
-
 // Local user data keys.
 #define LKEY_USERNAME		("user-name")
 #define LKEY_USERPASS		("user-password")
@@ -94,19 +43,27 @@ QComboBox *QConfigData::setupComboBox(QComboBox *cb, bool editable, const QStrin
 #define LKEY_MAXIMIZADA		("pantalla-maximmizada")
 #define LKEY_COLSHIDDEN		("columns-hidden")
 
+
 // Global protected data keys.
-#define GPKEY_COMERCIALES			("comerciales")
-#define GPKEY_INSTALADORES			("instaladores")
+#define GPKEY_COMERCIALES		("comerciales")
+#define GPKEY_INSTALADORES		("instaladores")
+#ifdef USE_RADIUS
+#define GKEY_RADIUS_USER_NAME	("radius-user-name")
+#define GKEY_RADIUS_USER_PASS	("radius-user-pass")
+#define GKEY_RADIUS_HOST_IPV4	("radius_host-ipv4")
+#define GKEY_RADIUS_HOST_PORT	("radius-host-port")
+#define GKEY_RADIUS_DATA_BASE	("radius-data-base")
+#endif
 
 void QConfigData::loadLocalUserData()
 {
-	QIniData cnfgData;
-	QIniFile::load(m_userFName, &cnfgData);
-
-	m_userName = cnfgData[LKEY_USERNAME];
-	m_userPass = cnfgData[LKEY_USERPASS];
-
-	m_exportFile = cnfgData[LKEY_EXPORT_FILE];
+    QIniData cnfgData;
+    QIniFile::load(m_userFName, &cnfgData);
+    
+    m_userName = cnfgData[LKEY_USERNAME];
+    m_userPass = cnfgData[LKEY_USERPASS];
+    
+    m_exportFile = cnfgData[LKEY_EXPORT_FILE];
 
 	m_anchoPantalla			= cnfgData[LKEY_ANCHO_PANTALLA].toInt();
 	m_altoPantalla			= cnfgData[LKEY_ALTO_PANTALLA].toInt();
@@ -135,6 +92,14 @@ void QConfigData::loadGlobalData()
 	QIniData cnfgData;
 	QIniFile::load(m_rosFName, &cnfgData);
 	m_connectInfoList.load(cnfgData);
+
+#ifdef USE_RADIUS
+	m_radiusConnInfo.setUserName( cnfgData[GKEY_RADIUS_USER_NAME] );
+	m_radiusConnInfo.setUserPass( cnfgData[GKEY_RADIUS_USER_PASS] );
+	m_radiusConnInfo.setHostIPv4( IPv4(cnfgData[GKEY_RADIUS_HOST_IPV4]) );
+	m_radiusConnInfo.setHostPort( static_cast<quint16>(cnfgData[GKEY_RADIUS_HOST_PORT].toInt()) );
+	m_radiusDataBase = cnfgData[GKEY_RADIUS_DATA_BASE];
+#endif
 }
 
 void QConfigData::saveLocalUserData() const
@@ -176,5 +141,12 @@ void QConfigData::saveGlobalData() const
 {
 	QIniData cnfgData;
 	m_connectInfoList.save(cnfgData);
+#ifdef USE_RADIUS
+	cnfgData[GKEY_RADIUS_USER_NAME] = m_radiusConnInfo.userName();
+	cnfgData[GKEY_RADIUS_USER_PASS] = m_radiusConnInfo.userPass();
+	cnfgData[GKEY_RADIUS_HOST_IPV4] = m_radiusConnInfo.hostIPv4().toString();
+	cnfgData[GKEY_RADIUS_HOST_PORT] = QString::number(m_radiusConnInfo.hostPort());
+	cnfgData[GKEY_RADIUS_DATA_BASE] = m_radiusDataBase;
+#endif
 	QIniFile::save(m_rosFName, cnfgData);
 }

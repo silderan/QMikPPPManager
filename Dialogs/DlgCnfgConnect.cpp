@@ -25,12 +25,12 @@
 #include <QLineEdit>
 #include <QMessageBox>
 #include <QRegExp>
+#include <QTableWidgetItem>
 
-#include "Utils/IPv4Range.h"
-#include "QTableWidgetItem"
-#include "ConfigData/QConfigData.h"
-
-#define WARNING(_t)	(QMessageBox::warning(this, objectName(), _t) )
+#include "../Utils/Utils.h"
+#include "../Utils/IPv4Range.h"
+#include "../ConfigData/QConfigData.h"
+#include "../RadiusManager/QRadiusManager.h"
 
 DlgCnfgConnect::DlgCnfgConnect(QWidget *parent, ROSMultiConnectManager &rosMultiConnectManager) :
     QDialog(parent),
@@ -54,8 +54,8 @@ DlgCnfgConnect::~DlgCnfgConnect()
 
 void DlgCnfgConnect::setup()
 {
-	ui->userLineEdit->setText(gGlobalConfig.userName());
-	ui->passLineEdit->setText(gGlobalConfig.userPass());
+	ui->userLineEdit->setText( gGlobalConfig.userName() );
+	ui->passLineEdit->setText( gGlobalConfig.userPass() );
 
 	while( ui->hostsTable->rowCount() )
 		ui->hostsTable->removeRow(0);
@@ -85,6 +85,20 @@ void DlgCnfgConnect::setup()
 	// Remove the extra rows.
 	while( ui->hostsTable->rowCount() > row )
 		ui->hostsTable->removeRow(row);
+
+#ifdef USE_RADIUS
+	ui->radiusUserName->setText( gGlobalConfig.radiusConnInfo().userName() );
+	ui->radiusUserPass->setText( gGlobalConfig.radiusConnInfo().userPass() );
+	ui->radiusURL->setText( gGlobalConfig.radiusConnInfo().hostIPv4().toString() );
+	ui->radiusPort->setValue( gGlobalConfig.radiusConnInfo().hostPort() );
+	ui->radiusDataBase->setText( gGlobalConfig.radiusDataBase() );
+#else
+	ui->radiusUserName->setVisible(false);
+	ui->radiusUserPass->setVisible(false);
+	ui->radiusURL->setVisible(false);
+	ui->radiusPort->setVisible(false);
+	ui->radiusDataBase->setVisible(false);
+#endif
 }
 
 void DlgCnfgConnect::addRow(int row, const QString &hostAddr, quint16 hostPort, const QString &routerState)
@@ -114,23 +128,37 @@ void DlgCnfgConnect::removeCurrentRow()
 bool DlgCnfgConnect::checkData()
 {
 	if( ui->userLineEdit->text().isEmpty() )
-		WARNING( tr("Falta el nombre de usuario.") );
+		Utils::raiseWarning( this, tr("Falta el nombre de usuario.") );
 	else
 	if( ui->userLineEdit->text().contains( QRegExp("\\W") ) )
-		WARNING( tr("El nombre de usuario no puede contener espacios en blanco ni caracteres especiales ni letras con tildes.") );
+		Utils::raiseWarning( this, tr("El nombre de usuario no puede contener espacios en blanco ni caracteres especiales ni letras con tildes.") );
 	else
 	if( ui->passLineEdit->text().isEmpty() )
-		WARNING( tr("Falta la contraseña de acceso a los routers.") );
+		Utils::raiseWarning( this, tr("Falta la contraseña de acceso a los routers.") );
 	else
 	if( ui->passLineEdit->text().contains( QRegExp("[=\\s]") ) )
-		WARNING( tr("La contraseña no puede contener caracteres en blanco ni el caracter '='") );
+		Utils::raiseWarning( this, tr("La contraseña no puede contener caracteres en blanco ni el caracter '='") );
 	else
+#ifdef USE_RADIUS
+	if( ui->radiusUserName->text().contains( QRegExp(ROSDataBase::userNamePattern) ) )
+		Utils::raiseWarning( this, tr("El usuario para la base de datos SQLite del radius contiene caracteres no válidos.") );
+	else
+	if( ui->radiusUserPass->text().contains( QRegExp(ROSDataBase::userPassPattern)) )
+		Utils::raiseWarning( this, tr("La contraseña para la base de datos SQLite del radius contiene caracteres no válidos.") );
+	else
+	if( !IPv4(ui->radiusURL->text()).isValid() )
+		Utils::raiseWarning( this, tr("la IP para la base de datos SQLite del radius no es válida.") );
+	else
+	if( ui->radiusDataBase->text().contains( QRegExp(ROSDataBase::userNamePattern) ) )
+		Utils::raiseWarning( this, tr("El nombre de la base de datos SQLite del radius contiene caracteres no válidos.") );
+	else
+#endif
 	{
 		for( int row = 0; row < ui->hostsTable->rowCount(); ++row )
 		{
 			if( !IPv4(ui->hostsTable->item(row, 0)->text()).isValid() )
 			{
-				WARNING( tr("La IP del router configurado en la linea %1 no es válida").arg(row+1) );
+				Utils::raiseWarning( this, tr("La IP del router configurado en la linea %1 no es válida").arg(row+1) );
 				return false;
 			}
 		}
@@ -159,6 +187,14 @@ void DlgCnfgConnect::copyDataToGlobalConfig()
 	}
 	while( gGlobalConfig.connectInfoList().count() > row )
 		gGlobalConfig.connectInfoList().removeLast();
+
+#ifdef USE_RADIUS
+	gGlobalConfig.radiusConnInfo().setUserName( ui->radiusUserName->text() );
+	gGlobalConfig.radiusConnInfo().setUserPass( ui->radiusUserPass->text() );
+	gGlobalConfig.radiusConnInfo().setHostIPv4( IPv4(ui->radiusURL->text()) );
+	gGlobalConfig.radiusConnInfo().setHostPort( static_cast<quint16>(ui->radiusPort->value()) );
+	gGlobalConfig.setRadiusDataBase( ui->radiusDataBase->text() );
+#endif
 }
 
 void DlgCnfgConnect::setRouterStatus(const QString &routerName, const QString &errorString)

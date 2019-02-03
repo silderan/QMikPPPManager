@@ -25,6 +25,7 @@
 #include <QMap>
 
 #include "ROSPPPoEManager.h"
+#include "RadiusManager/QRadiusManager.h"
 
 #include "UnitTests.h"
 
@@ -33,8 +34,19 @@ class ROSMultiConnectManager : public QObject
 Q_OBJECT
 
 	ROSPPPoEManagerMap m_rosPppoeManagerMap;
+#ifdef USE_RADIUS
+	QRadiusManager m_radiusManager;
+#endif
 
-	void updateRemoteData(ROSPPPoEManager *pppoeManager, const ROSDataBase &rosData, const QString &rosObjectID) const;
+	void updateRemoteData(ROSPPPoEManager *pppoeManager, const ROSDataBase &rosData, const QString &rosObjectID);
+
+	void sendSentence(const QString &routerName, const ROS::QSentence &s);
+	void sendSentence(const QString &routerName, const QString &s, const QString &tag, const QStringList attrib = QStringList());
+	void sendCancel(const QString &tag, const QString &routerName = QString());
+
+	static void requestAll(ROSPPPoEManager *rosPPPoEManager, DataTypeID dataTypeID);
+	static void requestAll(ROSPPPoEManagerPList rosPPPoEManagerPList, DataTypeID dataTypeID);
+
 private slots:
 	void onComError(ROS::Comm::CommError, QAbstractSocket::SocketError);
 	void onCommStateChanged(ROS::Comm::CommState s);
@@ -50,20 +62,16 @@ public:
 
 	void clear();
 	void addROSConnection(const QString &routerName, const QString &hostAddr, quint16 hostPort , const QString &uname, const QString &upass);
+#ifdef USE_RADIUS
+	void setRadiusConnection(const ConnectInfo &connInfo, const QString &dataBaseName)	{ m_radiusManager.setConnInfo(connInfo, dataBaseName);	}
+#endif
 
 	bool areAllDisconnected()const;
 	bool areAllConnected()const;
 	bool allDone(DataTypeID dataTypeID, const QString &routerName = QString()) const;
 
-	void sendCancel(const QString &tag, const QString &routerName = QString());
 	void connectHosts(const QString &routerName = QString());
 	void disconnectHosts(bool force, const QString &routerName = QString());
-
-	void sendSentence(const QString &routerName, const ROS::QSentence &s);
-	void sendSentence(const QString &routerName, const QString &s, const QString &tag, const QStringList attrib = QStringList());
-
-	static void requestAll(ROSPPPoEManager *rosPPPoEManager, DataTypeID dataTypeID);
-	static void requestAll(ROSPPPoEManagerPList rosPPPoEManagerPList, DataTypeID dataTypeID);
 
 	void requestAll(const QString &routerName, DataTypeID dataTypeID);
 	void requestAll(DataTypeID dataTypeID);

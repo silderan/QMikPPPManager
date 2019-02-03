@@ -368,6 +368,9 @@ void QMikPPPManager::on_connectButton_clicked()
 									 gGlobalConfig.userName(),
 									 gGlobalConfig.userPass() );
 		}
+#ifdef USE_RADIUS
+		multiConnectionManager.setRadiusConnection(gGlobalConfig.radiusConnInfo(), gGlobalConfig.radiusDataBase());
+#endif
 	}
 	multiConnectionManager.connectHosts();
 #endif

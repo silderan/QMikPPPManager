@@ -225,6 +225,10 @@ void ROSMultiConnectManager::connectHosts(const QString &routerName)
 		if( routerName.isEmpty() || (it.value()->routerName() == routerName) )
 			it.value()->connectToROS();
 	}
+#ifdef USE_RADIUS
+	if( !m_radiusManager.open() )
+		emit comError( m_radiusManager.lastErrorString(), m_radiusManager.name() );
+#endif
 }
 
 void ROSMultiConnectManager::disconnectHosts(bool force, const QString &routerName)
@@ -236,6 +240,9 @@ void ROSMultiConnectManager::disconnectHosts(bool force, const QString &routerNa
 		if( routerName.isEmpty() || (it.value()->routerName() == routerName) )
 			it.value()->closeCom(force);
 	}
+#ifdef USE_RADIUS
+	m_radiusManager.close();
+#endif
 }
 
 void ROSMultiConnectManager::sendSentence(const QString &routerName, const ROS::QSentence &s)
@@ -317,15 +324,19 @@ void ROSMultiConnectManager::onLoginChanged(ROS::Comm::LoginState s)
 	}
 }
 
-void ROSMultiConnectManager::updateRemoteData(ROSPPPoEManager *pppoeManager, const ROSDataBase &rosData, const QString &rosObjectID) const
+void ROSMultiConnectManager::updateRemoteData(ROSPPPoEManager *pppoeManager, const ROSDataBase &rosData, const QString &rosObjectID)
 {
 	pppoeManager->updateRemoteData(rosData, rosObjectID);
+#ifdef USE_RADIUS
+	if( !m_radiusManager.updateRemoteData(rosData) )
+		emit comError( m_radiusManager.lastErrorString(), m_radiusManager.name() );
+#endif
 }
 
 void ROSMultiConnectManager::updateRemoteData(const ROSDataBase &rosData)
 {
 	Q_ASSERT( m_rosPppoeManagerMap.contains(rosData.routerName()) );
-	updateRemoteData( m_rosPppoeManagerMap[rosData.routerName()], rosData, rosData.rosObjectID());
+	updateRemoteData( m_rosPppoeManagerMap[rosData.routerName()], rosData, rosData.rosObjectID() );
 }
 
 void ROSMultiConnectManager::updateRemoteData(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap)

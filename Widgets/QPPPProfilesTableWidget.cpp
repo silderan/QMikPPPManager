@@ -27,7 +27,7 @@
 QPPPProfilesTableWidget::QPPPProfilesTableWidget(QWidget *papi) :
 	QROSDataTableWidget(papi)
 {
-	setColumnCount(TotalColumns);
+	setColumnCount(Columns::TotalColumns);
 	setRouterIDColumn(Columns::Routers);
 	setHorizontalHeaderLabels( QStringList() << "Nombre" << "Velocidades" << "Direccion Router" << "Pool direcciones cliente" << "Bridge" << "Routers" );
 

@@ -29,6 +29,8 @@
 #include "../Utils/IPv4Range.h"
 #include "../Utils/QIniFile.h"
 #include "../ROSAPI/QSentences.h"
+#include "../RadiusManager/QRadiusManager.h"
+
 #include "ConnectInfo.h"
 #include "ClientProfile.h"
 #include "TableCellLook.h"
@@ -64,13 +66,10 @@ private:
 	TableCellLook m_tableCellLook;
 	QList<int> m_columnsHidden;
 
-	static const QString tagSecret;
-	static const QString tagLSecret;
-	static const QString tagPerfil;
-	static const QString tagActivo;
-	static const QString tagLActivo;
-	static const QString tagNuevo;
-	static const QString tagAPIUser;
+#ifdef USE_RADIUS
+	ConnectInfo m_radiusConnInfo;
+	QString m_radiusDataBase;
+#endif
 
 public:
 #ifdef QT_DEBUG
@@ -141,17 +140,17 @@ public:
 
 	TableCellLook &tableCellLook()					{ return m_tableCellLook;	}
 
-	static void select(QComboBox *cb, const QString &str);
-	static QComboBox *setupComboBox(QComboBox *cb, bool editable, const QString &select, const QStringList &s);
-	QComboBox *setupCBPerfiles(QComboBox *cb, const QString &select);
-	QComboBox *setupCBPerfilesUsables(QComboBox *cb, const QString &select);
-	QComboBox *setupCBInstaladores(QComboBox *cb, const QString &select);
-	QComboBox *setupCBVendedores(QComboBox *cb, const QString &select);
-
-	QComboBox *setupCBPoblaciones(QComboBox *cb, const QStringList &poblaciones, const QString &poblacion = QString());
-
 	// TODO: Make it configurable!
 	OpenBrowserInfoList openBrowserInfoList();
+
+#ifdef USE_RADIUS
+	const ConnectInfo &radiusConnInfo() const		{ return m_radiusConnInfo;	}
+	ConnectInfo &radiusConnInfo()					{ return m_radiusConnInfo;	}
+	void setRadiusConnInfo(const ConnectInfo &rci)	{ m_radiusConnInfo = rci;	}
+
+	const QString &radiusDataBase() const			{ return m_radiusDataBase;	}
+	void setRadiusDataBase(const QString &rdb)		{ m_radiusDataBase = rdb;	}
+#endif
 };
 
 extern QConfigData gGlobalConfig;
