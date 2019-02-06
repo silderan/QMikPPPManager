@@ -28,21 +28,84 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="1">
-     <widget class="QPushButton" name="disconnectButton">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
+    <item row="5" column="0" colspan="2">
+     <widget class="QGroupBox" name="groupBox_2">
+      <property name="title">
+       <string>Configuración</string>
       </property>
-      <property name="text">
-       <string>Desconectar</string>
-      </property>
+      <layout class="QGridLayout" name="gridLayout">
+       <property name="leftMargin">
+        <number>4</number>
+       </property>
+       <property name="topMargin">
+        <number>8</number>
+       </property>
+       <property name="rightMargin">
+        <number>4</number>
+       </property>
+       <property name="bottomMargin">
+        <number>9</number>
+       </property>
+       <property name="horizontalSpacing">
+        <number>0</number>
+       </property>
+       <property name="verticalSpacing">
+        <number>4</number>
+       </property>
+       <item row="1" column="1">
+        <widget class="QPushButton" name="advancedConfigButton">
+         <property name="text">
+          <string>Avanzada</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QPushButton" name="pppProfilesButton">
+         <property name="text">
+          <string>Perfiles PPP</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QPushButton" name="localConfigButton">
+         <property name="text">
+          <string>Apariencia</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QPushButton" name="pppLogsButton">
+         <property name="text">
+          <string>Registros</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QPushButton" name="apiUsersButton">
+         <property name="text">
+          <string>Usuarios API</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QPushButton" name="connectionConfigButton">
+         <property name="text">
+          <string>Routers</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </item>
     <item row="0" column="2" rowspan="6">
      <widget class="QROSSecretTableWidget" name="usersTable"/>
+    </item>
+    <item row="3" column="0" colspan="2">
+     <widget class="QPushButton" name="addUserButton">
+      <property name="text">
+       <string>Añadir usuario</string>
+      </property>
+     </widget>
     </item>
     <item row="1" column="0" colspan="2">
      <spacer name="verticalSpacer">
@@ -113,79 +176,16 @@
       </property>
      </spacer>
     </item>
-    <item row="5" column="0" colspan="2">
-     <widget class="QGroupBox" name="groupBox_2">
-      <property name="title">
-       <string>Configuración</string>
+    <item row="0" column="1">
+     <widget class="QPushButton" name="disconnectButton">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
-      <layout class="QGridLayout" name="gridLayout">
-       <property name="leftMargin">
-        <number>4</number>
-       </property>
-       <property name="topMargin">
-        <number>8</number>
-       </property>
-       <property name="rightMargin">
-        <number>4</number>
-       </property>
-       <property name="bottomMargin">
-        <number>9</number>
-       </property>
-       <property name="horizontalSpacing">
-        <number>0</number>
-       </property>
-       <property name="verticalSpacing">
-        <number>4</number>
-       </property>
-       <item row="1" column="1">
-        <widget class="QPushButton" name="advancedConfigButton">
-         <property name="text">
-          <string>Avanzada</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QPushButton" name="apiUsersButton">
-         <property name="text">
-          <string>Usuarios API</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QPushButton" name="connectionConfigButton">
-         <property name="text">
-          <string>Routers</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QPushButton" name="pppProfilesButton">
-         <property name="text">
-          <string>Perfiles PPP</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QPushButton" name="localConfigButton">
-         <property name="text">
-          <string>Apariencia</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QPushButton" name="pppLogsButton">
-         <property name="text">
-          <string>Registros</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item row="3" column="0" colspan="2">
-     <widget class="QPushButton" name="addUserButton">
       <property name="text">
-       <string>Añadir usuario</string>
+       <string>Desconectar</string>
       </property>
      </widget>
     </item>

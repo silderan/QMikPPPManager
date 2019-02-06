@@ -1,5 +1,5 @@
 <RCC>
-    <qresource lang="es-ES" prefix="/iconos">
-        <file>Copy-icon.png</file>
+    <qresource prefix="/iconos" lang="es-ES">
+        <file>img/Copy-icon.png</file>
     </qresource>
 </RCC>

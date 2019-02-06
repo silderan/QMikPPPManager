@@ -10,6 +10,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = QMikPPPManager
 TEMPLATE = app
+win32:RC_ICONS += img/main.ico
 
 
 SOURCES += main.cpp\

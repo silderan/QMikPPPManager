@@ -89,8 +89,8 @@ QStringList QROSSecretTableWidget::columnsNames()
 				<< tr("Servicio")
 				<< tr("Perfil")
 				<< tr("Estado")
-				<< tr("Router")
 				<< tr("IP")
+				<< tr("Router")
 				<< tr("Nombre")
 				<< tr("Dirección")
 				<< tr("Población")
@@ -199,8 +199,8 @@ bool QROSSecretTableWidget::shouldBeVisible(const QROSUserNameWidgetItem *userNa
 		}
 		if( !m_filterText.isEmpty() )
 		{
-			if( static_cast<int>(m_filterFields) == -1 )
-			{
+			// Meaning: search on all fields.
+			if( static_cast<int>(m_filterFields) == -2 )
 				return	rosPPPSecret.userName().contains(m_filterText, Qt::CaseInsensitive) ||
 						rosPPPSecret.clientName().contains(m_filterText, Qt::CaseInsensitive) ||
 						rosPPPSecret.clientAddress().contains(m_filterText, Qt::CaseInsensitive) ||
@@ -209,29 +209,30 @@ bool QROSSecretTableWidget::shouldBeVisible(const QROSUserNameWidgetItem *userNa
 						rosPPPSecret.clientEmail().contains(m_filterText, Qt::CaseInsensitive) ||
 						rosPPPSecret.clientNotes().contains(m_filterText, Qt::CaseInsensitive) ||
 						rosPPPSecret.installNotes().contains(m_filterText, Qt::CaseInsensitive);
-			}
-			else
+
+			// Meaning: Multiple user names.
+			if( static_cast<int>(m_filterFields) == -1 )
+				return m_filterText.contains(rosPPPSecret.userName(), Qt::CaseInsensitive);
+
+			switch( m_filterFields )
 			{
-				switch( m_filterFields )
-				{
-				case QROSSecretTableWidget::UserName:			return rosPPPSecret.userName().contains(m_filterText, Qt::CaseInsensitive);
-				case QROSSecretTableWidget::ClientCode:			return rosPPPSecret.clientCode().contains(m_filterText, Qt::CaseInsensitive);
-				case QROSSecretTableWidget::ServiceStatus:		return ServiceState::readableString(rosPPPSecret.serviceState()).contains(m_filterText, Qt::CaseInsensitive);
-				case QROSSecretTableWidget::UserProfile:		return rosPPPSecret.originalProfile().contains(m_filterText, Qt::CaseInsensitive);
-				case QROSSecretTableWidget::ActiveRouter:		return userNameItem->pppActive.routerName().contains(m_filterText, Qt::CaseInsensitive);
-				case QROSSecretTableWidget::ActiveUserStatus:	return true;	// TODO: Maybe a date filter could be fine.
-				case QROSSecretTableWidget::RemoteIP:			return userNameItem->pppActive.currentIPv4().toString().startsWith(m_filterText, Qt::CaseInsensitive);
-				case QROSSecretTableWidget::ClientName:			return rosPPPSecret.clientName().contains(m_filterText, Qt::CaseInsensitive);
-				case QROSSecretTableWidget::ClientAddress:		return rosPPPSecret.clientAddress().contains(m_filterText, Qt::CaseInsensitive);
-				case QROSSecretTableWidget::ClientCity:			return rosPPPSecret.clientCity().contains(m_filterText, Qt::CaseInsensitive);
-				case QROSSecretTableWidget::ClientPhone:		return rosPPPSecret.clientPhones().contains(m_filterText, Qt::CaseInsensitive);
-				case QROSSecretTableWidget::Installer:			return rosPPPSecret.installerName().contains(m_filterText, Qt::CaseInsensitive);
-				case QROSSecretTableWidget::ClientEmail:		return rosPPPSecret.clientEmail().contains(m_filterText, Qt::CaseInsensitive);
-				case QROSSecretTableWidget::ClientAnnotations:	return rosPPPSecret.clientNotes().contains(m_filterText, Qt::CaseInsensitive);
-				case QROSSecretTableWidget::InstallAnnotations:	return rosPPPSecret.installNotes().contains(m_filterText, Qt::CaseInsensitive);
-				case QROSSecretTableWidget::TotalColumns:
-					break;
-				}
+			case QROSSecretTableWidget::UserName:			return rosPPPSecret.userName().contains(m_filterText, Qt::CaseInsensitive);
+			case QROSSecretTableWidget::ClientCode:			return rosPPPSecret.clientCode().contains(m_filterText, Qt::CaseInsensitive);
+			case QROSSecretTableWidget::ServiceStatus:		return ServiceState::readableString(rosPPPSecret.serviceState()).contains(m_filterText, Qt::CaseInsensitive);
+			case QROSSecretTableWidget::UserProfile:		return rosPPPSecret.originalProfile().contains(m_filterText, Qt::CaseInsensitive);
+			case QROSSecretTableWidget::ActiveRouter:		return userNameItem->pppActive.routerName().contains(m_filterText, Qt::CaseInsensitive);
+			case QROSSecretTableWidget::ActiveUserStatus:	return true;	// TODO: Maybe a date filter could be fine.
+			case QROSSecretTableWidget::RemoteIP:			return userNameItem->pppActive.currentIPv4().toString().startsWith(m_filterText, Qt::CaseInsensitive);
+			case QROSSecretTableWidget::ClientName:			return rosPPPSecret.clientName().contains(m_filterText, Qt::CaseInsensitive);
+			case QROSSecretTableWidget::ClientAddress:		return rosPPPSecret.clientAddress().contains(m_filterText, Qt::CaseInsensitive);
+			case QROSSecretTableWidget::ClientCity:			return rosPPPSecret.clientCity().contains(m_filterText, Qt::CaseInsensitive);
+			case QROSSecretTableWidget::ClientPhone:		return rosPPPSecret.clientPhones().contains(m_filterText, Qt::CaseInsensitive);
+			case QROSSecretTableWidget::Installer:			return rosPPPSecret.installerName().contains(m_filterText, Qt::CaseInsensitive);
+			case QROSSecretTableWidget::ClientEmail:		return rosPPPSecret.clientEmail().contains(m_filterText, Qt::CaseInsensitive);
+			case QROSSecretTableWidget::ClientAnnotations:	return rosPPPSecret.clientNotes().contains(m_filterText, Qt::CaseInsensitive);
+			case QROSSecretTableWidget::InstallAnnotations:	return rosPPPSecret.installNotes().contains(m_filterText, Qt::CaseInsensitive);
+			case QROSSecretTableWidget::TotalColumns:
+				break;
 			}
 		}
 		return true;

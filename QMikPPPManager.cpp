@@ -69,6 +69,7 @@ QMikPPPManager::QMikPPPManager(QWidget *parent)
 
 	ui->fieldFilterComboBox->addItems( QStringList()
 									   << tr("Cualquier dato")
+									   << tr("Múltiples usuarios")
 									   << ui->usersTable->columnsNames() );
 	ui->fieldFilterComboBox->setCurrentIndex(0);
 
@@ -77,7 +78,7 @@ QMikPPPManager::QMikPPPManager(QWidget *parent)
 											  << tr("Activos")
 											  << tr("Cancelados")
 											  << ServiceState::serviceStateNameList() );
-	ui->serviceStateFilterComboBox->setCurrentIndex( 0 ); // This sets the index to "any"
+	ui->serviceStateFilterComboBox->setCurrentIndex(0);
 
 	connect( ui->fieldFilterComboBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(applyUsersRowFilter(QString)) );
 	connect( ui->serviceStateFilterComboBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(applyUsersRowFilter(QString)) );
