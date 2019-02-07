@@ -61,7 +61,6 @@ void ROSMultiConnectManager::addROSConnection(const QString &routerName, const Q
 	connect( rosPPPoEManager, SIGNAL(loginStateChanged(ROS::Comm::LoginState)),
 			 this, SLOT(onLoginChanged(ROS::Comm::LoginState)) );
 
-	// Forward signals.
 	connect( rosPPPoEManager, SIGNAL(rosError(QString,QString)), this, SIGNAL(rosError(QString,QString)) );
 	connect( rosPPPoEManager, SIGNAL(rosModReply(ROSDataBase)), this, SIGNAL(rosModReply(ROSDataBase)) );
 	connect( rosPPPoEManager, SIGNAL(rosDelReply(QString,DataTypeID,QString)), this, SIGNAL(rosDelReply(QString,DataTypeID,QString)) );
@@ -228,6 +227,8 @@ void ROSMultiConnectManager::connectHosts(const QString &routerName)
 #ifdef USE_RADIUS
 	if( !m_radiusManager.open() )
 		emit comError( m_radiusManager.lastErrorString(), m_radiusManager.name() );
+	else
+		m_radiusManager.requestAll(DataTypeID::PPPSecret);
 #endif
 }
 
@@ -345,20 +346,25 @@ void ROSMultiConnectManager::updateRemoteData(const ROSDataBase &rosData, const 
 		updateRemoteData( pppoeManager, rosData, routerIDMap.dataID(pppoeManager->routerName()) );
 }
 
+void ROSMultiConnectManager::requestAll(ROSPPPoEManager *rosPPPoEManager, DataTypeID dataTypeID)
+{
+	rosPPPoEManager->requestRemoteData(dataTypeID);
+}
+
 void ROSMultiConnectManager::requestAll(ROSPPPoEManagerPList rosPPPoEManagerPList, DataTypeID dataTypeID)
 {
 	foreach( ROSPPPoEManager *rosPPPoEManager, rosPPPoEManagerPList )
 		ROSMultiConnectManager::requestAll(rosPPPoEManager, dataTypeID);
 }
 
-void ROSMultiConnectManager::requestAll(ROSPPPoEManager *rosPPPoEManager, DataTypeID dataTypeID)
-{
-	rosPPPoEManager->requestRemoteData(dataTypeID);
-}
-
 void ROSMultiConnectManager::requestAll(DataTypeID dataTypeID)
 {
 	ROSMultiConnectManager::requestAll(m_rosPppoeManagerMap.values(), dataTypeID);
+}
+
+void ROSMultiConnectManager::requestAll(const QString &routerName, DataTypeID dataTypeID)
+{
+	rosPppoeManager(routerName)->requestRemoteData(dataTypeID);
 }
 
 #ifdef SIMULATE_ROS_INPUTS
@@ -372,10 +378,5 @@ void ROSMultiConnectManager::simulateROSConnection()
 	emit logued( "simulated RouterC" );
 }
 #endif
-
-void ROSMultiConnectManager::requestAll(const QString &routerName, DataTypeID dataTypeID)
-{
-	rosPppoeManager(routerName)->requestRemoteData(dataTypeID);
-}
 
 ROSMultiConnectManager multiConnectionManager;

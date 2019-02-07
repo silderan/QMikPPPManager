@@ -61,3 +61,19 @@ bool QRadiusManager::updateRemoteData(const ROSDataBase &rosData)
 }
 
 #endif
+
+bool QRadiusManager::requestAll(DataTypeID dataTypeID)
+{
+	if( isConnected() && (dataTypeID == DataTypeID::PPPSecret) )
+	{
+		QString sqlString = QString("SELECT * FROM %1").arg(m_usersTableName);
+		QSqlQuery sqlQuery(sqlString, m_db);
+
+		while( sqlQuery.next() )
+		{
+			sqlQuery.value(0);
+			QString country = sqlQuery.value(0).toString();
+		}
+	}
+	return true;
+}

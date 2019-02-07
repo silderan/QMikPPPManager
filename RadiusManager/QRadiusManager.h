@@ -21,7 +21,7 @@
 #ifndef QRADIUSMANAGER_H
 #define QRADIUSMANAGER_H
 
-//#define USE_RADIUS
+#define USE_RADIUS
 
 #ifdef USE_RADIUS
 
@@ -54,9 +54,11 @@ public:
 	}
 	QString name() const		{ return m_connInfo.routerName();	}
 	bool isConnected() const	{ return m_db.isOpen();				}
+
 	bool open();
 	void close();
 	QString lastErrorString()const	{ return m_db.lastError().text();	}
+	bool requestAll(DataTypeID dataTypeID);
 	bool updateRemoteData(const ROSDataBase &rosData);
 };
 

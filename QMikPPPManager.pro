@@ -116,7 +116,6 @@ HEADERS  += QMikPPPManager.h \
     Widgets/QROSSecretTableWidget.h \
     ROSDataManager/ROSPPPSecretManager.h \
     ROSDataManager/ROSPPPActiveManager.h \
-    ROSDataManager/ROSIPPoolManager.h \
     UnitTests.h \
     Widgets/QComboBoxItemDelegate.h \
     Widgets/QRemoteIPCellItem.h \
@@ -132,7 +131,8 @@ HEADERS  += QMikPPPManager.h \
     Dialogs/DlgNewROSAPIUser.h \
     Dialogs/DlgExportUserData.h \
     Utils/OpenBrowserInfo.h \
-    RadiusManager/QRadiusManager.h
+    RadiusManager/QRadiusManager.h \
+    ROSDataManager/ROSIPPoolManager.h
 
 FORMS    += QMikPPPManager.ui \
 	DlgNuevoUsuario.ui \
