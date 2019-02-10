@@ -62,8 +62,8 @@ class QMikPPPManager : public QMainWindow
 	void checkAPISupervisor();
 
 private slots:
-	void setStatusText(QString errorString, const QString routerName = QString());
-	void onComError(const QString &errorString, const QString &routerName);
+	void setStatusText(const QString routerName, QString errorString);
+	void onComError(const QString &routerName, const QString &errorString);
 
 	void onROSError(const QString &routerName, const QString &errorString);
 	void onROSModReply(const ROSDataBase &rosData);

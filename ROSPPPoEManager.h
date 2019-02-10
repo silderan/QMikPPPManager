@@ -78,10 +78,18 @@ private slots:
 	void simulateStep();
 #endif
 
-public slots:
+private slots:
 	void onDataReceived(ROS::QSentence &sentence);
+	void onComError(ROS::Comm::CommError, QAbstractSocket::SocketError);
+	void onCommStateChanged(ROS::Comm::CommState s);
+	void onLoginChanged(ROS::Comm::LoginState s);
 
 signals:
+	void statusInfo(const QString &routerName, const QString &info);
+	void routerDisconnected(const QString &routerName);
+	void routerConnected(const QString &routerName);
+	void logued(const QString &routerName);
+	void comError(const QString &routerName, const QString &errorString);
 	void rosError(const QString &routerName, const QString &errorString);
 	void rosModReply(const ROSDataBase &rosData);
 	void rosDelReply(const QString &routerName, DataTypeID dataTypeID, const QString &rosObjectID);

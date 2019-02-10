@@ -33,7 +33,11 @@ ROSPPPoEManager::ROSPPPoEManager(QObject *papi) : Comm(papi),
 	m_rosSecretManager			("/ppp/secret/"),
 	m_rosActiveManager			("/ppp/active/")
 {
-	connect(this, SIGNAL(comReceive(ROS::QSentence&)), this, SLOT(onDataReceived(ROS::QSentence&)));
+	connect( this, &ROS::Comm::comError,			this, &ROSPPPoEManager::onComError );
+	connect( this, &ROS::Comm::comStateChanged,		this, &ROSPPPoEManager::onCommStateChanged );
+	connect( this, &ROS::Comm::loginStateChanged,	this, &ROSPPPoEManager::onLoginChanged );
+
+	connect( this, SIGNAL(comReceive(ROS::QSentence&)), this, SLOT(onDataReceived(ROS::QSentence&)) );
 }
 
 void ROSPPPoEManager::onDataReceived(ROS::QSentence &sentence)
@@ -66,6 +70,55 @@ void ROSPPPoEManager::onDataReceived(ROS::QSentence &sentence)
 				emit rosDelReply( routerName(), dataTypeID, sentence.getID() );
 			}
 		}
+		break;
+	}
+}
+
+void ROSPPPoEManager::onComError(ROS::Comm::CommError, QAbstractSocket::SocketError)
+{
+	emit comError( routerName(), errorString() );
+}
+
+void ROSPPPoEManager::onCommStateChanged(ROS::Comm::CommState s)
+{
+	switch( s )
+	{
+	case ROS::Comm::Unconnected:
+		emit statusInfo( routerName(), tr("Desconectado") );
+		emit routerDisconnected( routerName() );
+		break;
+	case ROS::Comm::HostLookup:
+		emit statusInfo( routerName(), tr("resolviendo URL") );
+		break;
+	case ROS::Comm::Connecting:
+		emit statusInfo( routerName(), tr("conectando al router") );
+		break;
+	case ROS::Comm::Connected:
+		emit statusInfo( routerName(), tr("Conectado al router") );
+		emit routerConnected( routerName() );
+		break;
+	case ROS::Comm::Closing:
+		emit statusInfo( routerName(), tr("Cerrado conexión") );
+		break;
+	}
+}
+
+void ROSPPPoEManager::onLoginChanged(ROS::Comm::LoginState s)
+{
+	switch( s )
+	{
+	case ROS::Comm::NoLoged:
+		emit statusInfo( routerName(), tr("No está identificado en el servidor") );
+		break;
+	case ROS::Comm::LoginRequested:
+		emit statusInfo( routerName(), tr("Usuario y contraseña pedidos") );
+		break;
+	case ROS::Comm::UserPassSended:
+		emit statusInfo( routerName(), tr("Petición de login en curso") );
+		break;
+	case ROS::Comm::LogedIn:
+		emit statusInfo( routerName(), tr("Logado al router") );
+		emit logued( routerName() );
 		break;
 	}
 }

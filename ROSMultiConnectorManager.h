@@ -40,17 +40,12 @@ Q_OBJECT
 
 	void updateRemoteData(ROSPPPoEManager *pppoeManager, const ROSDataBase &rosData, const QString &rosObjectID);
 
-	void sendSentence(const QString &routerName, const ROS::QSentence &s);
-	void sendSentence(const QString &routerName, const QString &s, const QString &tag, const QStringList attrib = QStringList());
-	void sendCancel(const QString &tag, const QString &routerName = QString());
-
 	static void requestAll(ROSPPPoEManager *rosPPPoEManager, DataTypeID dataTypeID);
 	static void requestAll(ROSPPPoEManagerPList rosPPPoEManagerPList, DataTypeID dataTypeID);
 
-private slots:
-	void onComError(ROS::Comm::CommError, QAbstractSocket::SocketError);
-	void onCommStateChanged(ROS::Comm::CommState s);
-	void onLoginChanged(ROS::Comm::LoginState s);
+	void onLogued(const QString &routerName);
+	void onRouterConnected(const QString &routerName);
+	void onRouterDisconnected(const QString &routerName);
 
 public:
 	ROSMultiConnectManager(QObject *papi = Q_NULLPTR);
@@ -102,15 +97,16 @@ public slots:
 	void updateRemoteData(const ROSDataBase &rosData, const QRouterIDMap &routerIDMap);
 
 signals:
-	void statusInfo(const QString &info, const QString &routerName);
+	void statusInfo(const QString &routerName, const QString &info);
 	void routerDisconnected(const QString &routerName);
-	void routerConnected(const QString &routerName);
-	void allConected();
-	void allDisconnected();
-	void logued(const QString &routerName);
-	void comError(QString errorString, const QString &routerName);
+	void allRoutersDisconected();
 
-	void rosError(const QString &routerName, QString errorString);
+	void routerConnected(const QString &routerName);
+	void allRoutersConected();
+
+	void logued(const QString &routerName);
+	void comError(const QString &routerName, const QString &errorString);
+	void rosError(const QString &routerName, const QString &errorString);
 	void rosModReply(const ROSDataBase &rosData);
 	void rosDelReply(const QString &routerName, DataTypeID dataTypeID, const QString &rosObjectID);
 	void rosDone(const QString &routerName, DataTypeID dataTypeID);

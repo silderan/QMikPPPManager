@@ -21,7 +21,6 @@
 #include "QMikPPPManager.h"
 #include "ui_QMikPPPManager.h"
 
-#include <QMessageBox>
 #include "Utils/QPPPLogger.h"
 #include "Utils/Utils.h"
 
@@ -48,20 +47,20 @@ QMikPPPManager::QMikPPPManager(QWidget *parent)
 
 	updateConfig();
 
-	connect( &multiConnectionManager, &ROSMultiConnectManager::comError, this, &QMikPPPManager::onComError );
+	connect( &multiConnectionManager, &ROSMultiConnectManager::statusInfo,	this, &QMikPPPManager::setStatusText );
 
-	connect( &multiConnectionManager, &ROSMultiConnectManager::rosError, this, &QMikPPPManager::onROSError );
+	connect( &multiConnectionManager, &ROSMultiConnectManager::comError,	this, &QMikPPPManager::onComError );
+	connect( &multiConnectionManager, &ROSMultiConnectManager::rosError,	this, &QMikPPPManager::onROSError );
 	connect( &multiConnectionManager, &ROSMultiConnectManager::rosModReply, this, &QMikPPPManager::onROSModReply );
 	connect( &multiConnectionManager, &ROSMultiConnectManager::rosDelReply, this, &QMikPPPManager::onROSDelReply );
-	connect( &multiConnectionManager, &ROSMultiConnectManager::rosDone, this, &QMikPPPManager::onROSDone );
+	connect( &multiConnectionManager, &ROSMultiConnectManager::rosDone,		this, &QMikPPPManager::onROSDone );
 
-	connect( &multiConnectionManager, &ROSMultiConnectManager::statusInfo, this,&QMikPPPManager::setStatusText );
 
-	connect( &multiConnectionManager, &ROSMultiConnectManager::routerConnected, this, &QMikPPPManager::onRouterConnected );
-	connect( &multiConnectionManager, &ROSMultiConnectManager::allConected, this, &QMikPPPManager::onAllRoutersConnected );
+	connect( &multiConnectionManager, &ROSMultiConnectManager::routerConnected,		this, &QMikPPPManager::onRouterConnected );
+	connect( &multiConnectionManager, &ROSMultiConnectManager::allRoutersConected,	this, &QMikPPPManager::onAllRoutersConnected );
 
-	connect( &multiConnectionManager, &ROSMultiConnectManager::routerDisconnected, this, &QMikPPPManager::onRouterDisconnected );
-	connect( &multiConnectionManager, &ROSMultiConnectManager::allDisconnected, this, &QMikPPPManager::onAllRoutersDisconnected );
+	connect( &multiConnectionManager, &ROSMultiConnectManager::routerDisconnected,		this, &QMikPPPManager::onRouterDisconnected );
+	connect( &multiConnectionManager, &ROSMultiConnectManager::allRoutersDisconected,	this, &QMikPPPManager::onAllRoutersDisconnected );
 
 	connect( &multiConnectionManager, &ROSMultiConnectManager::logued, this, &QMikPPPManager::onLogued );
 
@@ -138,7 +137,7 @@ void QMikPPPManager::updateConfig()
 		dlg->onConfigChanged();
 }
 
-void QMikPPPManager::setStatusText(QString errorString, const QString routerName)
+void QMikPPPManager::setStatusText(const QString routerName, QString errorString)
 {
 	if( ui )
 	{
@@ -158,6 +157,7 @@ void QMikPPPManager::onRouterConnected(const QString &routerName)
 }
 void QMikPPPManager::onAllRoutersConnected()
 {
+	setStatusText( QString(), tr("Conectado a todos los routers.") );
 	ui->connectButton->setDisabled(true);
 }
 
@@ -174,27 +174,18 @@ void QMikPPPManager::onRouterDisconnected(const QString &routerName)
 }
 void QMikPPPManager::onAllRoutersDisconnected()
 {
+	setStatusText( QString(), tr("Desconectado de todos los routers.") );
 	ui->disconnectButton->setDisabled(true);
 
 	foreach( QDlgMultiDataBase *dlg, m_dialogList )
 		dlg->clear();
 
-	multiConnectionManager.clear();
 	ui->usersTable->clear();
 }
 
 void QMikPPPManager::onLogued(const QString &routerName)
 {
 	logService.setUserName( gGlobalConfig.userName() );
-//	ui->twUsuarios->clear();
-//	ui->twUsuarios->setEnabled(true);
-
-	// request api users to know the level privileges.
-	multiConnectionManager.requestAll( routerName, DataTypeID::APIUser );
-	// And all ppp users data.
-	multiConnectionManager.requestAll( routerName, DataTypeID::PPPSecret );
-	multiConnectionManager.requestAll( routerName, DataTypeID::PPPActive );
-
 
 	if( dlgCnfgConnect != Q_NULLPTR )
 		dlgCnfgConnect->onLogued(routerName);
@@ -203,26 +194,22 @@ void QMikPPPManager::onLogued(const QString &routerName)
 		dlg->onLogued(routerName);
 }
 
-void QMikPPPManager::onComError(const QString &errorString, const QString &routerName)
+void QMikPPPManager::onComError(const QString &routerName, const QString &errorString)
 {
 	if( dlgCnfgConnect != Q_NULLPTR )
-		dlgCnfgConnect->onComError(errorString, routerName);
+		dlgCnfgConnect->onComError( routerName, errorString );
 
-	setStatusText(errorString, routerName);
-	QMessageBox::warning(this,
-						 objectName(),
-						 tr("Error reportado por la red, router o sistema para el router %1\n\n%2").arg(routerName, errorString));
+	setStatusText( routerName, errorString );
+	Utils::raiseWarning( this, tr("Error reportado por la red, router o sistema para el router %1\n\n%2").arg(routerName, errorString) );
 }
 
 void QMikPPPManager::onROSError(const QString &routerName, const QString &errorString)
 {
 	if( dlgCnfgConnect != Q_NULLPTR )
-		dlgCnfgConnect->onROSError(errorString, routerName);
+		dlgCnfgConnect->onROSError( routerName, errorString );
 
-	setStatusText(errorString, routerName);
-	QMessageBox::warning(this,
-						 objectName(),
-						 tr("Error en el router %1:\n\n%2").arg(routerName, errorString));
+	setStatusText( routerName, errorString );
+	Utils::raiseWarning( this, tr("Error en el router %1:\n\n%2").arg(routerName, errorString) );
 }
 
 void QMikPPPManager::onROSModReply(const ROSDataBase &rosData)
@@ -251,16 +238,16 @@ void QMikPPPManager::onROSDone(const QString &routerName, DataTypeID dataTypeID)
 	case DataTypeID::ErrorTypeID:	break;
 	case DataTypeID::APIUser:
 		checkAPISupervisor();
-		setStatusText( tr("Usuarios API recibidos"), routerName );
+		setStatusText( routerName, tr("Usuarios API recibidos") );
 		break;
-	case DataTypeID::APIUsersGroup:	setStatusText( tr("Grupos de usuarios API recibidos"), routerName );break;
-	case DataTypeID::PPPProfile:	setStatusText( tr("Perfiles PPP recibidos"), routerName );			break;
-	case DataTypeID::Interface:		setStatusText( tr("Interfices recibidos"), routerName );			break;
-	case DataTypeID::BridgePorts:	setStatusText( tr("Puertos de los bridges recibidos"), routerName );break;
-	case DataTypeID::IPAddress:		setStatusText( tr("Direccioens IP recibidas"), routerName );		break;
-	case DataTypeID::IPPool:		setStatusText( tr("Pools de direcciones recibidas"), routerName );	break;
-	case DataTypeID::PPPSecret:		setStatusText( tr("Recibidos los datos de usuarios"), routerName );	break;
-	case DataTypeID::PPPActive:		setStatusText( tr("Usuarios activos recibidos"), routerName );		break;
+	case DataTypeID::APIUsersGroup:	setStatusText( routerName, tr("Grupos de usuarios API recibidos") );break;
+	case DataTypeID::PPPProfile:	setStatusText( routerName, tr("Perfiles PPP recibidos") );			break;
+	case DataTypeID::Interface:		setStatusText( routerName, tr("Interfices recibidos") );			break;
+	case DataTypeID::BridgePorts:	setStatusText( routerName, tr("Puertos de los bridges recibidos") );break;
+	case DataTypeID::IPAddress:		setStatusText( routerName, tr("Direccioens IP recibidas") );		break;
+	case DataTypeID::IPPool:		setStatusText( routerName, tr("Pools de direcciones recibidas") );	break;
+	case DataTypeID::PPPSecret:		setStatusText( routerName, tr("Recibidos los datos de usuarios") );	break;
+	case DataTypeID::PPPActive:		setStatusText( routerName, tr("Usuarios activos recibidos") );		break;
 	case DataTypeID::TotalIDs:		break;
 	}
 	foreach( QDlgMultiDataBase *dlg, m_dialogList )
