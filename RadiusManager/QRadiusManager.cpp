@@ -60,7 +60,6 @@ bool QRadiusManager::updateRemoteData(const ROSDataBase &rosData)
 	return true;
 }
 
-#endif
 
 bool QRadiusManager::requestAll(DataTypeID dataTypeID)
 {
@@ -77,3 +76,4 @@ bool QRadiusManager::requestAll(DataTypeID dataTypeID)
 	}
 	return true;
 }
+#endif

@@ -66,9 +66,9 @@ const CellLook &QROSServiceStatusCellItem::getCellLook()
 void QROSActiveStatusCellItem::updateText()
 {
 	if( m_uptime.isValid() )
-		setText( QString("C: %1").arg(m_uptime.toString("dd/MM/yyyy hh:mm:ss")) );
+        setText( QString("C: %1").arg(m_uptime.toString("yyyy/MM/dd hh:mm:ss")) );
 	else
-		setText( QString("D: %1").arg(m_downtime.toString("dd/MM/yyyy hh:mm:ss")) );
+        setText( QString("D: %1").arg(m_downtime.toString("yyyy/MM/dd hh:mm:ss")) );
 }
 
 const CellLook &QROSActiveStatusCellItem::getCellLook()
@@ -205,8 +205,9 @@ bool QROSSecretTableWidget::shouldBeVisible(const QROSUserNameWidgetItem *userNa
 						rosPPPSecret.clientName().contains(m_filterText, Qt::CaseInsensitive) ||
 						rosPPPSecret.clientAddress().contains(m_filterText, Qt::CaseInsensitive) ||
 						rosPPPSecret.clientCity().contains(m_filterText, Qt::CaseInsensitive) ||
-						rosPPPSecret.clientPhones().contains(m_filterText, Qt::CaseInsensitive) ||
-						rosPPPSecret.clientEmail().contains(m_filterText, Qt::CaseInsensitive) ||
+                        rosPPPSecret.clientPhones().contains(m_filterText) ||
+                        rosPPPSecret.clientCode().contains(m_filterText) ||
+                        rosPPPSecret.clientEmail().contains(m_filterText, Qt::CaseInsensitive) ||
 						rosPPPSecret.clientNotes().contains(m_filterText, Qt::CaseInsensitive) ||
 						rosPPPSecret.installNotes().contains(m_filterText, Qt::CaseInsensitive);
 

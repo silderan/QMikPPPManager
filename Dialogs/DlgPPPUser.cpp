@@ -175,12 +175,12 @@ bool DlgPPPUser::getClientEMail()
 
 bool DlgPPPUser::getClientNotes()
 {
-	return updateTextMember<ROSPPPSecret>( ui->clientNotesLineEdit->text(), m_pppSecret, &ROSPPPSecret::clientNotes, &ROSPPPSecret::setClientNotes, tr("Anotaciones sobre el cliente") );
+    return updateTextMember<ROSPPPSecret>( ui->clientNotesTextEdit->toPlainText().replace('\n', '\\'), m_pppSecret, &ROSPPPSecret::clientNotes, &ROSPPPSecret::setClientNotes, tr("Anotaciones sobre el cliente") );
 }
 
 bool DlgPPPUser::getInstallNotes()
 {
-	return updateTextMember<ROSPPPSecret>( ui->installNotesLineEdit->text(), m_pppSecret, &ROSPPPSecret::installNotes, &ROSPPPSecret::setInstallNotes, tr("Anotaciones sobre la instalación") );
+    return updateTextMember<ROSPPPSecret>( ui->installNotesTextEdit->toPlainText().replace('\n', '\\'), m_pppSecret, &ROSPPPSecret::installNotes, &ROSPPPSecret::setInstallNotes, tr("Anotaciones sobre la instalación") );
 }
 
 bool DlgPPPUser::getONTSN()
@@ -390,8 +390,8 @@ void DlgPPPUser::updateUserData()
 	ui->clientCityComboBox->setCurrentText( m_pppSecret.clientCity() );
 	ui->clientPhonesLineEdit->setText( m_pppSecret.clientPhones() );
 	ui->clientEmailLineEdit->setText( m_pppSecret.clientEmail() );
-	ui->clientNotesLineEdit->setText( m_pppSecret.clientNotes() );
-	ui->installNotesLineEdit->setText( m_pppSecret.installNotes() );
+    ui->clientNotesTextEdit->setPlainText( QString("%1").arg(m_pppSecret.clientNotes()).replace('\\', '\n') );
+    ui->installNotesTextEdit->setPlainText( QString("%1").arg(m_pppSecret.installNotes()).replace('\\', '\n') );
 
 	ui->wifi2GroupBox->setChecked( !m_pppSecret.wifi2SSID().isEmpty() );
 	ui->wifi2SSIDLineEdit->setText( m_pppSecret.wifi2SSID() );
@@ -544,8 +544,8 @@ void DlgPPPUser::onEditUserRequest(const QPPPSecretMap &pppSecretMap, const ROSP
 		ui->clientCityComboBox->setCurrentText( "d" );
 		ui->clientPhonesLineEdit->setText( "e" );
 		ui->clientEmailLineEdit->setText( "f" );
-		ui->clientNotesLineEdit->setText( "g" );
-		ui->installNotesLineEdit->setText( "h" );
+        ui->clientNotesTextEdit->setPlainText( "g" );
+        ui->installNotesTextEdit->setPlainText( "h" );
 #endif
 	}
 	show();
@@ -658,8 +658,10 @@ void DlgPPPUser::on_copyInfoButton_clicked()
 	foreach( auto port, m_pppSecret.portForwardList() )
 		txt.append( tr("\nPuerto %1").arg(port.toSaveString()) );
 
-	if( !ui->installNotesLineEdit->text().isEmpty() )
-		txt.append( tr("\nNotas: %1").arg(ui->installNotesLineEdit->text()) );
+    foreach( QString note, ui->installNotesTextEdit->toPlainText().split('\n') )
+    {
+        txt.append( tr("\nNota: %1").arg(note) );
+    }
 
 	QGuiApplication::clipboard()->setText(txt);
 }

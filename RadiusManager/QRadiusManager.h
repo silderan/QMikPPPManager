@@ -21,7 +21,7 @@
 #ifndef QRADIUSMANAGER_H
 #define QRADIUSMANAGER_H
 
-#define USE_RADIUS
+//#define USE_RADIUS
 
 #ifdef USE_RADIUS
 

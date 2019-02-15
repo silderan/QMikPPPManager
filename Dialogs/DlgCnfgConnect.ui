@@ -85,6 +85,9 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Password</enum>
+        </property>
        </widget>
       </item>
       <item row="0" column="4">
@@ -125,7 +128,7 @@
     </widget>
    </item>
    <item row="1" column="0" colspan="3">
-    <widget class="QGroupBox" name="groupBox_2">
+    <widget class="QGroupBox" name="radiusGroupBox">
      <property name="title">
       <string>Radius</string>
      </property>

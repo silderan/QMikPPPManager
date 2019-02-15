@@ -45,6 +45,10 @@ DlgCnfgConnect::DlgCnfgConnect(QWidget *parent, ROSMultiConnectManager &rosMulti
 	setup();
 	connect( ui->addButton, SIGNAL(clicked()), this, SLOT(addRow()) );
 	connect( ui->delButton, SIGNAL(clicked()), this, SLOT(removeCurrentRow()) );
+
+#ifndef USE_RADIUS
+    ui->radiusGroupBox->setVisible(false);
+#endif
 }
 
 DlgCnfgConnect::~DlgCnfgConnect()
