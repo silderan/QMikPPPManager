@@ -623,6 +623,7 @@ void DlgPPPUser::on_copyInfoButton_clicked()
 	 * <dirección> <Pueblo>
 	 * <teléfonos>
 	 * Contrato [alta/baja] de <perfil>. Estado actual [activo <fecha> /inactivo <fecha>]
+     * Instalado por: <nombre_instalador>
 	 * (Tiene VozIP, DVR, etc)
 	 * (Notas)
 	 * */
@@ -637,6 +638,7 @@ void DlgPPPUser::on_copyInfoButton_clicked()
 									   ? tr("Desconectado desde %1").arg(m_pppSecret.lastLogOff().toString("dd/MM/yyyy hh:mm:ss"))
 									   : tr("Conectado desde %1").arg(m_pppActive.uptime().toString("dd/MM/yyyy hh:mm:ss"))) );
 
+    txt.append( tr("\nInstalado por: %1").arg(ui->installerComboBox->currentText()) );
 	if( !m_pppSecret.voipSIPServer().isEmpty() )
 	{
 		txt.append( tr("\nVoIP: %1 ").arg(m_pppSecret.voipPhoneNumber()) );

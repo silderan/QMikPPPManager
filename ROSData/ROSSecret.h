@@ -39,7 +39,8 @@ struct ServiceState
 		CanceledTemporally,
 		CanceledTechnically,
 		CanceledRetired,
-		CanceledUndefined
+        CanceledUndefined,
+        Undefined
 	};
 
 	static bool isCanceledState(ServiceState::Type type);
