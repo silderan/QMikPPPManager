@@ -262,7 +262,7 @@ void ROSPPPSecret::parseCommentString(const QString &commentString)
 				if( serviceStateString.contains("retira") )
 					m_serviceState = ServiceState::CanceledRetired;
 				else
-				if( serviceStateString.contains("debe") )
+                if( serviceStateString.contains("ebe f") )
 					m_serviceState = ServiceState::CanceledNoPay;
 				else
                 if( serviceStateString.contains("...") )
