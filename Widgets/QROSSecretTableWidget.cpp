@@ -58,6 +58,7 @@ const CellLook &QROSServiceStatusCellItem::getCellLook()
 	case ServiceState::CanceledTechnically:	return gGlobalConfig.tableCellLook().m_disabledTechnically;
 	case ServiceState::CanceledRetired:		return gGlobalConfig.tableCellLook().m_disabledDevicesRetired;
 	case ServiceState::CanceledUndefined:	return gGlobalConfig.tableCellLook().m_disabledUndefined;
+    case ServiceState::Undefined:           Q_ASSERT( false );
 	}
 	Q_ASSERT(false);
 	return gGlobalConfig.tableCellLook().m_enabled;
@@ -442,14 +443,18 @@ void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &pppSecret)
 		setupCellItem( userNameItem->row(), Columns::ActiveRouter,	tr("Ninguno"), false );
 
 	setupRemoteIPCellItem( userNameItem );
-
-	// Quite a long statement... just to pass a CanceledUndefined parameter if client has service canceled but their state does not match.
-	setupServiceCellItem( userNameItem->row(),
-//						  gGlobalConfig.clientProfileList().isDisabledProfile(rosSecretData.profile()) && (rosSecretData.serviceState() < ROSPPPSecret::ServiceState::CanceledNoPay)
-//						  ? ROSPPPSecret::ServiceState::CanceledUndefined :
-							pppSecret.serviceState() );
-
-	showRowIfValid( userNameItem );
+    if( pppSecret.serviceState() == ServiceState::Undefined )
+    {
+        if( gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName() == pppSecret.pppProfileName() )
+            setupServiceCellItem( userNameItem->row(), ServiceState::CanceledUndefined );
+        else
+            setupServiceCellItem( userNameItem->row(), ServiceState::ActiveUndefined );
+    }
+    else
+    {
+        setupServiceCellItem( userNameItem->row(), pppSecret.serviceState() );
+    }
+    showRowIfValid( userNameItem );
 
 	blockSignals(false);
 }
@@ -645,12 +650,11 @@ bool QROSSecretTableWidget::allowCellChange(const QModelIndex &index, const QStr
 				setFnc = &ROSPPPSecret::setClientCode;
 			}
 			break;
-		case QROSSecretTableWidget::ServiceStatus:
-			if( (gGlobalConfig.userLevel() == ROSAPIUser::Level::Administrator) ||
-				(gGlobalConfig.userLevel() == ROSAPIUser::Level::Supervisor) )
-			{
-				// This is not a string, so cannot be set by setFnc
-				newSecret.setServiceState( ServiceState::fromNameString(newText) );
+        case QROSSecretTableWidget::ServiceStatus: 			// This is not a string, so cannot be set by setFnc
+            if( (gGlobalConfig.userLevel() == ROSAPIUser::Level::Administrator) ||
+                (gGlobalConfig.userLevel() == ROSAPIUser::Level::Supervisor) )
+            {
+                newSecret.setServiceState( ServiceState::fromNameString(newText) );
 				if( !ServiceState::isCanceledState(newSecret.serviceState()) && (newSecret.pppProfileName() == gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName()) )
 					newSecret.setPPPProfileName( newSecret.originalProfile() );
 				else
@@ -818,7 +822,7 @@ void QROSSecretTableWidget::contextMenuEvent(QContextMenuEvent *event)
 	}
 	QMenu rootMenu(this);
 
-	if( gGlobalConfig.userLevel() > ROSAPIUser::Level::Instalator )
+    if( gGlobalConfig.userLevel() >= ROSAPIUser::Level::Instalator )
 	{
 		if( !connectedList.isEmpty() )
 		{

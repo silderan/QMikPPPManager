@@ -38,6 +38,7 @@ QString ServiceState::toSaveString(const ServiceState::Type type)
 	case Type::CanceledTechnically:	return "CH";
 	case Type::CanceledRetired:		return "CR";
 	case Type::CanceledUndefined:	return "CU";
+    case Type::Undefined:           return "UN";
 	}
 	return QString();
 }
@@ -83,6 +84,7 @@ QString ServiceState::readableString(const ServiceState::Type &type)
 	case Type::CanceledTechnically:	return QObject::tr("Cancelado técnico");
 	case Type::CanceledRetired:		return QObject::tr("Cancelado: equipos retirados");
 	case Type::CanceledUndefined:	return QObject::tr("Cancelado ...");
+    case Type::Undefined:           return QObject::tr("Indefinido");
 	}
 	return QString();
 }
@@ -151,6 +153,9 @@ const QString &ROSPPPSecret::commentString() const
 		case ServiceState::CanceledUndefined:
 			serviceStateString += QString("%1|%2").arg(ServiceState::toSaveString(m_serviceState), m_originalProfile);
 			break;
+        case ServiceState::Undefined:
+            Q_ASSERT( false );
+            break;
 		}
 
 		const_cast<ROSPPPSecret*>(this)->
@@ -209,7 +214,7 @@ void ROSPPPSecret::parseCommentString(const QString &commentString)
 		}
 		if( profileString.isEmpty() )	// There is no information. It's active indefined.
 		{
-			m_serviceState = ServiceState::ActiveUndefined;
+            m_serviceState = ServiceState::ActiveUndefined;
 			m_originalProfile = m_profile;
 		}
 		else
@@ -239,7 +244,10 @@ void ROSPPPSecret::parseCommentString(const QString &commentString)
 				}
 			}
 			else
-				m_originalProfile = profileString.mid(3);
+            if( serviceState() == ServiceState::ActiveTemporally )
+                m_originalProfile = m_profile;
+            else
+                m_originalProfile = profileString.mid(3);
 		}
 		else
 		{
@@ -254,11 +262,14 @@ void ROSPPPSecret::parseCommentString(const QString &commentString)
 				if( serviceStateString.contains("retira") )
 					m_serviceState = ServiceState::CanceledRetired;
 				else
-				if( serviceStateString.contains("debe") )
+                if( serviceStateString.contains("ebe f") )
 					m_serviceState = ServiceState::CanceledNoPay;
 				else
-					m_serviceState = ServiceState::CanceledUndefined;
-			}
+                if( serviceStateString.contains("...") )
+                    m_serviceState = ServiceState::CanceledUndefined;
+                else
+                    m_serviceState = ServiceState::Undefined;
+            }
 		}
 		m_wifi2SSID.clear();
 		m_wifi2WPA.clear();
@@ -340,6 +351,10 @@ void ROSPPPSecret::parseCommentString(const QString &commentString)
 			}
 		}
 	}
+    else
+    {
+        m_serviceState = ServiceState::Undefined;
+    }
 	m_commentString = commentString;
 }
 

@@ -30,8 +30,8 @@ const char *ROSDataBase::emailPattern = "[^A-Za-z0-9\\/\\-_.:!%+='?,@]";
 const char *ROSDataBase::phonePattern = "[^0-9\\+]";
 const char *ROSDataBase::urlPattern = "[^A-Za-z0-9\\/\\-_.:!%+='?,@]";
 const char *ROSDataBase::basicNonROSMemberPatern = "[~$]";
-const char *ROSDataBase::ssidPattern = "[^A-Za-z0-9\\-_ ]";
-const char *ROSDataBase::wpaPattern = "[^A-Za-z0-9\\-_]";
+const char *ROSDataBase::ssidPattern = "[^A-Za-z0-9\\-_ +@]";
+const char *ROSDataBase::wpaPattern = "[^A-Za-z0-9\\-_+@]";
 
 void ROSDataBase::fromSentence(const QString &routerName, const ROS::QSentence &s)
 {
