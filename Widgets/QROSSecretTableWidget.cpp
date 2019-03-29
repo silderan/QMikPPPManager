@@ -178,6 +178,8 @@ QList<int> QROSSecretTableWidget::findData(const QString &text, QList<Columns> c
 
 bool QROSSecretTableWidget::shouldBeVisible(const QROSUserNameWidgetItem *userNameItem)
 {
+	if( userNameItem->pppSecretMap.isEmpty() )
+		return false;
 	const ROSPPPSecret &rosPPPSecret = userNameItem->pppSecretMap.first();
 	if( gGlobalConfig.clientProfileMap().containsProfileName(rosPPPSecret.pppProfileName()) )
 	{
