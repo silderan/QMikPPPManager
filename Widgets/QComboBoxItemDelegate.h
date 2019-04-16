@@ -2,11 +2,9 @@
 #define QCOMBOBOXITEMDELEGAT_H
 
 #include <QStyledItemDelegate>
-#include <QComboBox>
+#include <QSpinBox>
 
 #include "QFancyComboBox.h"
-#include "../ROSMultiConnectorManager.h"
-#include "../ConfigData/QConfigData.h"
 
 class QFancyItemDelegate : public QStyledItemDelegate
 {
@@ -92,6 +90,41 @@ public:
 	virtual QString getEditorText(QWidget *editor) const Q_DECL_OVERRIDE
 	{
 		return static_cast<QFancyComboBox*>(editor)->currentText();
+	}
+};
+
+class QSpinBoxItemDelegated : public QFancyItemDelegate
+{
+	int mMin;
+	int mMax;
+
+public:
+	QSpinBoxItemDelegated(	QObject *papi,
+							int min, int max,
+							std::function<bool(const QModelIndex &,const QString &)> allowChange = [] (const QModelIndex &,const QString &) { return true;	},
+							std::function<QString(const QModelIndex &)> getInitialText = [](const QModelIndex &index){return index.data(Qt::EditRole).toString();})
+		: QFancyItemDelegate(papi, allowChange, getInitialText)
+		, mMin(min)
+		, mMax(max)
+	{	}
+
+	QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const Q_DECL_OVERRIDE
+	{
+		Q_UNUSED(option);
+		Q_UNUSED(index);
+		QSpinBox *sb = new QSpinBox(parent);
+		sb->setRange(mMin, mMax);
+		return sb;
+	}
+	virtual void setEditorText(QWidget *editor, const QString &text) const Q_DECL_OVERRIDE
+	{
+		Q_UNUSED(editor);
+		Q_UNUSED(text);
+		static_cast<QSpinBox*>(editor)->setValue(text.toInt());
+	}
+	virtual QString getEditorText(QWidget *editor) const Q_DECL_OVERRIDE
+	{
+		return QString::number(static_cast<QSpinBox*>(editor)->value());
 	}
 };
 

@@ -23,6 +23,7 @@
 #include "../ROSData/ROSPPPProfile.h"
 #include "QComboBoxItemDelegate.h"
 #include "QSpeedTableWidget.h"
+#include "../ROSMultiConnectorManager.h"
 
 QPPPProfilesTableWidget::QPPPProfilesTableWidget(QWidget *papi) :
 	QROSDataTableWidget(papi)
