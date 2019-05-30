@@ -47,6 +47,22 @@ QStringList allColumnTexts(const QAbstractItemModel *model, int col, Qt::ItemDat
 void raiseWarning(QWidget *papi, const QString &info, QString title = QString());
 void raiseInfo(QWidget *papi, const QString &info, QString title = QString());
 
+class QDateTimeTableItem : public QTableWidgetItem
+{
+	QDateTime mDate;
+
+public:
+	QDateTimeTableItem(const QString &date, const QString &format = "dd/MM/yyyy hh:mm:ss")
+		: QTableWidgetItem (date)
+		, mDate( QDateTime::fromString(date, format) )
+	{
+	}
+	virtual bool operator< ( const QTableWidgetItem &rhs ) const override
+	{
+		return mDate < static_cast<const QDateTimeTableItem &>(rhs).mDate;
+	}
+};
+
 #ifdef UNIT_TESTS_UTILS
 	void UTests();
 #endif

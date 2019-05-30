@@ -66,6 +66,7 @@ bool CellLook::fromSaveString(const QString &saveString)
 #define KEY_DISABLED_TECH	("table-cell-look-user-disabled-technically")
 #define KEY_DISABLED_UNDE	("table-cell-look-user-disabled-undefined")
 #define KEY_DISABLED_RETI	("table-cell-look-user-disabled-devices-retired")
+#define KEY_DISABLED_NRETI	("table-cell-look-user-disabled-devices-no-retired")
 
 void TableCellLook::save(QIniData &cnfgData) const
 {
@@ -80,13 +81,14 @@ void TableCellLook::save(QIniData &cnfgData) const
 	cnfgData[KEY_DISABLED_TECH]	= m_disabledTechnically.saveString();
 	cnfgData[KEY_DISABLED_UNDE]	= m_disabledUndefined.saveString();
 	cnfgData[KEY_DISABLED_RETI]	= m_disabledDevicesRetired.saveString();
+	cnfgData[KEY_DISABLED_NRETI]= m_disabledDevicesNoRetired.saveString();
 }
 
 void TableCellLook::load(const QIniData &cnfgData)
 {
-	if( (m_fontSize = cnfgData[KEY_FONT_SIZE].toUInt()) <= 1 )
+	if( (m_fontSize = cnfgData[KEY_FONT_SIZE].toInt()) <= 1 )
 		m_fontSize = 10;
-	if( (m_rowHeight = cnfgData[KEY_ROW_HEIGHT].toUInt()) <= 5 )
+	if( (m_rowHeight = cnfgData[KEY_ROW_HEIGHT].toInt()) <= 5 )
 		m_rowHeight = 18;
 
 	m_connected.fromSaveString(cnfgData[KEY_CONNECTED]);
@@ -97,4 +99,5 @@ void TableCellLook::load(const QIniData &cnfgData)
 	m_disabledTechnically.fromSaveString(cnfgData[KEY_DISABLED_TECH]);
 	m_disabledUndefined.fromSaveString(cnfgData[KEY_DISABLED_UNDE]);
 	m_disabledDevicesRetired.fromSaveString(cnfgData[KEY_DISABLED_RETI]);
+	m_disabledDevicesNoRetired.fromSaveString(cnfgData[KEY_DISABLED_NRETI]);
 }

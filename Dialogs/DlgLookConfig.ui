@@ -100,12 +100,17 @@
      </row>
      <row>
       <property name="text">
+       <string>7</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
        <string>6</string>
       </property>
      </row>
      <column>
       <property name="text">
-       <string>Alta/Baja</string>
+       <string>Contrato</string>
       </property>
      </column>
      <column>
@@ -115,7 +120,7 @@
      </column>
      <item row="0" column="0">
       <property name="text">
-       <string>Alta</string>
+       <string>Activo</string>
       </property>
      </item>
      <item row="0" column="1">
@@ -125,7 +130,7 @@
      </item>
      <item row="1" column="0">
       <property name="text">
-       <string>Baja temporal</string>
+       <string>Cancelado temporal</string>
       </property>
      </item>
      <item row="1" column="1">
@@ -135,7 +140,7 @@
      </item>
      <item row="2" column="0">
       <property name="text">
-       <string>Baja administrativa</string>
+       <string>Cancelado administrativo (debe facturas)</string>
       </property>
      </item>
      <item row="2" column="1">
@@ -145,7 +150,7 @@
      </item>
      <item row="3" column="0">
       <property name="text">
-       <string>Baja técnica</string>
+       <string>Cancelado técnico (para que el cliente avise)</string>
       </property>
      </item>
      <item row="3" column="1">
@@ -155,7 +160,7 @@
      </item>
      <item row="4" column="0">
       <property name="text">
-       <string>Baja indefinida</string>
+       <string>Cancelado indefinido (No se ha definido el motivo o estado de la baja)</string>
       </property>
      </item>
      <item row="4" column="1">
@@ -165,7 +170,12 @@
      </item>
      <item row="5" column="0">
       <property name="text">
-       <string>Baja definitiva, antena retirada</string>
+       <string>Cancelado definitivo. Falta retirar equipos</string>
+      </property>
+     </item>
+     <item row="6" column="0">
+      <property name="text">
+       <string>Cancelado definitivo, antena retirada</string>
       </property>
      </item>
     </widget>

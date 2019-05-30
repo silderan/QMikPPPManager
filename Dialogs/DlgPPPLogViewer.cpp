@@ -26,6 +26,7 @@
 #include <QMessageBox>
 
 #include "ConfigData/QConfigData.h"
+#include "../Utils/Utils.h"
 
 DlgPPPLogViewer::DlgPPPLogViewer(const QString &userName, QWidget *parent)
 	: QDialog(parent)
@@ -49,7 +50,7 @@ DlgPPPLogViewer::DlgPPPLogViewer(const QString &userName, QWidget *parent)
 		for( int row = 0; row < m_pppLogDatalist.count(); ++row )
 		{
 			ui->logsTable->insertRow(row);
-			ui->logsTable->setItem( row, 0, new QTableWidgetItem(m_pppLogDatalist.at(row).timestamp) );
+			ui->logsTable->setItem( row, 0, new Utils::QDateTimeTableItem(m_pppLogDatalist.at(row).timestamp) );
 			ui->logsTable->setItem( row, 1, new QTableWidgetItem(m_pppLogDatalist.at(row).appUserName) );
 			ui->logsTable->setItem( row, 2, new QTableWidgetItem(m_pppLogDatalist.at(row).pppUserName) );
 			ui->logsTable->setItem( row, 3, new QTableWidgetItem(m_pppLogDatalist.at(row).field) );
@@ -68,7 +69,8 @@ DlgPPPLogViewer::DlgPPPLogViewer(const QString &userName, QWidget *parent)
 		for( int row = 0; row < m_pppLogDatalist.count(); ++row )
 		{
 			ui->logsTable->insertRow(row);
-			ui->logsTable->setItem( row, 0, new QTableWidgetItem(m_pppLogDatalist.at(row).timestamp) );
+
+			ui->logsTable->setItem( row, 0, new Utils::QDateTimeTableItem(m_pppLogDatalist.at(row).timestamp) );
 			ui->logsTable->setItem( row, 1, new QTableWidgetItem(m_pppLogDatalist.at(row).appUserName) );
 			ui->logsTable->setItem( row, 2, new QTableWidgetItem(m_pppLogDatalist.at(row).field) );
 			ui->logsTable->setItem( row, 3, new QTableWidgetItem(m_pppLogDatalist.at(row).oldValue) );

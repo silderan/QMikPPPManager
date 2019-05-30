@@ -56,6 +56,7 @@ const CellLook &QROSServiceStatusCellItem::getCellLook()
 	case ServiceState::CanceledNoPay:		return gGlobalConfig.tableCellLook().m_disabledNoPay;
 	case ServiceState::CanceledTemporally:	return gGlobalConfig.tableCellLook().m_disabledTemporary;
 	case ServiceState::CanceledTechnically:	return gGlobalConfig.tableCellLook().m_disabledTechnically;
+	case ServiceState::CanceledNoRetired:	return gGlobalConfig.tableCellLook().m_disabledDevicesNoRetired;
 	case ServiceState::CanceledRetired:		return gGlobalConfig.tableCellLook().m_disabledDevicesRetired;
 	case ServiceState::CanceledUndefined:	return gGlobalConfig.tableCellLook().m_disabledUndefined;
     case ServiceState::Undefined:           Q_ASSERT( false );

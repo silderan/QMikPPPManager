@@ -38,6 +38,7 @@ struct ServiceState
 		CanceledNoPay,
 		CanceledTemporally,
 		CanceledTechnically,
+		CanceledNoRetired,
 		CanceledRetired,
         CanceledUndefined,
         Undefined
