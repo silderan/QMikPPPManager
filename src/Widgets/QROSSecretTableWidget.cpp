@@ -59,7 +59,7 @@ const CellLook &QROSServiceStatusCellItem::getCellLook()
 	case ServiceState::CanceledNoRetired:	return gGlobalConfig.tableCellLook().m_disabledDevicesNoRetired;
 	case ServiceState::CanceledRetired:		return gGlobalConfig.tableCellLook().m_disabledDevicesRetired;
 	case ServiceState::CanceledUndefined:	return gGlobalConfig.tableCellLook().m_disabledUndefined;
-    case ServiceState::Undefined:           Q_ASSERT( false );
+	case ServiceState::Undefined:           Q_ASSERT( false );
 	}
 	Q_ASSERT(false);
 	return gGlobalConfig.tableCellLook().m_enabled;
@@ -68,9 +68,9 @@ const CellLook &QROSServiceStatusCellItem::getCellLook()
 void QROSActiveStatusCellItem::updateText()
 {
 	if( m_uptime.isValid() )
-        setText( QString("C: %1").arg(m_uptime.toString("yyyy/MM/dd hh:mm:ss")) );
+		setText( QString("C: %1").arg(m_uptime.toString("yyyy/MM/dd hh:mm:ss")) );
 	else
-        setText( QString("D: %1").arg(m_downtime.toString("yyyy/MM/dd hh:mm:ss")) );
+		setText( QString("D: %1").arg(m_downtime.toString("yyyy/MM/dd hh:mm:ss")) );
 }
 
 const CellLook &QROSActiveStatusCellItem::getCellLook()
@@ -179,7 +179,7 @@ QList<int> QROSSecretTableWidget::findData(const QString &text, QList<Columns> c
 
 bool QROSSecretTableWidget::shouldBeVisible(const QROSUserNameWidgetItem *userNameItem)
 {
-	if( userNameItem->pppSecretMap.isEmpty() )
+	if( !userNameItem || userNameItem->pppSecretMap.isEmpty() )
 		return false;
 	const ROSPPPSecret &rosPPPSecret = userNameItem->pppSecretMap.first();
 	if( gGlobalConfig.clientProfileMap().containsProfileName(rosPPPSecret.pppProfileName()) )
@@ -209,9 +209,9 @@ bool QROSSecretTableWidget::shouldBeVisible(const QROSUserNameWidgetItem *userNa
 						rosPPPSecret.clientName().contains(m_filterText, Qt::CaseInsensitive) ||
 						rosPPPSecret.clientAddress().contains(m_filterText, Qt::CaseInsensitive) ||
 						rosPPPSecret.clientCity().contains(m_filterText, Qt::CaseInsensitive) ||
-                        rosPPPSecret.clientPhones().contains(m_filterText) ||
-                        rosPPPSecret.clientCode().contains(m_filterText) ||
-                        rosPPPSecret.clientEmail().contains(m_filterText, Qt::CaseInsensitive) ||
+						rosPPPSecret.clientPhones().contains(m_filterText) ||
+						rosPPPSecret.clientCode().contains(m_filterText) ||
+						rosPPPSecret.clientEmail().contains(m_filterText, Qt::CaseInsensitive) ||
 						rosPPPSecret.clientNotes().contains(m_filterText, Qt::CaseInsensitive) ||
 						rosPPPSecret.installNotes().contains(m_filterText, Qt::CaseInsensitive);
 
@@ -269,6 +269,28 @@ void QROSSecretTableWidget::applyFilter()
 {
 	for( int row = rowCount()-1; row >= 0; --row )
 		showRowIfValid( userNameWidgetItem(row) );
+}
+
+void QROSSecretTableWidget::changeUserProfile(QROSUserNameWidgetItem *userNameItem, const QString &newProfile)
+{
+	if( userNameItem && userNameItem->pppSecretMap.count() )
+	{
+		ROSPPPSecret secret = userNameItem->pppSecretMap.first();
+
+		if( !ServiceState::isCanceledState(secret.serviceState()) )
+			secret.setPPPProfileName( newProfile );
+		secret.setOriginalProfile( newProfile );
+
+		multiConnectionManager.updateRemoteData( secret, userNameItem->pppSecretMap.toRouterIDMap() );
+
+		disconnectUser(userNameItem->row());
+	}
+}
+
+void QROSSecretTableWidget::changeMultipleProfiles(const QList<QROSUserNameWidgetItem *> &selectedList, const QString newProfile)
+{
+	for( QROSUserNameWidgetItem *userNameWidgetItem : selectedList )
+		changeUserProfile(userNameWidgetItem, newProfile);
 }
 
 QString QROSSecretTableWidget::cellText(int row, QROSSecretTableWidget::Columns col) const
@@ -446,18 +468,18 @@ void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &pppSecret)
 		setupCellItem( userNameItem->row(), Columns::ActiveRouter,	tr("Ninguno"), false );
 
 	setupRemoteIPCellItem( userNameItem );
-    if( pppSecret.serviceState() == ServiceState::Undefined )
-    {
-        if( gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName() == pppSecret.pppProfileName() )
-            setupServiceCellItem( userNameItem->row(), ServiceState::CanceledUndefined );
-        else
-            setupServiceCellItem( userNameItem->row(), ServiceState::ActiveUndefined );
-    }
-    else
-    {
-        setupServiceCellItem( userNameItem->row(), pppSecret.serviceState() );
-    }
-    showRowIfValid( userNameItem );
+	if( pppSecret.serviceState() == ServiceState::Undefined )
+	{
+		if( gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName() == pppSecret.pppProfileName() )
+			setupServiceCellItem( userNameItem->row(), ServiceState::CanceledUndefined );
+		else
+			setupServiceCellItem( userNameItem->row(), ServiceState::ActiveUndefined );
+	}
+	else
+	{
+		setupServiceCellItem( userNameItem->row(), pppSecret.serviceState() );
+	}
+	showRowIfValid( userNameItem );
 
 	blockSignals(false);
 }
@@ -653,11 +675,11 @@ bool QROSSecretTableWidget::allowCellChange(const QModelIndex &index, const QStr
 				setFnc = &ROSPPPSecret::setClientCode;
 			}
 			break;
-        case QROSSecretTableWidget::ServiceStatus: 			// This is not a string, so cannot be set by setFnc
-            if( (gGlobalConfig.userLevel() == ROSAPIUser::Level::Administrator) ||
-                (gGlobalConfig.userLevel() == ROSAPIUser::Level::Supervisor) )
-            {
-                newSecret.setServiceState( ServiceState::fromNameString(newText) );
+		case QROSSecretTableWidget::ServiceStatus: 			// This is not a string, so cannot be set by setFnc
+			if( (gGlobalConfig.userLevel() == ROSAPIUser::Level::Administrator) ||
+				(gGlobalConfig.userLevel() == ROSAPIUser::Level::Supervisor) )
+			{
+				newSecret.setServiceState( ServiceState::fromNameString(newText) );
 				if( !ServiceState::isCanceledState(newSecret.serviceState()) && (newSecret.pppProfileName() == gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName()) )
 					newSecret.setPPPProfileName( newSecret.originalProfile() );
 				else
@@ -816,16 +838,20 @@ void QROSSecretTableWidget::exportUsersData()
 
 void QROSSecretTableWidget::contextMenuEvent(QContextMenuEvent *event)
 {
+	QAction *ac;
 	QList<QROSUserNameWidgetItem*> selectedList = selectedUsers();
 	QList<QROSUserNameWidgetItem*> connectedList;
-	foreach( QROSUserNameWidgetItem *userNameItem, selectedList )
+	for( QROSUserNameWidgetItem *userNameItem : selectedList )
 	{
 		if( userNameItem->pppActive.currentIPv4().isValid() && !connectedList.contains(userNameItem) )
 			connectedList.append( userNameItem );
 	}
 	QMenu rootMenu(this);
+	QMenu chngProfileSubmenu( tr("Cambiar perfil") ) ;
+	QMenu openBrowserSubMenu( tr("Abrir navegador") ) ;
+	QMenu columnsSubmenu( tr("Columnas") );
 
-    if( gGlobalConfig.userLevel() >= ROSAPIUser::Level::Instalator )
+	if( gGlobalConfig.userLevel() >= ROSAPIUser::Level::Instalator )
 	{
 		if( !connectedList.isEmpty() )
 		{
@@ -838,13 +864,12 @@ void QROSSecretTableWidget::contextMenuEvent(QContextMenuEvent *event)
 		}
 	}
 
-	QMenu openBrowser( tr("Abrir navegador") );
-	foreach( const QROSUserNameWidgetItem *userNameItem, connectedList )
+	for( const QROSUserNameWidgetItem *userNameItem : connectedList )
 	{
 		const ROSPPPActive &rosActive = userNameItem->pppActive;
 		if( rosActive.currentIPv4().isValid() )
 		{
-			openBrowser.setTitle( tr("Abrir web %1 ...").arg(rosActive.currentIPv4().toString()) );
+			openBrowserSubMenu.setTitle( tr("Abrir web %1 ...").arg(rosActive.currentIPv4().toString()) );
 
 			OpenBrowserInfoList obl(userNameItem->pppSecretMap.first().portForwardList());
 			obl += gGlobalConfig.openBrowserInfoList();
@@ -853,42 +878,42 @@ void QROSSecretTableWidget::contextMenuEvent(QContextMenuEvent *event)
 			{
 				obf.ip = rosActive.currentIPv4().toString();
 				QString url = obf.toURL();
-				QAction *ac = openBrowser.addAction( QString("puerto %1 (%2)").arg(obf.port, obf.name) );
+				QAction *ac = openBrowserSubMenu.addAction( QString("puerto %1 (%2)").arg(obf.port, obf.name) );
 				connect( ac, &QAction::triggered, [url] () { QDesktopServices::openUrl( QUrl(url) ); } );
 			}
-			rootMenu.addMenu( &openBrowser );
+			rootMenu.addMenu( &openBrowserSubMenu );
 			break;
 		}
 	}
 
-	QMenu columnsSubmenu( tr("Columnas") );
 	QStringList columnNames = columnsNames();
 	for( int col = 0; col < columnNames.count(); ++col )
 	{
-		QAction *ac = columnsSubmenu.addAction(columnNames[col]);
+		ac = columnsSubmenu.addAction(columnNames[col]);
 		ac->setCheckable(true);
 		ac->setChecked( !isColumnHidden(col) );
 		connect( ac, &QAction::triggered, [this, col] (bool visible) { setColumnHidden(col, !visible); } );
 	}
 	rootMenu.addMenu( &columnsSubmenu );
 
-	if( gGlobalConfig.userLevel() > ROSAPIUser::Level::Instalator )
+	if( selectedList.count() && (gGlobalConfig.userLevel() > ROSAPIUser::Level::Instalator) )
 	{
-		QMenu deleteUser( tr("Borra usuario") );
-		if( selectedList.count() )
-		{
-			QString userName = selectedList.first()->pppSecretMap.first().userName();
-			QAction *ac = rootMenu.addAction( tr("Borrar usuario %1").arg(userName) );
+		QString userName = selectedList.first()->pppSecretMap.first().userName();
+		ac = rootMenu.addAction( tr("Borrar usuario %1").arg(userName) );
 
-			connect( ac, &QAction::triggered, [this, userName] () { this->deleteUser(userName); } );
-		}
-		int count = selectedList.count() ? selectedList.count() : rowCount();
-		if( rowCount() )
+		connect( ac, &QAction::triggered, [this, userName] () { this->deleteUser(userName); } );
+
+		connect( rootMenu.addAction( tr("Exportar datos de %1 usuario%2").arg(selectedList.count()).arg( (selectedList.count()>1) ? "s" : "") ),
+									 &QAction::triggered, [this] () { exportUsersData(); }	);
+
+		chngProfileSubmenu.setTitle( tr("Cambiar perfil a %1 cliente%2").arg(selectedList.count()).arg( (selectedList.count()>1) ? "s" : "") );
+
+		for( QString profileName : gGlobalConfig.clientProfileMap().regularProfileNames() )
 		{
-			rootMenu.addSeparator();
-			connect( rootMenu.addAction( tr("Esportar datos de %1 usuario%2").arg(count).arg( (count>1) ? "s" : "") ), &QAction::triggered,
-					 [this] () { exportUsersData(); }	);
+			ac = chngProfileSubmenu.addAction( profileName );
+			connect( ac, &QAction::triggered, [this, selectedList, profileName] () { this->changeMultipleProfiles(selectedList, profileName); } );
 		}
+		rootMenu.addMenu( &chngProfileSubmenu );
 	}
 	rootMenu.exec( event->globalPos() );
 }
