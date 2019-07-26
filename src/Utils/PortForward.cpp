@@ -133,7 +133,7 @@ void PortForward::fromSaveString(const QString &saveString)
 		m_privatePortEnd = m_privatePortIni;
 	}
 	else
-	if( data.count() == 6 )
+	if( data.count() == 7 )
 	{
 		m_name = data[0];
 		setProtocol( data[1] );

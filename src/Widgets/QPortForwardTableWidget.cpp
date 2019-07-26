@@ -67,6 +67,9 @@ PortForward QPortForwardTableWidget::portForwardRow(int row)
 	if( name.isEmpty() )
 		m_lastError = tr("Debes poner un nombre informativo para la redirección de puertos de la linea %1").arg(row);
 	else
+	if( name.contains(QRegExp("[^A-Za-z0-9 ]")) )
+		m_lastError = tr("El nombre para la redirección de puertos contiene caracteres no válidos").arg(row);
+	else
 	if( !destIP.isValid() )
 		m_lastError = tr("La IP destino para la redirección de puertos de la linea %1 no es válida").arg(row);
 	else
