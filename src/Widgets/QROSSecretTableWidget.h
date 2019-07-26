@@ -148,6 +148,9 @@ private:
 	bool checkStringData(ROSPPPSecret &pppSecret, const QString &fieldName, const QString &text, std::function<bool(ROSPPPSecret &, const QString &)> setFnc) const;
 	void applyFilter();
 
+	void changeUserProfile(QROSUserNameWidgetItem *userNameItem, const QString &newProfile);
+	void changeMultipleProfiles(const QList<QROSUserNameWidgetItem*> &selectedList, const QString newProfile);
+
 public:
 	explicit QROSSecretTableWidget(QWidget *papi = Q_NULLPTR);
 

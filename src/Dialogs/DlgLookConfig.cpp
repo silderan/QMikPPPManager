@@ -83,7 +83,8 @@ void DlgLookConfig::updateTableCellLook()
 	updateCellLook( 2, 0, gGlobalConfig.tableCellLook().m_disabledNoPay );
 	updateCellLook( 3, 0, gGlobalConfig.tableCellLook().m_disabledTechnically );
 	updateCellLook( 4, 0, gGlobalConfig.tableCellLook().m_disabledUndefined );
-	updateCellLook( 5, 0, gGlobalConfig.tableCellLook().m_disabledDevicesRetired );
+	updateCellLook( 5, 0, gGlobalConfig.tableCellLook().m_disabledDevicesNoRetired );
+	updateCellLook( 6, 0, gGlobalConfig.tableCellLook().m_disabledDevicesRetired );
 
 	updateCellLook( 0, 1, gGlobalConfig.tableCellLook().m_connected );
 	updateCellLook( 1, 1, gGlobalConfig.tableCellLook().m_disconnected );
@@ -109,7 +110,8 @@ void DlgLookConfig::retrieveTableCellLook()
 	retrieveCellLook(ui->coloursTable->item(2, 0), gGlobalConfig.tableCellLook().m_disabledNoPay );
 	retrieveCellLook(ui->coloursTable->item(3, 0), gGlobalConfig.tableCellLook().m_disabledTechnically);
 	retrieveCellLook(ui->coloursTable->item(4, 0), gGlobalConfig.tableCellLook().m_disabledUndefined );
-	retrieveCellLook(ui->coloursTable->item(5, 0), gGlobalConfig.tableCellLook().m_disabledDevicesRetired );
+	retrieveCellLook(ui->coloursTable->item(5, 0), gGlobalConfig.tableCellLook().m_disabledDevicesNoRetired );
+	retrieveCellLook(ui->coloursTable->item(6, 0), gGlobalConfig.tableCellLook().m_disabledDevicesRetired );
 
 	retrieveCellLook(ui->coloursTable->item(0, 1), gGlobalConfig.tableCellLook().m_connected );
 	retrieveCellLook(ui->coloursTable->item(1, 1), gGlobalConfig.tableCellLook().m_disconnected );

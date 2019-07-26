@@ -71,6 +71,7 @@ struct TableCellLook
 	CellLook m_disabledTechnically;
 	CellLook m_disabledUndefined;
 	CellLook m_disabledDevicesRetired;
+	CellLook m_disabledDevicesNoRetired;
 
 	TableCellLook() :
 		m_fontSize(10),
@@ -81,7 +82,8 @@ struct TableCellLook
 		m_disabledNoPay(0x000000u, 0xFF0000u),
 		m_disabledTechnically(0x000000u, 0xFFA0A0u),
 		m_disabledUndefined(0x000000u, 0xFFF8080u),
-		m_disabledDevicesRetired(0x000000u, 0xFFC0C0u)
+		m_disabledDevicesRetired(0x000000u, 0xFFC0C0u),
+		m_disabledDevicesNoRetired(0x000000u, 0xFFC0C0u)
 	{
 
 	}

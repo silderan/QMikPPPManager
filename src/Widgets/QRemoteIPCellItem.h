@@ -61,6 +61,11 @@ public:
 		m_staticIP = staticIP;
 		updateData();
 	}
+	virtual bool operator< ( const QTableWidgetItem &cellIP ) const override
+	{
+		return  (m_currentIP.isValid() ? m_currentIP : m_staticIP) <
+				(static_cast<const QRemoteIPCellItem &>(cellIP).m_currentIP.isValid() ? static_cast<const QRemoteIPCellItem &>(cellIP).m_currentIP : static_cast<const QRemoteIPCellItem &>(cellIP).m_staticIP);
+	}
 };
 
 

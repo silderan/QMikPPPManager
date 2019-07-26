@@ -36,6 +36,7 @@ QString ServiceState::toSaveString(const ServiceState::Type type)
 	case Type::CanceledNoPay:		return "CN";
 	case Type::CanceledTemporally:	return "CT";
 	case Type::CanceledTechnically:	return "CH";
+	case Type::CanceledNoRetired:	return "CA";
 	case Type::CanceledRetired:		return "CR";
 	case Type::CanceledUndefined:	return "CU";
     case Type::Undefined:           return "UN";
@@ -65,6 +66,7 @@ ServiceState::Type ServiceState::fromSaveString(const QString &c)
 			case 'N':	return ServiceState::CanceledNoPay;
 			case 'T':	return ServiceState::CanceledTemporally;
 			case 'H':	return ServiceState::CanceledTechnically;
+			case 'A':	return ServiceState::CanceledNoRetired;
 			case 'R':	return ServiceState::CanceledRetired;
 			default:	return ServiceState::CanceledUndefined;
 			}
@@ -82,6 +84,7 @@ QString ServiceState::readableString(const ServiceState::Type &type)
 	case Type::CanceledNoPay:		return QObject::tr("Cancelado: debe facturas");
 	case Type::CanceledTemporally:	return QObject::tr("Cancelado temporal");
 	case Type::CanceledTechnically:	return QObject::tr("Cancelado técnico");
+	case Type::CanceledNoRetired:	return QObject::tr("Cancelado: Falta retirar equipos");
 	case Type::CanceledRetired:		return QObject::tr("Cancelado: equipos retirados");
 	case Type::CanceledUndefined:	return QObject::tr("Cancelado ...");
     case Type::Undefined:           return QObject::tr("Indefinido");
@@ -149,6 +152,7 @@ const QString &ROSPPPSecret::commentString() const
 			break;
 		case ServiceState::CanceledNoPay:
 		case ServiceState::CanceledTechnically:
+		case ServiceState::CanceledNoRetired:
 		case ServiceState::CanceledRetired:
 		case ServiceState::CanceledUndefined:
 			serviceStateString += QString("%1|%2").arg(ServiceState::toSaveString(m_serviceState), m_originalProfile);
