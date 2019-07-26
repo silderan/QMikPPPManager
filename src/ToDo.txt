@@ -1,0 +1,14 @@
+- Dar opción a que no se guarde la contraseña. Así, evitamos que alguien use el ordenador
+  de otro y pueda hacer modificaciones a los usuarios con la identidad de otro.
+- Crear un registro de las modificaciones a los clientes en formato CSV para que pueda ser
+  leído por un programa externo tipo Excel o Acces.
+  El registro debe incluir:
+  . Fecha (Formato legible)
+  . Técnico que hace el cambio.
+  . Cliente (usuario)
+  . Acción realizada (valor anterior y valor nuevo)
+- Comprobar NIF cuando se generen altas nuevas para que no se dupliquen clientes.
+  Avisar en este caso pero no impedir.
+- Avisar por cambio de perfil y baja. Que se pueda evitar el aviso si es un "Full" para que puedan hacerse cambios
+  rápidamente cuando se modifican muchos perfiles a la vez.
+- Poder imprimir las filas que se ven en pantalla. Poder eligir rango de filas a imprimir.
