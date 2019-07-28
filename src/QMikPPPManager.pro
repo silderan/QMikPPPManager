@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network sql
+QT       += core gui network sql charts
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -66,7 +66,9 @@ SOURCES += main.cpp\
     Dialogs/DlgNewROSAPIUser.cpp \
     Dialogs/DlgExportUserData.cpp \
     Utils/OpenBrowserInfo.cpp \
-    RadiusManager/QRadiusManager.cpp
+    RadiusManager/QRadiusManager.cpp \
+    Widgets/QSpeedChart.cpp \
+    Dialogs/DlgUserThroughput.cpp
 
 HEADERS  += QMikPPPManager.h \
     Utils/IPv4Range.h \
@@ -132,7 +134,9 @@ HEADERS  += QMikPPPManager.h \
     Dialogs/DlgExportUserData.h \
     Utils/OpenBrowserInfo.h \
     RadiusManager/QRadiusManager.h \
-    ROSDataManager/ROSIPPoolManager.h
+    ROSDataManager/ROSIPPoolManager.h \
+    Widgets/QSpeedChart.h \
+    Dialogs/DlgUserThroughput.h
 
 FORMS    += QMikPPPManager.ui \
 	DlgNuevoUsuario.ui \
@@ -146,7 +150,8 @@ FORMS    += QMikPPPManager.ui \
     Dialogs/DlgPPPUser.ui \
 	Dialogs/DlgPPPLogViewer.ui \
     Dialogs/DlgNewROSAPIUser.ui \
-    Dialogs/DlgExportUserData.ui
+    Dialogs/DlgExportUserData.ui \
+    Dialogs/DlgUserThroughput.ui
 
 DISTFILES += \
     ToDo.txt
