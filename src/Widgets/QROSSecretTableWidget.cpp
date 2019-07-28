@@ -875,8 +875,9 @@ void QROSSecretTableWidget::contextMenuEvent(QContextMenuEvent *event)
 		const ROSPPPActive &rosActive = userNameItem->pppActive;
 		if( rosActive.currentIPv4().isValid() )
 		{
+			int row = userNameItem->row();
 			connect( rootMenu.addAction( tr("Ver consumo en directo de %1").arg(rosActive.userName())), &QAction::triggered,
-					 [this, &userNameItem] { QROSSecretTableWidget::openThroughputDialog(userNameItem->row()); } );
+					 [this, row] { QROSSecretTableWidget::openThroughputDialog(row); } );
 			openBrowserSubMenu.setTitle( tr("Abrir web %1 ...").arg(rosActive.currentIPv4().toString()) );
 
 			OpenBrowserInfoList obl(userNameItem->pppSecretMap.first().portForwardList());
