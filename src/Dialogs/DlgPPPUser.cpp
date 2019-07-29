@@ -32,6 +32,8 @@ DlgPPPUser::DlgPPPUser(QConfigData &configData, ROSMultiConnectManager &rosMulti
 {
 	ui->setupUi(this);
 	onConfigDataChanged();
+
+	ui->serviceTypeComboBox->addItems(ServiceInfo::serviceTypeNameList());
 }
 
 DlgPPPUser::~DlgPPPUser()
@@ -183,15 +185,51 @@ bool DlgPPPUser::getInstallNotes()
     return updateTextMember<ROSPPPSecret>( ui->installNotesTextEdit->toPlainText().replace('\n', '\\'), m_pppSecret, &ROSPPPSecret::installNotes, &ROSPPPSecret::setInstallNotes, tr("Anotaciones sobre la instalación") );
 }
 
-bool DlgPPPUser::getONTSN()
+bool DlgPPPUser::getServiceInfo()
 {
-	QString s = ui->ontSNComboBox->currentText();
-	if( ui->ftthCheckBox->isChecked() && s.isEmpty() )
+	ServiceInfo::ServiceType newType = ServiceInfo::ServiceType(ui->serviceTypeComboBox->currentIndex());
+	switch( newType )
 	{
-		raiseWarning( tr("Debes seleccionar una ONT") );
+	case ServiceInfo::ServiceType::Unk:
+		raiseWarning( tr("Debes escoger el tipo de servicio.") );
 		return false;
+	case ServiceInfo::ServiceType::WiFi:
+		m_pppSecret.setONTSN("");
+		m_pppSecret.setHasIoC(false);
+		m_pppSecret.setHasToF(false);
+		break;
+	case ServiceInfo::ServiceType::WTTB:
+		m_pppSecret.setONTSN("");
+		m_pppSecret.setHasIoC( ui->iocCheckBox->isChecked() );
+		m_pppSecret.setHasToF( ui->tofCheckBox->isChecked() );
+		break;
+	case ServiceInfo::ServiceType::FTTB:
+		m_pppSecret.setONTSN("");
+		m_pppSecret.setHasIoC( ui->iocCheckBox->isChecked() );
+		m_pppSecret.setHasToF( ui->tofCheckBox->isChecked() );
+		break;
+	case ServiceInfo::ServiceType::FTTH:
+		if( ui->ontSNComboBox->currentText().isEmpty() )
+		{
+			raiseWarning( tr("Debes seleccionar una ONT") );
+			return false;
+		}
+		if( !updateTextMember<ROSPPPSecret>( ui->ontSNComboBox->currentText(), m_pppSecret, &ROSPPPSecret::ontSN, &ROSPPPSecret::setONTSN, tr("Número de serie de la ONT") ) )
+			return false;
+		m_pppSecret.setHasIoC(false);
+		m_pppSecret.setHasToF(false);
+		break;
+	case ServiceInfo::ServiceType::PtP_WiFi:
+		m_pppSecret.setHasIoC(false);
+		m_pppSecret.setHasToF(false);
+		break;
+	case ServiceInfo::ServiceType::PtP_FO:
+		m_pppSecret.setHasIoC(false);
+		m_pppSecret.setHasToF(false);
+		break;
 	}
-	return updateTextMember<ROSPPPSecret>( s, m_pppSecret, &ROSPPPSecret::ontSN, &ROSPPPSecret::setONTSN, tr("Número de serie de la ONT") );
+	m_pppSecret.setServiceType(newType);
+	return true;
 }
 
 bool DlgPPPUser::getVoIPPhone()
@@ -383,7 +421,13 @@ void DlgPPPUser::updateUserData()
 		updateStaticIPComboBox();
 	}
 	ui->pppProfileComboBox->blockSignals(false);
+	ui->serviceTypeComboBox->setCurrentIndex(m_pppSecret.serviceInfo().serviceType);
+	ui->tofCheckBox->setChecked(m_pppSecret.serviceInfo().hasToF);
+	ui->iocCheckBox->setChecked(m_pppSecret.serviceInfo().hasIoC);
+	ui->serviceTypeComboBox->blockSignals(true);
+	ui->ontSNComboBox->setCurrentText(m_pppSecret.ontSN());
 
+	ui->serviceTypeComboBox->blockSignals(false);
 	ui->installerComboBox->setCurrentText( m_pppSecret.installerName() );
 	ui->clientNameLineEdit->setText( m_pppSecret.clientName() );
 	ui->clientAddressLineEdit->setText( m_pppSecret.clientAddress() );
@@ -526,7 +570,7 @@ void DlgPPPUser::onEditUserRequest(const QPPPSecretMap &pppSecretMap, const ROSP
 	if( pppSecretMap.count() )
 	{
 		m_pppSecretMap = pppSecretMap;
-		m_pppSecret = m_pppSecretMap.first();
+		m_pppSecret = m_pppSecretMap.pppSecret();
 		m_pppActive = pppActive;
 		updateDialog();
 	}
@@ -563,7 +607,7 @@ void DlgPPPUser::on_applyDataButton_clicked()
 		getClientName() && getClientAddress() && getClientInstaller() &&
 		getClientCity() && getClientPhones() && getClientEMail() &&
 		getClientNotes() && getInstallNotes() &&
-		getONTSN() &&
+		getServiceInfo() &&
 		getVoIPPhone() && getVoIPSIPServer() && getVoIPUserName() && getVoIPUserPass() &&
 		getWiFi2SSID() && getWiFi2WPA() &&
 		getWiFi5SSID() && getWiFi5WPA() &&
@@ -636,7 +680,7 @@ void DlgPPPUser::on_copyInfoButton_clicked()
 										 : "") );
 	txt.append( tr("\nEstado: %1").arg(m_pppActive.rosObjectID().isEmpty()
 									   ? tr("Desconectado desde %1").arg(m_pppSecret.lastLogOff().toString("dd/MM/yyyy hh:mm:ss"))
-									   : tr("Conectado desde %1").arg(m_pppActive.uptime().toString("dd/MM/yyyy hh:mm:ss"))) );
+									   : tr("Conectado desde %1 con IP %2").arg(m_pppActive.uptime().toString("dd/MM/yyyy hh:mm:ss"))).arg(m_pppActive.currentIPv4().toString()) );
 
     txt.append( tr("\nInstalado por: %1").arg(ui->installerComboBox->currentText()) );
 	if( !m_pppSecret.voipSIPServer().isEmpty() )
@@ -662,7 +706,8 @@ void DlgPPPUser::on_copyInfoButton_clicked()
 
     foreach( QString note, ui->installNotesTextEdit->toPlainText().split('\n') )
     {
-        txt.append( tr("\nNota: %1").arg(note) );
+		if( !note.isEmpty() )
+			txt.append( tr("\nNota: %1").arg(note) );
     }
 
 	QGuiApplication::clipboard()->setText(txt);

@@ -54,35 +54,54 @@ public:
 
 class QROSActiveStatusCellItem : public QStyledWidgetItem
 {
-	QDateTime m_uptime;
-	QDateTime m_downtime;
+	struct _times
+	{
+		QDateTime uptime;
+		QDateTime downtime;
+	};
+	QMap<QString, _times> data;
+	QString curRouter;
+	QDateTime curUpTime;
+	QDateTime curDwTime;
 
 	void updateText();
 
 public:
 	QROSActiveStatusCellItem() : QStyledWidgetItem()
 	{	}
-	void setUptime(const QDateTime &uptime)
+	void setUptime(const QString &routerName, const QDateTime &uptime)
 	{
-		m_uptime = uptime;
+		data[routerName].uptime = uptime;
+		curRouter = routerName;
+		curUpTime = uptime;
 		updateText();
 		updateStyle();
 	}
-	void setDowntime(const QDateTime &downtime)
+	void setLastDowntime(const QString &routerName, const QDateTime &downtime)
 	{
-		m_uptime = QDateTime();
-		m_downtime = downtime;
+		data[routerName].downtime = downtime;
+		if( downtime.isValid() && (!curDwTime.isValid() || (curDwTime < downtime)) )
+			curDwTime = downtime;
 		updateText();
 		updateStyle();
 	}
-	void setTimes(const QDateTime &uptime, const QDateTime &downtime)
+	void setCurrentDowntime(const QString &routerName, const QDateTime &downtime)
 	{
-		m_uptime = uptime;
-		if( downtime.isValid() )
-			m_downtime = downtime;
+		data[routerName].downtime = downtime;
+		if( curRouter == routerName )
+			curUpTime = QDateTime();
 		updateText();
 		updateStyle();
 	}
+//	void setTimes(const QString &routerName, const QDateTime &uptime, const QDateTime &downtime)
+//	{
+//		data[routerName].uptime = uptime;
+//		data[routerName].downtime = downtime;
+//		if( downtime.isValid() )
+//			m_downtime = downtime;
+//		updateText();
+//		updateStyle();
+//	}
 	virtual const CellLook &getCellLook()override;
 };
 
@@ -131,7 +150,7 @@ private:
 
 	void setupCellItem(int row, Columns col, const QString &cellText, bool editable);
 	void setupServiceCellItem(int row, ServiceState::Type st);
-	void setupActiveStatusCellItem(int row, const QDateTime &uptime, const QDateTime &downtime);
+	QROSActiveStatusCellItem *setupActiveStatusCellItem(int row);
 	void setupRemoteIPCellItem(int row, const IPv4 &remoteIP, const IPv4 &staticIP);
 	void setupRemoteIPCellItem(const QROSUserNameWidgetItem *userNameItem );
 

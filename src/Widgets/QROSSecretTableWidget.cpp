@@ -67,15 +67,15 @@ const CellLook &QROSServiceStatusCellItem::getCellLook()
 
 void QROSActiveStatusCellItem::updateText()
 {
-	if( m_uptime.isValid() )
-		setText( QString("C: %1").arg(m_uptime.toString("yyyy/MM/dd hh:mm:ss")) );
+	if( curUpTime.isValid() )
+		setText( QString("C: %1").arg(curUpTime.toString("yyyy/MM/dd hh:mm:ss")) );
 	else
-		setText( QString("D: %1").arg(m_downtime.toString("yyyy/MM/dd hh:mm:ss")) );
+		setText( QString("D: %1").arg(curDwTime.toString("yyyy/MM/dd hh:mm:ss")) );
 }
 
 const CellLook &QROSActiveStatusCellItem::getCellLook()
 {
-	if( m_uptime.isValid() )
+	if( curUpTime.isValid() )
 		return gGlobalConfig.tableCellLook().m_connected;
 	return gGlobalConfig.tableCellLook().m_disconnected;
 }
@@ -374,15 +374,15 @@ void QROSSecretTableWidget::setupServiceCellItem(int row, ServiceState::Type st)
 	static_cast<QROSServiceStatusCellItem*>(item(row, Columns::ServiceStatus))->setServiceState(st);
 }
 
-void QROSSecretTableWidget::setupActiveStatusCellItem(int row, const QDateTime &uptime, const QDateTime &downtime)
+QROSActiveStatusCellItem*QROSSecretTableWidget::setupActiveStatusCellItem(int row)
 {
-	if( item(row, Columns::ActiveUserStatus) == Q_NULLPTR )
+	QROSActiveStatusCellItem *rtn;
+	if( (rtn = static_cast<QROSActiveStatusCellItem*>(item(row, Columns::ActiveUserStatus))) == Q_NULLPTR )
 	{
-		setItem(row, Columns::ActiveUserStatus, new QROSActiveStatusCellItem());
-		item( row, Columns::ActiveUserStatus)->setFlags(item(row, Columns::ActiveUserStatus)->flags() & ~Qt::ItemIsEditable);
+		setItem( row, Columns::ActiveUserStatus, rtn = new QROSActiveStatusCellItem() );
+		rtn->setFlags(item(row, Columns::ActiveUserStatus)->flags() & ~Qt::ItemIsEditable);
 	}
-
-	static_cast<QROSActiveStatusCellItem*>(item(row, Columns::ActiveUserStatus))->setTimes(uptime, downtime);
+	return rtn;
 }
 
 void QROSSecretTableWidget::setupRemoteIPCellItem(int row, const IPv4 &remoteIP, const IPv4 &staticIP)
@@ -467,8 +467,7 @@ void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &pppSecret)
 	// This columns can be filled by active data before the secred was reported. So, here will set data only if they're empty.
 	// TODO: Last logg off must show the last (date-nearest) value because every router will has diferent time-stamp.
 	//       Maybe, could be interesting also keep all data and show to user via cell tool-tip
-	if( item(userNameItem->row(), Columns::ActiveUserStatus) == Q_NULLPTR )
-		setupActiveStatusCellItem( userNameItem->row(), QDateTime(), pppSecret.lastLogOff() );
+	setupActiveStatusCellItem( userNameItem->row() )->setLastDowntime( pppSecret.routerName(), pppSecret.lastLogOff() );
 
 	if( item(userNameItem->row(), Columns::ActiveRouter) == Q_NULLPTR )
 		setupCellItem( userNameItem->row(), Columns::ActiveRouter,	tr("Ninguno"), false );
@@ -527,7 +526,7 @@ void QROSSecretTableWidget::onROSActiveModReply(const ROSPPPActive &rosPPPActive
 
 	m_activeIDMap[rosPPPActive.rosObjectID()] = userNameItem;
 
-	setupActiveStatusCellItem( userNameItem->row(), rosPPPActive.uptime(), QDateTime() );
+	setupActiveStatusCellItem( userNameItem->row() )->setUptime( rosPPPActive.routerName(), rosPPPActive.uptime() );
 	setupRemoteIPCellItem( userNameItem );
 	setupCellItem( userNameItem->row(), Columns::ActiveRouter, rosPPPActive.routerName(), false );
 	blockSignals(false);
@@ -545,7 +544,7 @@ void QROSSecretTableWidget::onROSActiveDelReply(const QString &routerName, const
 		if( item(userNameItem->row(), Columns::ActiveRouter)->text() == routerName )
 		{
 			blockSignals(true);
-			setupActiveStatusCellItem( userNameItem->row(), QDateTime(), QDateTime::currentDateTime() );
+			setupActiveStatusCellItem( userNameItem->row() )->setCurrentDowntime( routerName, QDateTime::currentDateTime() );
 			setupCellItem( userNameItem->row(), Columns::ActiveRouter, tr("Ninguno"), false );
 			setupRemoteIPCellItem( userNameItem );
 			m_activeIDMap.remove(rosObjectID);

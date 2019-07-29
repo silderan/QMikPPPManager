@@ -27,6 +27,20 @@ bool ServiceState::isCanceledState(ServiceState::Type type)
 	return  type > ServiceState::ActiveTemporally;
 }
 
+
+const QStringList gInstallTypeNameList = {"No definida",
+										  "WiFi (Antena WiFi directa cliente)",
+										  "FTTH (Fibra directa cliente)",
+										  "WTTB (Antena WiFi al edificio)",
+										  "FTTB (Fibra al edificio)",
+										  "PtP WiFi (PtP WiFi dedicado)",
+										  "PtP FO (PtP fibra óptica dedicado)"};
+const QStringList &ServiceInfo::serviceTypeNameList()
+{
+	return gInstallTypeNameList;
+}
+
+
 QString ServiceState::toSaveString(const ServiceState::Type type)
 {
 	switch( type )
@@ -173,7 +187,7 @@ const QString &ROSPPPSecret::commentString() const
 				.arg(installerName())
 				.arg(clientNotes())
 				.arg(clientEmail())
-				.arg(needsPublicIP())
+				.arg(serviceInfo().toCommentString())
 				.arg(installNotes())
 				.arg(wifiSaveString)
 				.arg(voipSaveString)
@@ -205,7 +219,7 @@ void ROSPPPSecret::parseCommentString(const QString &commentString)
 		case 12:	voipSaveString		= fields[--i];				[[clang::fallthrough]];
 		case 11:	wifiSaveString		= fields[--i];				[[clang::fallthrough]];
 		case 10:	m_installNotes		= fields[--i];				[[clang::fallthrough]];
-		case 9:		m_needsPublicIP		= !fields[--i].isEmpty();	[[clang::fallthrough]];
+		case 9:		mServiceInfo.fromCommentString(fields[--i]);	[[clang::fallthrough]];
 		case 8:		m_clientEmail		= fields[--i];				[[clang::fallthrough]];
 		case 7:		m_clientNotes		= fields[--i];				[[clang::fallthrough]];
 		case 6:		m_installerName		= fields[--i];				[[clang::fallthrough]];
@@ -573,6 +587,19 @@ QList<ROS::QSentence> ROSPPPActive::simulatedStepSentences(const QString &router
 }
 #endif
 
+// Returns the secret data but checks for the last logoff data and uses this.
+ROSPPPSecret QPPPSecretMap::pppSecret() const
+{
+	QPPPSecretMapIterator it(*this);
+	ROSPPPSecret secret("");
+	while( it.hasNext() )
+	{
+		it.next();
+		if( !secret.lastLogOff().isValid() || (secret.lastLogOff() < it.value().lastLogOff()) )
+			secret = it.value();
+	}
+	return secret;
+}
 
 QRouterIDMap QPPPSecretMap::toRouterIDMap() const
 {

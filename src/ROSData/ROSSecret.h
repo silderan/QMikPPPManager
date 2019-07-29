@@ -61,6 +61,47 @@ struct ServiceStateScheduler
 	{	}
 };
 
+struct ServiceInfo
+{
+	enum ServiceType
+	{
+		Unk = 0,
+		WiFi,
+		FTTH,
+		WTTB,
+		FTTB,
+		PtP_WiFi,
+		PtP_FO
+	};
+	ServiceType serviceType;
+	bool hasToF;	// (Television Overlay) Only if type==FTTH.
+	bool hasIoC;	// (Internet over Coaxial) Only if type==FTTB or WTTB
+	ServiceInfo()
+		: serviceType(ServiceType::Unk)
+		, hasToF(false)
+		, hasIoC(false)
+	{	}
+	static const QStringList &serviceTypeNameList();
+	quint32 toUInt() const
+	{
+		return quint32( serviceType + ((hasToF?1:0)<<8) + ((hasIoC?1:0)<<9) );
+	}
+	void fromUInt(quint32 coded)
+	{
+		serviceType = ServiceType(coded & 0xF);
+		hasToF = (coded & 0x100);
+		hasIoC = (coded & 0x200);
+	}
+	QString toCommentString() const
+	{
+		return QString("%1").arg(toUInt(), 0, 16);
+	}
+	void fromCommentString(const QString &coded)
+	{
+		fromUInt( coded.toUInt(Q_NULLPTR, 16) );
+	}
+};
+
 class ServiceStateSchedulerList : public QList<ServiceStateScheduler>
 {
 
@@ -103,7 +144,8 @@ private:
 	IPv4 m_staticIP;
 	ServiceState::Type m_serviceState;
 	ServiceStateSchedulerList m_serviceStateSchedulerList;
-	bool m_needsPublicIP;
+	ServiceInfo mServiceInfo;
+
 
 	void parseCommentString(const QString &commentString);
 	const QString &commentString() const;
@@ -120,7 +162,7 @@ private:
 
 public:
 	explicit ROSPPPSecret(const QString &routerName) : ROSDataBase(DataTypeID::PPPSecret, routerName),
-	  m_serviceState(ServiceState::ActiveUndefined), m_needsPublicIP(false)
+	  m_serviceState(ServiceState::ActiveUndefined)
 	{	}
 
 	const QString &userName() const				{ return m_userName;	}
@@ -201,15 +243,17 @@ public:
 	const QPortForwardList &portForwardList() const			{ return m_portForwardList;	}
 	bool setPortForwardList(const QPortForwardList &ports)	{ updateNonROSMember(m_portForwardList, ports);	return true;	}
 
-	bool needsPublicIP() const					{ return m_needsPublicIP;			}
-	bool setNeedsPublicIP(bool needsPublicIP)	{ updateNonROSMember(m_needsPublicIP, needsPublicIP); return true;	}
-
 	const QString &ontSN() const				{ return m_ontSN;	}
 	bool setONTSN(const QString &ontSN)			{ return updateNonROSMember(m_ontSN, ontSN, basicNonROSMemberPatern, -9);	}
 
 	bool setServiceState(ServiceState::Type st)	{ updateNonROSMember(m_serviceState, st);	return true;	}
 	bool setServiceState(const QString &st)		{ return setServiceState(ServiceState::fromSaveString(st));	}
 	ServiceState::Type serviceState() const		{ return m_serviceState;	}
+
+	const ServiceInfo &serviceInfo() const			{ return mServiceInfo;	}
+	void setServiceType(ServiceInfo::ServiceType t)	{ updateNonROSMember(mServiceInfo.serviceType, t);		}
+	void setHasToF(bool tof)						{ updateNonROSMember(mServiceInfo.hasToF, tof);	}
+	void setHasIoC(bool ioc)						{ updateNonROSMember(mServiceInfo.hasIoC, ioc);	}
 
 	void fromSentence(const QString &routerName, const ROS::QSentence &s) override;
 	ROS::QSentence &toSentence(ROS::QSentence &sentence) const override;
@@ -226,8 +270,10 @@ class QPPPSecretMap : public QMap<QString, ROSPPPSecret>
 public:
 	void insert(const ROSPPPSecret &pppSecret )				{ QMap::insert(pppSecret.routerName(), pppSecret);	}
 	ROSPPPSecret pppSecret(const QString &routerName) const	{ return value(routerName, ROSPPPSecret(""));		}
+	ROSPPPSecret pppSecret() const;
 	QRouterIDMap toRouterIDMap() const;
 };
+using QPPPSecretMapIterator = QMapIterator<QString, ROSPPPSecret>;
 
 class ROSPPPActive : public ROSDataBase
 {

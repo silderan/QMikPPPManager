@@ -27,8 +27,8 @@ QSpeedChart::QSpeedChart(QGraphicsItem *parent, Qt::WindowFlags wFlags)
 	: QChart(QChart::ChartTypeCartesian, parent, wFlags)
 	, mX(0)
 {
-	setDownloadPencil(Qt::red, 3);
-	setUploadPencil(Qt::blue, 3);
+	setDownloadPencil(Qt::blue, 1);
+	setUploadPencil(Qt::red, 1);
 
 	addSeries(mDownloadLine.series);
 	addSeries(mUploadLine.series);

@@ -6,16 +6,29 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1059</width>
-    <height>642</height>
+    <width>922</width>
+    <height>625</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_8">
-   <item row="0" column="0" colspan="3">
+   <item row="2" column="0" colspan="3">
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="2">
     <widget class="QGroupBox" name="groupBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="title">
       <string>Identificación usuario PPPoE</string>
      </property>
@@ -51,7 +64,14 @@
        <widget class="QLineEdit" name="pppUserNameLineEdit"/>
       </item>
       <item row="2" column="1" colspan="3">
-       <widget class="QFancyComboBox" name="pppProfileComboBox"/>
+       <widget class="QFancyComboBox" name="pppProfileComboBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
       </item>
       <item row="2" column="0">
        <widget class="QLabel" name="label_3">
@@ -76,8 +96,8 @@
          <string>...</string>
         </property>
         <property name="icon">
-         <iconset>
-          <normaloff>:/iconos/Copy-icon.png</normaloff>:/iconos/Copy-icon.png</iconset>
+         <iconset resource="../iconos.qrc">
+          <normaloff>:/iconos/img/Copy-icon.png</normaloff>:/iconos/img/Copy-icon.png</iconset>
         </property>
        </widget>
       </item>
@@ -87,8 +107,8 @@
          <string>...</string>
         </property>
         <property name="icon">
-         <iconset>
-          <normaloff>:/iconos/Copy-icon.png</normaloff>:/iconos/Copy-icon.png</iconset>
+         <iconset resource="../iconos.qrc">
+          <normaloff>:/iconos/img/Copy-icon.png</normaloff>:/iconos/img/Copy-icon.png</iconset>
         </property>
        </widget>
       </item>
@@ -103,44 +123,212 @@
        </widget>
       </item>
       <item row="3" column="1" colspan="3">
-       <widget class="QFancyComboBox" name="staticIPComboBox"/>
+       <widget class="QFancyComboBox" name="staticIPComboBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
    </item>
-   <item row="1" column="2">
-    <widget class="QComboBox" name="ontSNComboBox"/>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_10">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Instalador</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
    </item>
-   <item row="2" column="0" colspan="4">
+   <item row="3" column="0" colspan="3">
     <widget class="QGroupBox" name="groupBox_3">
      <property name="title">
       <string>Información instalación</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_7">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_10">
+      <item row="6" column="2" rowspan="3">
+       <widget class="QGroupBox" name="wifi5GroupBox">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+         <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="title">
+         <string>WiFi router/AP ac (5 Ghz)</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_6">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_12">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>SSID</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="wifi5SSIDLineEdit"/>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_14">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>WPA</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="wifi5WPALineEdit"/>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="1" column="1" colspan="2">
+       <widget class="QComboBox" name="ontSNComboBox">
+        <property name="editable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1" colspan="2">
+       <widget class="QComboBox" name="serviceTypeComboBox"/>
+      </item>
+      <item row="0" column="3" rowspan="10">
+       <widget class="QGroupBox" name="lanGroupBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="title">
+         <string>Red Local</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="0" column="2">
+          <widget class="QLabel" name="label_20">
+           <property name="text">
+            <string>DMZ</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0" colspan="2">
+          <widget class="QLabel" name="label_19">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Puertos</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_18">
+           <property name="text">
+            <string>IP</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="3" colspan="3">
+          <widget class="QLineEdit" name="lanDMZLineEdit">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="lanIPLineEdit"/>
+         </item>
+         <item row="2" column="0" colspan="6">
+          <widget class="QPortForwardTableWidget" name="lanPortsTableWidget">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="5">
+          <widget class="QToolButton" name="delPortButton">
+           <property name="text">
+            <string> - </string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="4">
+          <widget class="QToolButton" name="addPortButton">
+           <property name="text">
+            <string>+</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="4" column="0" colspan="3">
+       <widget class="Line" name="line_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_21">
         <property name="text">
-         <string>Instalador</string>
+         <string>Número serie ONT</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QFancyComboBox" name="installerComboBox">
-        <property name="editable">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2" rowspan="2">
+      <item row="5" column="2">
        <widget class="QGroupBox" name="wifi2GroupBox">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
@@ -149,7 +337,7 @@
          </sizepolicy>
         </property>
         <property name="title">
-         <string>WiFi router / punto de acceso cliente bgn (2,4 Ghz)</string>
+         <string>WiFi router/AP bgn (2,4 Ghz)</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -193,7 +381,7 @@
         </layout>
        </widget>
       </item>
-      <item row="1" column="0" rowspan="2" colspan="2">
+      <item row="5" column="0" rowspan="3" colspan="2">
        <widget class="QGroupBox" name="voipGroupBox">
         <property name="title">
          <string>VozIP</string>
@@ -257,186 +445,152 @@
         </layout>
        </widget>
       </item>
-      <item row="2" column="2" rowspan="2">
-       <widget class="QGroupBox" name="wifi5GroupBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="title">
-         <string>WiFi router / punto de acceso cliente ac (5 Ghz)</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_6">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_12">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>SSID</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLineEdit" name="wifi5SSIDLineEdit"/>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_14">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>WPA</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="wifi5WPALineEdit"/>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="4" column="0">
+      <item row="8" column="0" colspan="2">
        <widget class="QLabel" name="label_25">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Maximum" vsizetype="Minimum">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
         <property name="text">
          <string>Notas Instalación</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
+         <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
         </property>
        </widget>
       </item>
-      <item row="3" column="0" colspan="2">
-       <widget class="QCheckBox" name="needsPublicIPCheckBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_23">
         <property name="text">
-         <string>Requiere IP pública</string>
+         <string>Tipo servicio</string>
         </property>
        </widget>
       </item>
-      <item row="4" column="1" colspan="2">
-       <widget class="QTextEdit" name="installNotesTextEdit">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+      <item row="2" column="1" colspan="2">
+       <widget class="QCheckBox" name="iocCheckBox">
+        <property name="text">
+         <string>Internet por coaxial</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="3" rowspan="5">
-       <widget class="QGroupBox" name="lanGroupBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Maximum">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+      <item row="3" column="1" colspan="2">
+       <widget class="QCheckBox" name="tofCheckBox">
+        <property name="text">
+         <string>Tiene TV por la fibra</string>
         </property>
-        <property name="title">
-         <string>Red Local</string>
+       </widget>
+      </item>
+      <item row="9" column="0" colspan="3">
+       <widget class="QTextEdit" name="installNotesTextEdit"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="0" column="2" rowspan="2">
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="title">
+      <string>Identificación del cliente</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_9">
+        <property name="text">
+         <string>Notas cliente</string>
         </property>
-        <property name="checkable">
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QLabel" name="label_8">
+        <property name="text">
+         <string>Email</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QFancyComboBox" name="clientCityComboBox">
+        <property name="editable">
          <bool>true</bool>
         </property>
-        <layout class="QGridLayout" name="gridLayout_4">
-         <item row="0" column="2">
-          <widget class="QLabel" name="label_20">
-           <property name="text">
-            <string>DMZ</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0" colspan="2">
-          <widget class="QLabel" name="label_19">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Puertos</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_18">
-           <property name="text">
-            <string>IP</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="3" colspan="3">
-          <widget class="QLineEdit" name="lanDMZLineEdit">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLineEdit" name="lanIPLineEdit"/>
-         </item>
-         <item row="2" column="0" colspan="6">
-          <widget class="QPortForwardTableWidget" name="lanPortsTableWidget"/>
-         </item>
-         <item row="1" column="5">
-          <widget class="QToolButton" name="delPortButton">
-           <property name="text">
-            <string> - </string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="4">
-          <widget class="QToolButton" name="addPortButton">
-           <property name="text">
-            <string>+</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
+        <property name="currentIndex">
+         <number>-1</number>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>Población</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="4">
+       <widget class="QLineEdit" name="clientPhonesLineEdit"/>
+      </item>
+      <item row="1" column="1" colspan="4">
+       <widget class="QLineEdit" name="clientAddressLineEdit"/>
+      </item>
+      <item row="3" column="1" colspan="4">
+       <widget class="QTextEdit" name="clientNotesTextEdit">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>48</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="clientNameLineEdit"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Dirección</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="3" colspan="2">
+       <widget class="QLineEdit" name="clientEmailLineEdit"/>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Nombre</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2" colspan="2">
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>Teléfonos</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
        </widget>
       </item>
      </layout>
     </widget>
    </item>
-   <item row="4" column="0" colspan="4">
+   <item row="1" column="1">
+    <widget class="QFancyComboBox" name="installerComboBox">
+     <property name="editable">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0" colspan="3">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <spacer name="horizontalSpacer">
@@ -480,194 +634,7 @@
      </item>
     </layout>
    </item>
-   <item row="0" column="3" rowspan="2">
-    <widget class="QGroupBox" name="groupBox_2">
-     <property name="title">
-      <string>Identificación del cliente</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_2">
-      <item row="0" column="1">
-       <widget class="QLineEdit" name="clientNameLineEdit">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2">
-       <widget class="QLabel" name="label_8">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Email</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="3">
-       <widget class="QLineEdit" name="clientEmailLineEdit">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_4">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Nombre</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1" colspan="3">
-       <widget class="QTextEdit" name="clientNotesTextEdit">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_5">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Dirección</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_9">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Notas cliente</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="3">
-       <widget class="QLineEdit" name="clientPhonesLineEdit">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QFancyComboBox" name="clientCityComboBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="editable">
-         <bool>true</bool>
-        </property>
-        <property name="currentIndex">
-         <number>-1</number>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QLabel" name="label_7">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Teléfonos</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_6">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Población</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1" colspan="3">
-       <widget class="QLineEdit" name="clientAddressLineEdit">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="1" column="1">
-    <widget class="QLabel" name="label_21">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>S/N ONT</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="0">
+   <item row="4" column="0" colspan="3">
     <widget class="QLabel" name="infoLabel">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -723,22 +690,6 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="0">
-    <widget class="QCheckBox" name="ftthCheckBox">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>FTTH</string>
-     </property>
-    </widget>
-   </item>
   </layout>
  </widget>
  <customwidgets>
@@ -767,9 +718,6 @@
   <tabstop>clientCityComboBox</tabstop>
   <tabstop>clientEmailLineEdit</tabstop>
   <tabstop>clientNotesTextEdit</tabstop>
-  <tabstop>ftthCheckBox</tabstop>
-  <tabstop>ontSNComboBox</tabstop>
-  <tabstop>installerComboBox</tabstop>
   <tabstop>voipGroupBox</tabstop>
   <tabstop>voipPhoneNumber</tabstop>
   <tabstop>voipUserName</tabstop>
@@ -787,12 +735,13 @@
   <tabstop>addPortButton</tabstop>
   <tabstop>delPortButton</tabstop>
   <tabstop>lanPortsTableWidget</tabstop>
-  <tabstop>needsPublicIPCheckBox</tabstop>
   <tabstop>installNotesTextEdit</tabstop>
   <tabstop>copyInfoButton</tabstop>
   <tabstop>applyDataButton</tabstop>
   <tabstop>clientLogsButton</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../iconos.qrc"/>
+ </resources>
  <connections/>
 </ui>

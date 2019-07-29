@@ -170,7 +170,7 @@ bool ROSPPPoEManager::done(DataTypeID dataTypeID) const
 void ROSPPPoEManager::updateRemoteData(const ROSDataBase &newROSData, const QString &rosObjectID)
 {
 	ROSDataManagerBase &rosDataManagerBase = rosDataManager(newROSData.dataTypeID());
-	// Sentence Tag is not necessary as this program keeps "listening" for ROS changes.
+	// Sentence's Tag is not necessary as this program keeps "listening" for ROS changes.
 	ROS::QSentence sentence;
 
 	if( rosObjectID.isEmpty() )	// Adding new one.

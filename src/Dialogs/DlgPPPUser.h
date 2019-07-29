@@ -72,7 +72,7 @@ class DlgPPPUser : public QDlgMultiDataBase
 	bool getClientEMail();
 	bool getClientNotes();
 	bool getInstallNotes();
-	bool getONTSN();
+	bool getServiceInfo();
 	bool getVoIPPhone();
 	bool getVoIPSIPServer();
 	bool getVoIPUserName();
