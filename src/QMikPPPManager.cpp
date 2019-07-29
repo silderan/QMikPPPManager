@@ -27,6 +27,7 @@
 #include "Dialogs/DlgConfiguracion.h"
 #include "Dialogs/DlgLookConfig.h"
 #include "Dialogs/DlgPPPLogViewer.h"
+#include "Dialogs/DlgUserThroughput.h"
 
 #include "Utils/Utils.h"
 
@@ -65,6 +66,7 @@ QMikPPPManager::QMikPPPManager(QWidget *parent)
 	connect( &multiConnectionManager, &ROSMultiConnectManager::logued, this, &QMikPPPManager::onLogued );
 
 	connect( ui->usersTable, &QROSSecretTableWidget::editPPPUser, this, &QMikPPPManager::onPPPEditRequest );
+	connect( ui->usersTable, &QROSSecretTableWidget::showUserTraffic, this, &QMikPPPManager::onShowUserTraffic );
 
 	ui->fieldFilterComboBox->addItems( QStringList()
 									   << tr("Cualquier dato")
@@ -457,6 +459,11 @@ void QMikPPPManager::onPPPEditRequest(const QPPPSecretMap &pppSecretMap, const R
 		m_dialogList.append(dlgPPPUser);
 	}
 	dlgPPPUser->onEditUserRequest(pppSecretMap, pppActive);
+}
+
+void QMikPPPManager::onShowUserTraffic(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive)
+{
+	new DlgUserThroughput(multiConnectionManager, pppActive, this);
 }
 
 void QMikPPPManager::on_addUserButton_clicked()

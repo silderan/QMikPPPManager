@@ -150,6 +150,7 @@ private:
 
 	void changeUserProfile(QROSUserNameWidgetItem *userNameItem, const QString &newProfile);
 	void changeMultipleProfiles(const QList<QROSUserNameWidgetItem*> &selectedList, const QString newProfile);
+	void openThroughputDialog(int row);
 
 public:
 	explicit QROSSecretTableWidget(QWidget *papi = Q_NULLPTR);
@@ -192,6 +193,7 @@ public:
 
 signals:
 	void editPPPUser(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive);
+	void showUserTraffic(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive);
 	void contextMenuRequested(const QPoint &point);
 
 protected:

@@ -37,7 +37,7 @@ ROSPPPoEManager::ROSPPPoEManager(QObject *papi) : Comm(papi),
 	connect( this, &ROS::Comm::comStateChanged,		this, &ROSPPPoEManager::onCommStateChanged );
 	connect( this, &ROS::Comm::loginStateChanged,	this, &ROSPPPoEManager::onLoginChanged );
 
-	connect( this, SIGNAL(comReceive(ROS::QSentence&)), this, SLOT(onDataReceived(ROS::QSentence&)) );
+	connect( this, &ROS::Comm::comReceive, this, &ROSPPPoEManager::onDataReceived );
 }
 
 void ROSPPPoEManager::onDataReceived(ROS::QSentence &sentence)
@@ -50,8 +50,11 @@ void ROSPPPoEManager::onDataReceived(ROS::QSentence &sentence)
 		if( !sentence.tag().isEmpty() )
 		{
 			DataTypeID dataTypeID = static_cast<DataTypeID>(sentence.tag().toInt());
-			rosDataManager(dataTypeID).onROSDoneReply();
-			emit rosDone( routerName(), dataTypeID );
+			if( dataTypeID != ErrorTypeID )
+			{
+				rosDataManager(dataTypeID).onROSDoneReply();
+				emit rosDone( routerName(), dataTypeID );
+			}
 		}
 		break;
 	case ROS::QSentence::Trap:
@@ -62,12 +65,15 @@ void ROSPPPoEManager::onDataReceived(ROS::QSentence &sentence)
 		if( !sentence.tag().isEmpty() )
 		{
 			DataTypeID dataTypeID = static_cast<DataTypeID>(sentence.tag().toInt());
-			if( sentence.attribute(".dead").isEmpty() )
-				emit rosModReply( *rosDataManager(dataTypeID).onROSModReply(sentence) );
-			else
+			if( dataTypeID != ErrorTypeID )
 			{
-				rosDataManager(dataTypeID).onROSDeadReply(sentence);
-				emit rosDelReply( routerName(), dataTypeID, sentence.getID() );
+				if( sentence.attribute(".dead").isEmpty() )
+					emit rosModReply( *rosDataManager(dataTypeID).onROSModReply(sentence) );
+				else
+				{
+					rosDataManager(dataTypeID).onROSDeadReply(sentence);
+					emit rosDelReply( routerName(), dataTypeID, sentence.getID() );
+				}
 			}
 		}
 		break;

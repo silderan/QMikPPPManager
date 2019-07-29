@@ -89,6 +89,8 @@ private slots:
 	void on_pppProfilesButton_clicked();
 
 	void onPPPEditRequest(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive);
+	void onShowUserTraffic(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive);
+
 	void on_pppLogsButton_clicked();
 	void applyUsersRowFilter(QString);
 

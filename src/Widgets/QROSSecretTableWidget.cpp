@@ -293,6 +293,12 @@ void QROSSecretTableWidget::changeMultipleProfiles(const QList<QROSUserNameWidge
 		changeUserProfile(userNameWidgetItem, newProfile);
 }
 
+void QROSSecretTableWidget::openThroughputDialog(int row)
+{
+	QROSUserNameWidgetItem *userNameItem = userNameWidgetItem(row);
+	emit showUserTraffic( userNameItem->pppSecretMap, userNameItem->pppActive );
+}
+
 QString QROSSecretTableWidget::cellText(int row, QROSSecretTableWidget::Columns col) const
 {
 	Q_ASSERT(row >= 0);
@@ -869,6 +875,9 @@ void QROSSecretTableWidget::contextMenuEvent(QContextMenuEvent *event)
 		const ROSPPPActive &rosActive = userNameItem->pppActive;
 		if( rosActive.currentIPv4().isValid() )
 		{
+			int row = userNameItem->row();
+			connect( rootMenu.addAction( tr("Ver consumo en directo de %1").arg(rosActive.userName())), &QAction::triggered,
+					 [this, row] { QROSSecretTableWidget::openThroughputDialog(row); } );
 			openBrowserSubMenu.setTitle( tr("Abrir web %1 ...").arg(rosActive.currentIPv4().toString()) );
 
 			OpenBrowserInfoList obl(userNameItem->pppSecretMap.first().portForwardList());
