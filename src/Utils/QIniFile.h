@@ -24,7 +24,7 @@
 
 #include <QMap>
 
-typedef QMap<QString, QString> QIniData;
+using QIniData = QMap<QString, QString>;
 
 class QIniFile
 {

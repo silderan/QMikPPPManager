@@ -26,6 +26,7 @@
 
 #include "../ROSMultiConnectorManager.h"
 #include "../ConfigData/QConfigData.h"
+#include "../ConfigData/SchedulerData.h"
 
 namespace Ui
 {
@@ -86,8 +87,11 @@ class DlgPPPUser : public QDlgMultiDataBase
 	bool getLocalIP();
 	bool getLocalDMZ();
 	bool getLocalPorts();
+	bool getSchedulerData();
 
 	void updateGUI();
+
+	void addServiceSchedulerRow(const ServiceScheduler::Data &schedulerData = ServiceScheduler::Data());
 public:
 	DlgPPPUser(QConfigData &configData, ROSMultiConnectManager &rosMultiConnectManager, QWidget *papi);
 	~DlgPPPUser() override;
@@ -109,8 +113,10 @@ private slots:
 	void on_pppUserNameCopyButton_clicked();
 	void on_pppUserPassCopyButton_clicked();
 	void on_pppUserPassCreateButton_clicked();
-
 	void on_copyInfoButton_clicked();
+	void on_delChedulerButton_clicked();
+	void on_addSchedulerButton_clicked();
+
 
 public slots:
 	void onEditUserRequest(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive);

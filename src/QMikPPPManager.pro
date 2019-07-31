@@ -14,6 +14,7 @@ win32:RC_ICONS += img/main.ico
 
 
 SOURCES += main.cpp\
+    ConfigData/SchedulerData.cpp \
     Utils/IPv4Range.cpp \
 	Utils/ROSSpeed.cpp \
 	Utils/ROSRateLimit.cpp \
@@ -71,6 +72,7 @@ SOURCES += main.cpp\
     Dialogs/DlgUserThroughput.cpp
 
 HEADERS  += QMikPPPManager.h \
+    ConfigData/SchedulerData.h \
     Utils/IPv4Range.h \
 	Utils/ROSSpeed.h \
 	Utils/ROSRateLimit.h \
