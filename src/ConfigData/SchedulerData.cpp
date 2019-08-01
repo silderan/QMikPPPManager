@@ -8,7 +8,12 @@ const DataList SchedulerMap::dummyData = DataList();
 
 QString Data::toSaveString() const
 {
-	return QString("%1,%2,%3,%4,%5").arg(1).arg(mYear).arg(mMonth).arg(mProfileName).arg(mServiceAction);
+	return QString("%1,%2,%3,%4,%5,%6")
+			.arg(1)
+			.arg(mYear).arg(mMonth)
+			.arg(mServiceAction)
+			.arg(mPppoeProfileName)
+			.arg(mOltProfileName);
 }
 
 void Data::fromSaveString(const QString &saveString)
@@ -20,12 +25,13 @@ void Data::fromSaveString(const QString &saveString)
 	switch( bits.at(0).toUInt() )
 	{
 	case 1:	// Versión 1.
-		if( bits.count() == 5 )
+		if( bits.count() == 6 )
 		{
 			mYear = quint16(bits.at(1).toUInt());
 			mMonth = quint16(bits.at(2).toUInt());
-			mProfileName = bits.at(3);
-			mServiceAction = ServiceAction(bits.at(4).toUInt());
+			mServiceAction = ServiceAction(bits.at(3).toUInt());
+			mPppoeProfileName = bits.at(4);
+			mOltProfileName = bits.at(5);
 		}
 		break;
 	default:
@@ -60,12 +66,12 @@ QString Data::monthName() const
 }
 bool Data::isMonthValid() const
 {
-	return mMonth <= 11;
+	return (mMonth >= 1) && (mMonth <= 12);
 }
 
 const QStringList &Data::months()
 {
-	static const QStringList m = QStringList() << "enero" << "febrero" << "marzo" << "abril" << "mayo" << "junio" << "julio" << "agosto" << "septiembre" << "octubre" << "noviembre" << "diciembre";
+	static const QStringList m = QStringList() << "" << "enero" << "febrero" << "marzo" << "abril" << "mayo" << "junio" << "julio" << "agosto" << "septiembre" << "octubre" << "noviembre" << "diciembre";
 	return m;
 }
 
@@ -91,7 +97,7 @@ QString SchedulerMap::saveFName() const
 void SchedulerMap::save()
 {
 	QIniData saveData;
-	QMapIterator<QString, DataList> it(mData);
+	QMapIterator<QString, DataList> it(*this);
 	while( it.hasNext() )
 	{
 		it.next();
@@ -106,12 +112,16 @@ void SchedulerMap::load()
 	QIniData saveData;
 	QIniFile::load(saveFName(), &saveData);
 	QMapIterator<QString, QString> it(saveData);
-	mData.clear();
+	clear();
+	Data data;
 	if( it.hasNext() )
 	{
 		it.next();
-		for( const QString &data : it.value().split(';', QString::SkipEmptyParts) )
-			mData[it.key()].append(Data(data));
+		for( const QString &saveString : it.value().split(';', QString::SkipEmptyParts) )
+		{
+			data.fromSaveString(saveString);
+			dataList(it.key()).append(data);
+		}
 	}
 }
 

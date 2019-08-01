@@ -805,6 +805,13 @@ void QROSSecretTableWidget::onConfigDataChanged()
 	applyFilter();
 }
 
+const ROSPPPSecret *QROSSecretTableWidget::rosPppSecret(const QString &userName)
+{
+	const QROSUserNameWidgetItem *item = m_userNameMap[userName];
+
+	return (item != Q_NULLPTR) ? &item->pppSecretMap.first() : Q_NULLPTR;
+}
+
 #include "Dialogs/DlgExportUserData.h"
 void QROSSecretTableWidget::exportUsersData()
 {

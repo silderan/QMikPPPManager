@@ -3,6 +3,7 @@
 
 #include "../Utils/QIniFile.h"
 
+#include <QDate>
 namespace ServiceScheduler {
 
 enum ServiceAction
@@ -16,30 +17,17 @@ class Data
 {
 	quint16 mYear;
 	quint16 mMonth;
-	QString mProfileName;
 	ServiceAction mServiceAction;
+	QString mPppoeProfileName;
+	QString mOltProfileName;
 
 public:
 	Data()
-		: mYear(1900), mMonth(0)
-		, mProfileName("")
+		: mYear(quint16(QDate::currentDate().year())), mMonth(quint16(QDate::currentDate().month()))
 		, mServiceAction(ServiceAction::NoChange)
+		, mPppoeProfileName("")
 	{	}
-	Data(quint16 year, quint16 month, ServiceAction serviceAction = ServiceAction::NoChange)
-		: mYear(year), mMonth(month)
-		, mProfileName("")
-		, mServiceAction(serviceAction)
-	{	}
-	Data(quint16 year, quint16 month, const QString &profileName, ServiceAction serviceAction = ServiceAction::NoChange)
-		: mYear(year), mMonth(month)
-		, mProfileName(profileName)
-		, mServiceAction(serviceAction)
-	{	}
-	Data(const QString &saveString)
-		: Data()
-	{
-		fromSaveString(saveString);
-	}
+
 	QString toSaveString() const;
 	void fromSaveString(const QString &saveString);
 	QString serviceActionName() const;
@@ -59,8 +47,14 @@ public:
 	quint16 year() const	{ return mYear;		}
 	quint16 month() const	{ return mMonth;	}
 
-	const QString &profileName() const		{ return mProfileName;	}
-	void setProfileName(const QString &p)	{ mProfileName = p;	}
+	const QString &profileName() const		{ return mPppoeProfileName;	}
+	void setProfileName(const QString &p)	{ mPppoeProfileName = p;	}
+
+	const QString &pppoeProfileName() const		{ return mPppoeProfileName;	}
+	void setPppoeProfileName(const QString &p)	{ mPppoeProfileName = p;	}
+
+	const QString &oltProfileName() const		{ return mPppoeProfileName;	}
+	void setOltProfileName(const QString &p)	{ mPppoeProfileName = p;	}
 
 	static const QStringList &serviceActionNames();
 	ServiceAction serviceAction() const		{ return mServiceAction;	}
@@ -90,20 +84,22 @@ public:
 	}
 };
 
-class SchedulerMap
+class SchedulerMap : public QMap<QString, DataList>
 {
 	const static DataList dummyData;
-	QMap<QString, DataList > mData;
 	QString saveFName() const;
 
 public:
 	void load();
 	void save();
-	QStringList userNames()	const	{ return mData.keys();	}
-	const QMap<QString, DataList > &mapData() const	{ return mData;	}
-	const DataList &dataList(const QString &userName) { return mData.contains(userName) ? mData[userName] : dummyData;	}
-	void setDataList(const QString &userName, const DataList &dataList) { mData[userName] = dataList; }
+	QStringList userNames()	const	{ return keys();	}
+	const DataList &constDataList(const QString &userName) { return contains(userName) ? dataList(userName) : dummyData;	}
+	DataList &dataList(const QString &userName)	{ return operator[](userName);	}
+	void setDataList(const QString &userName, const DataList &list) { dataList(userName) = list; }
 };
+
+using SchedulerMapIterator = QMapIterator<QString, DataList>;
+
 
 }	// End namespace ServiceScheduler
 

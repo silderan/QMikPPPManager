@@ -708,29 +708,13 @@
     </layout>
    </item>
    <item row="0" column="3" rowspan="2">
-    <widget class="QGroupBox" name="groupBox_4">
+    <widget class="QGroupBox" name="schedulerGroupBox">
      <property name="title">
       <string>Programación</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_9">
       <item row="0" column="0" rowspan="3">
-       <widget class="QTableWidget" name="schedulerTable">
-        <column>
-         <property name="text">
-          <string>Mes</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Servicio</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Perfil</string>
-         </property>
-        </column>
-       </widget>
+       <widget class="QTableWidget" name="schedulerTable"/>
       </item>
       <item row="2" column="1">
        <widget class="QToolButton" name="addSchedulerButton">

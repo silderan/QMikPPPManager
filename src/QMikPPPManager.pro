@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network sql charts
+QT       += core gui network sql charts printsupport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -15,6 +15,7 @@ win32:RC_ICONS += img/main.ico
 
 SOURCES += main.cpp\
     ConfigData/SchedulerData.cpp \
+    Dialogs/DlgServiceScheduler.cpp \
     Utils/IPv4Range.cpp \
 	Utils/ROSSpeed.cpp \
 	Utils/ROSRateLimit.cpp \
@@ -73,6 +74,7 @@ SOURCES += main.cpp\
 
 HEADERS  += QMikPPPManager.h \
     ConfigData/SchedulerData.h \
+    Dialogs/DlgServiceScheduler.h \
     Utils/IPv4Range.h \
 	Utils/ROSSpeed.h \
 	Utils/ROSRateLimit.h \
@@ -141,6 +143,7 @@ HEADERS  += QMikPPPManager.h \
     Dialogs/DlgUserThroughput.h
 
 FORMS    += QMikPPPManager.ui \
+    Dialogs/DlgServiceScheduler.ui \
 	DlgNuevoUsuario.ui \
     Dialogs/DlgConfiguracion.ui \
     Dialogs/DlgCnfgConnect.ui \

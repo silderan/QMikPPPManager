@@ -52,24 +52,10 @@
        <property name="verticalSpacing">
         <number>4</number>
        </property>
-       <item row="1" column="1">
-        <widget class="QPushButton" name="advancedConfigButton">
+       <item row="1" column="0">
+        <widget class="QPushButton" name="apiUsersButton">
          <property name="text">
-          <string>Avanzada</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QPushButton" name="pppProfilesButton">
-         <property name="text">
-          <string>Perfiles PPP</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QPushButton" name="localConfigButton">
-         <property name="text">
-          <string>Apariencia</string>
+          <string>Usuarios API</string>
          </property>
         </widget>
        </item>
@@ -80,17 +66,38 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="QPushButton" name="apiUsersButton">
-         <property name="text">
-          <string>Usuarios API</string>
-         </property>
-        </widget>
-       </item>
        <item row="0" column="1">
         <widget class="QPushButton" name="connectionConfigButton">
          <property name="text">
           <string>Routers</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QPushButton" name="advancedConfigButton">
+         <property name="text">
+          <string>Avanzada</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QPushButton" name="localConfigButton">
+         <property name="text">
+          <string>Apariencia</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QPushButton" name="pppProfilesButton">
+         <property name="text">
+          <string>Perfiles PPP</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QPushButton" name="schedulerButton">
+         <property name="text">
+          <string>Programación</string>
          </property>
         </widget>
        </item>

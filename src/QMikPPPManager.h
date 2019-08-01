@@ -94,6 +94,8 @@ private slots:
 	void on_pppLogsButton_clicked();
 	void applyUsersRowFilter(QString);
 
+	void on_schedulerButton_clicked();
+
 public slots:
 	void updateConfig();
 

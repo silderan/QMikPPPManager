@@ -28,8 +28,10 @@
 #include "Dialogs/DlgLookConfig.h"
 #include "Dialogs/DlgPPPLogViewer.h"
 #include "Dialogs/DlgUserThroughput.h"
+#include "Dialogs/DlgServiceScheduler.h"
 
 #include "Utils/Utils.h"
+
 
 QMikPPPManager::QMikPPPManager(QWidget *parent)
 	: QMainWindow(parent)
@@ -94,7 +96,7 @@ QMikPPPManager::QMikPPPManager(QWidget *parent)
 		Utils::raiseInfo( this, tr("Parece que es la primera vez que se inicia el programa en este entorno.\nConfigura el acceso a los routers.") );
 		on_connectionConfigButton_clicked();
 	}
-	ui->connectButton->setDisabled(gGlobalConfig.connectInfoList().isEmpty());
+	ui->connectButton->setDisabled( gGlobalConfig.connectInfoList().isEmpty() );
 }
 
 void QMikPPPManager::applyUsersRowFilter(QString)
@@ -269,6 +271,7 @@ void QMikPPPManager::updateGUIAccess()
 		ui->apiUsersButton->setHidden(true);
 		ui->addUserButton->setHidden(true);
 		ui->pppLogsButton->setHidden(true);
+//		ui->schedulerButton->setHidden(true);
 		break;
 	case ROSAPIUser::Level::Comercial:
 		ui->usersTable->setEnabled(true);
@@ -278,6 +281,7 @@ void QMikPPPManager::updateGUIAccess()
 		ui->apiUsersButton->setHidden(true);
 		ui->addUserButton->setHidden(false);
 		ui->pppLogsButton->setHidden(true);
+		ui->schedulerButton->setHidden(true);
 		return;
 	case ROSAPIUser::Level::Instalator:
 		ui->usersTable->setEnabled(true);
@@ -287,6 +291,7 @@ void QMikPPPManager::updateGUIAccess()
 		ui->apiUsersButton->setHidden(true);
 		ui->addUserButton->setHidden(false);
 		ui->pppLogsButton->setHidden(true);
+		ui->schedulerButton->setHidden(true);
 		break;
 	case ROSAPIUser::Level::Administrator:
 		ui->usersTable->setEnabled(true);
@@ -296,6 +301,7 @@ void QMikPPPManager::updateGUIAccess()
 		ui->apiUsersButton->setHidden(true);
 		ui->addUserButton->setHidden(false);
 		ui->pppLogsButton->setHidden(false);
+		ui->schedulerButton->setHidden(false);
 		break;
 	case ROSAPIUser::Level::Supervisor:
 		ui->usersTable->setEnabled(true);
@@ -305,6 +311,7 @@ void QMikPPPManager::updateGUIAccess()
 		ui->apiUsersButton->setHidden(false);
 		ui->addUserButton->setHidden(false);
 		ui->pppLogsButton->setHidden(false);
+		ui->schedulerButton->setHidden(false);
 		break;
 	}
 }
@@ -475,4 +482,10 @@ void QMikPPPManager::on_pppLogsButton_clicked()
 {
 	DlgPPPLogViewer dlgPPPLogViewer( "", this );
 	dlgPPPLogViewer.exec();
+}
+
+void QMikPPPManager::on_schedulerButton_clicked()
+{
+	DlgServiceScheduler dlg(multiConnectionManager, *ui->usersTable, this);
+	dlg.exec();
 }

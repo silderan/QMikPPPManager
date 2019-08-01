@@ -30,8 +30,9 @@ enum SchedulerTableColums
 {
 	STC_Year,
 	STC_Month,
-	STC_Profile,
-	STC_Service
+	STC_Service,
+	STC_PppoeProfile,
+	STC_OltProfile
 };
 
 DlgPPPUser::DlgPPPUser(QConfigData &configData, ROSMultiConnectManager &rosMultiConnectManager, QWidget *papi)
@@ -46,28 +47,40 @@ DlgPPPUser::DlgPPPUser(QConfigData &configData, ROSMultiConnectManager &rosMulti
 	ui->serviceTypeComboBox->addItems(ServiceInfo::serviceTypeNameList());
 
 	gSchedulerData.load();
-	ui->schedulerTable->setColumnCount(4);
-	ui->schedulerTable->setHorizontalHeaderLabels( QStringList() << tr("Año") << tr("Mes") << tr("Perfil") << tr("Servicio") );
-	ui->schedulerTable->
-	setItemDelegateForColumn( SchedulerTableColums::STC_Profile,
-							  new QComboBoxItemDelegated( this, "", "", false,
-		/*add list*/			  [] (int)			{ return gGlobalConfig.clientProfileMap().regularProfileNames();	},
-		/*skip list*/			  [] (int)			{ return QStringList(); },
-		/*allow change*/		  [] (const QModelIndex &,const QString &)	{ return true; } ) );
+	ui->schedulerTable->setColumnCount(5);
+	ui->schedulerTable->setHorizontalHeaderLabels( QStringList() << tr("Año") << tr("Mes") << tr("Servicio") << tr("Perfil PPPoE") << tr("Perfil OLT (fibra)") );
+	ui->schedulerTable->resizeColumnsToContents();
 
 	ui->schedulerTable->
-	setItemDelegateForColumn( SchedulerTableColums::STC_Month,
-							  new QComboBoxItemDelegated( this, "", "", false,
-		/*add list*/			  [] (int)			{ return ServiceScheduler::Data::months();	},
-		/*skip list*/			  [] (int)			{ return QStringList(); },
-		/*allow change*/		  [] (const QModelIndex &,const QString &)	{ return true; } ) );
+		setItemDelegateForColumn( SchedulerTableColums::STC_PppoeProfile,
+								  new QComboBoxItemDelegated( this, "Sin cambios", "", false,
+			/*add list*/			  [] (int)			{ return gGlobalConfig.clientProfileMap().regularProfileNames();	},
+			/*skip list*/			  [] (int)			{ return QStringList(); },
+			/*allow change*/		  [] (const QModelIndex &,const QString &)	{ return true; } ) );
+
 
 	ui->schedulerTable->
-	setItemDelegateForColumn( SchedulerTableColums::STC_Service,
-							  new QComboBoxItemDelegated( this, "", "", false,
-		/*add list*/			  [] (int)			{ return ServiceScheduler::Data::serviceActionNames();	},
-		/*skip list*/			  [] (int)			{ return QStringList(); },
-		/*allow change*/		  [] (const QModelIndex &,const QString &)	{ return true; } ) );
+		setItemDelegateForColumn( SchedulerTableColums::STC_OltProfile,
+								  new QComboBoxItemDelegated( this, "No implementado", "", false,
+			/*add list*/			  [] (int)			{ return QStringList();	},
+			/*skip list*/			  [] (int)			{ return QStringList(); },
+			/*allow change*/		  [] (const QModelIndex &,const QString &)	{ return false; } ) );
+
+	ui->schedulerTable->
+		setItemDelegateForColumn( SchedulerTableColums::STC_Month,
+								  new QComboBoxItemDelegated( this, "", "", false,
+			/*add list*/			  [] (int)			{ return ServiceScheduler::Data::months();	},
+			/*skip list*/			  [] (int)			{ return QStringList(); },
+			/*allow change*/		  [] (const QModelIndex &,const QString &)	{ return true; } ) );
+
+	ui->schedulerTable->
+		setItemDelegateForColumn( SchedulerTableColums::STC_Service,
+								  new QComboBoxItemDelegated( this, "", "", false,
+			/*add list*/			  [] (int)			{ return ServiceScheduler::Data::serviceActionNames();	},
+			/*skip list*/			  [] (int)			{ return QStringList(); },
+			/*allow change*/		  [] (const QModelIndex &,const QString &)	{ return true; } ) );
+
+	updateGUI();
 }
 
 DlgPPPUser::~DlgPPPUser()
@@ -364,7 +377,7 @@ bool DlgPPPUser::getSchedulerData()
 			raiseWarning( tr("El mes '%1' programado en la fila %2 no es válido").arg(data.monthName()).arg(row) );
 			return false;
 		}
-		data.setProfileName( ui->schedulerTable->item(row, SchedulerTableColums::STC_Profile)->text() );
+		data.setProfileName( ui->schedulerTable->item(row, SchedulerTableColums::STC_PppoeProfile)->text() );
 		data.setServiceAction( ui->schedulerTable->item(row, SchedulerTableColums::STC_Service)->text() );
 		dataList.append(data);
 	}
@@ -378,7 +391,7 @@ void DlgPPPUser::addServiceSchedulerRow(const ServiceScheduler::Data &schedulerD
 	ui->schedulerTable->insertRow(row);
 	ui->schedulerTable->setItem( row, SchedulerTableColums::STC_Year, new QTableWidgetItem(QString::number(schedulerData.year())) );
 	ui->schedulerTable->setItem( row, SchedulerTableColums::STC_Month, new QTableWidgetItem(schedulerData.monthName()) );
-	ui->schedulerTable->setItem( row, SchedulerTableColums::STC_Profile, new QTableWidgetItem(schedulerData.profileName()) );
+	ui->schedulerTable->setItem( row, SchedulerTableColums::STC_PppoeProfile, new QTableWidgetItem(schedulerData.profileName()) );
 	ui->schedulerTable->setItem( row, SchedulerTableColums::STC_Service, new QTableWidgetItem(schedulerData.serviceActionName()) );
 }
 
@@ -393,12 +406,14 @@ void DlgPPPUser::updateGUI()
 		setReadOnly(true);
 		ui->applyDataButton->setVisible(false);
 		ui->clientLogsButton->setVisible(false);
+		ui->schedulerGroupBox->setVisible(false);
 		break;
 	case ROSAPIUser::Instalator:
 		setReadOnly(false);
 		ui->applyDataButton->setVisible(true);
 		ui->clientLogsButton->setVisible(false);
 		ui->pppUserPassCreateButton->setEnabled(true);
+		ui->schedulerGroupBox->setVisible(true);
 		break;
 	case ROSAPIUser::Administrator:
 		setReadOnly(false);
@@ -407,11 +422,13 @@ void DlgPPPUser::updateGUI()
 		ui->pppUserPassCreateButton->setEnabled(false);
 		ui->applyDataButton->setVisible(true);
 		ui->clientLogsButton->setVisible(true);
+		ui->schedulerGroupBox->setVisible(true);
 		break;
 	case ROSAPIUser::Supervisor:
 		setReadOnly(false);
 		ui->applyDataButton->setVisible(true);
 		ui->clientLogsButton->setVisible(true);
+		ui->schedulerGroupBox->setVisible(true);
 		break;
 	}
 }
@@ -525,10 +542,9 @@ void DlgPPPUser::updateUserData()
 	ui->lanDMZLineEdit->setText( m_pppSecret.installLANDMZ().isValid() ? m_pppSecret.installLANDMZ().toString() : QString() );
 	ui->lanPortsTableWidget->setup( m_pppSecret.portForwardList() );
 
-	ui->schedulerTable->clear();
 	ui->schedulerTable->setRowCount(0);
 
-	for( const ServiceScheduler::Data &schedulerData : gSchedulerData.dataList(m_pppSecret.userName()) )
+	for( const ServiceScheduler::Data &schedulerData : gSchedulerData.constDataList(m_pppSecret.userName()) )
 		addServiceSchedulerRow(schedulerData);
 }
 

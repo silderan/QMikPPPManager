@@ -210,6 +210,7 @@ public:
 	void onCellDobleClic(QTableWidgetItem *item);
 	void onConfigDataChanged();
 
+	const ROSPPPSecret *rosPppSecret(const QString &userName);
 signals:
 	void editPPPUser(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive);
 	void showUserTraffic(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive);
