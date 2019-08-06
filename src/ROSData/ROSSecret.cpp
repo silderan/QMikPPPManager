@@ -178,7 +178,7 @@ const QString &ROSPPPSecret::commentString() const
 
 		const_cast<ROSPPPSecret*>(this)->
 		m_commentString =
-			QString("%1$%2$%3$%4$%5$%6$%7$%8$%9$%10$%11$%12$%13$%14$%15")
+			QString("%1$%2$%3$%4$%5$%6$%7$%8$%9$%10$%11$%12$%13$%14$%15$%16")
 				.arg(serviceStateString)
 				.arg(clientName())
 				.arg(clientAddress())
@@ -193,7 +193,8 @@ const QString &ROSPPPSecret::commentString() const
 				.arg(voipSaveString)
 				.arg(clientCode())
 				.arg(lanSaveString)
-				.arg(ServiceState::toSaveString(serviceState()) );
+				.arg(ServiceState::toSaveString(serviceState()))
+				.arg(ontSN());
 
 	}
 	return m_commentString;
@@ -213,6 +214,7 @@ void ROSPPPSecret::parseCommentString(const QString &commentString)
 		QStringList data;
 		switch( i )
 		{
+		case 16:	m_ontSN				= fields[--i];				[[clang::fallthrough]];
 		case 15:	serviceStateString	= fields[--i];				[[clang::fallthrough]];
 		case 14:	lanSaveString		= fields[--i];				[[clang::fallthrough]];
 		case 13:	m_clientCode		= fields[--i];				[[clang::fallthrough]];

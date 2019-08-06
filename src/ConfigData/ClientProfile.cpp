@@ -32,10 +32,10 @@ QString ClientProfileData::serviceCanceledGroupName()
 
 QString ClientProfileData::saveString() const
 {
-	return QString("%1,%2,%3").
-			arg("2",	// Version
-				m_name,
-				m_group );
+	return QString("%1,%2,%3")
+			.arg("2",	// Version
+				mName,
+				mGroup);
 }
 
 void ClientProfileData::fromSaveString(const QString &saveString)
@@ -47,17 +47,11 @@ void ClientProfileData::fromSaveString(const QString &saveString)
 		{
 		case 1:
 		case 2:
+		case 3:
 			if( data.count() >= 3 )
 			{
-				m_name		= data[1];
-				m_group		= data[2];
-				if( data.count() == 6 )
-				{
-					if( data[3] == "internalProfile" )
-						m_group.clear();
-					if( data[4] == "disabledUser" )
-						m_group = serviceCanceledGroupName();
-				}
+				mName		= data[1];
+				mGroup		= data[2];
 			}
 			break;
 		default:
@@ -68,13 +62,11 @@ void ClientProfileData::fromSaveString(const QString &saveString)
 
 void QClientProfileMap::save(QIniData &cnfgData) const
 {
-	QMapIterator<QString, ClientProfileData> it(*this);
 	int i = 0;
-	while( it.hasNext() )
+	for( const ClientProfileData &data : *this )
 	{
-		it.next();
 		i++;
-		cnfgData[KEY_CLIENT_PROFILE_DATA_LIST(i)] = it.value().saveString();
+		cnfgData[KEY_CLIENT_PROFILE_DATA_LIST(i)] = data.saveString();
 	}
 }
 
@@ -82,10 +74,7 @@ void QClientProfileMap::load(const QIniData &cnfgData)
 {
 	QString saveString;
 	for( int i = 1; !(saveString = cnfgData[KEY_CLIENT_PROFILE_DATA_LIST(i)]).isEmpty(); ++i )
-	{
-		ClientProfileData cl(saveString);
-		insert( cl );
-	}
+		insert( ClientProfileData(saveString) );
 }
 
 void QClientProfileMap::insert(const ClientProfileData &clientProfileData)
@@ -96,54 +85,32 @@ void QClientProfileMap::insert(const ClientProfileData &clientProfileData)
 
 ClientProfileData QClientProfileMap::serviceCanceledProfile() const
 {
-	QMapIterator<QString, ClientProfileData> it(*this);
-
-	while( it.hasNext() )
+	for( const ClientProfileData &data : *this )
 	{
-		it.next();
-		if( it.value().isServiceCanceledProfile() )
-			return it.value();
+		if( data.isServiceCanceledProfile() )
+			return data;
 	}
 	return ClientProfileData("");
 }
 
-QString QClientProfileMap::groupName(const QString &clientProfileName) const
+ClientProfileData QClientProfileMap::clientProfile( const QString &profileName ) const
 {
-	foreach( const ClientProfileData &clientProfileData, *this )
-	{
-		if( clientProfileData.pppProfileName() == clientProfileName )
-			return clientProfileData.groupName();
-	}
-	return QString();
+	return operator[](profileName);
 }
 
 QStringList QClientProfileMap::profileNames() const
 {
-	QStringList rtn;
-
-	QMapIterator<QString, ClientProfileData> it(*this);
-
-	while( it.hasNext() )
-	{
-		it.next();
-		rtn.append(it.value().pppProfileName());
-	}
-
-	return rtn;
+	return keys();
 }
 
 QStringList QClientProfileMap::groupNames() const
 {
 	QStringList rtn;
 
-	QMapIterator<QString, ClientProfileData> it(*this);
+	for( const ClientProfileData &data : *this )
+		if( !rtn.contains(data.groupName()) )
+			rtn.append( data.groupName() );
 
-	while( it.hasNext() )
-	{
-		it.next();
-		if( !rtn.contains(it.value().groupName()) )
-			rtn.append(it.value().groupName());
-	}
 	return rtn;
 }
 
@@ -154,14 +121,9 @@ bool QClientProfileMap::containsProfileName(const QString &profileName)
 
 bool QClientProfileMap::containsGroupName(const QString &groupName)
 {
-	QMapIterator<QString, ClientProfileData> it(*this);
-
-	while( it.hasNext() )
-	{
-		it.next();
-		if( it.value().groupName() == groupName )
+	for( const ClientProfileData &data : *this )
+		if( data.groupName() == groupName )
 			return true;
-	}
 	return false;
 }
 
@@ -169,13 +131,10 @@ QStringList QClientProfileMap::regularProfileNames() const
 {
 	QStringList rtn;
 
-	QMapIterator<QString, ClientProfileData> it(*this);
-
-	while( it.hasNext() )
+	for( const ClientProfileData &data : *this )
 	{
-		it.next();
-		if( !it.value().isServiceCanceledProfile() )
-			rtn.append(it.value().pppProfileName());
+		if( !data.isServiceCanceledProfile() )
+			rtn.append( data.pppProfileName() );
 	}
 	return rtn;
 }

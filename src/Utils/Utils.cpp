@@ -19,7 +19,7 @@
  */
 
 #include "Utils.h"
-
+#include <QTableWidget>
 
 QDate Utils::fromStringDate(const char *date)
 {
@@ -197,3 +197,28 @@ void Utils::raiseInfo(QWidget *papi, const QString &info, QString title)
 	QMessageBox::information( papi, title.isEmpty() ? papi->windowTitle() : title, info );
 }
 
+
+void Utils::moveTableRow(QTableWidget *table, int oldRow, int newRow)
+{
+	if( oldRow == newRow )
+		return;
+	if( (oldRow < 0) || (oldRow >= table->rowCount()) )
+		return;
+	if( (newRow < 0) || (newRow >= table->rowCount()) )
+		return;
+	if( newRow < oldRow )
+		oldRow++;
+	else
+		newRow++;
+	table->insertRow(newRow);
+	for( int col = table->columnCount()-1; col >= 0; col-- )
+		table->setItem(newRow, col, table->takeItem(oldRow, col));
+
+	table->removeRow(oldRow);
+}
+
+int Utils::selectedRow(const QTableWidget *table)
+{
+	QList<QTableWidgetItem*> items = table->selectedItems();
+	return items.isEmpty() ? -1 : items.first()->row();
+}

@@ -20,9 +20,9 @@ class DlgServiceScheduler : public QDialog
 
 	void changeSelection(bool newSel);
 
-	void paintLine(QPainter &painter, int line, const QString &userName, const QString &clientCode, const QString &changeDescription);
-	void paintTable(QPainter &painter, int firstRow, int lastRow);
-	void paintPage(QPainter &painter, int currentPage, int pageCount, int firstRow, int lastRow);
+	void writeLine(QPainter &painter, int line, const QString &userName, const QString &clientCode, const QString &serviceChange, const QString &profileChange);
+	void paintTable(QPainter &painter, int page);
+	void paintPage(QPainter &painter, int currentPage, int pageCount);
 
 public:
 	explicit DlgServiceScheduler(ROSMultiConnectManager &rosMultiConnectManager, QROSSecretTableWidget &rosSecretTable, QWidget *parent = nullptr);

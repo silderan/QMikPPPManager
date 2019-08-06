@@ -85,7 +85,7 @@ DlgConfiguracion::DlgConfiguracion(const QStringList &installerList, const QStri
 	for( row = 0; row < m_comercialList.count(); ++row )
 		ui->listaInstaladores->item(row, 1)->setText(m_comercialList[row]);
 
-	foreach( const ClientProfileData &clientProfileData, m_clientProfileMap )
+	for( const ClientProfileData &clientProfileData : m_clientProfileMap )
 		addProfileTableRow(clientProfileData);
 
 	refillDialogUsedData();
@@ -283,4 +283,18 @@ void DlgConfiguracion::on_profilesTable_cellChanged(int row, int column)
 	Q_UNUSED(column);
 	// Need to redo all list because I cannot know the old group name and may be deleted.
 	refillDialogUsedData();
+}
+
+void DlgConfiguracion::on_upButton_clicked()
+{
+	int row = Utils::selectedRow(ui->profilesTable);
+	Utils::moveTableRow(ui->profilesTable, row, row-1);
+	ui->profilesTable->selectRow(row-1);
+}
+
+void DlgConfiguracion::on_downButton_clicked()
+{
+	int row = Utils::selectedRow(ui->profilesTable);
+	Utils::moveTableRow(ui->profilesTable, row, row+1);
+	ui->profilesTable->selectRow(row+1);
 }

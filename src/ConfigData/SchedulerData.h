@@ -17,15 +17,15 @@ class Data
 {
 	quint16 mYear;
 	quint16 mMonth;
+	int mDay;		// 0 = Firsts days of the month. -1 = last days of the month.
 	ServiceAction mServiceAction;
-	QString mPppoeProfileName;
-	QString mOltProfileName;
+	QString mSpeedProfileName;
 
 public:
 	Data()
-		: mYear(quint16(QDate::currentDate().year())), mMonth(quint16(QDate::currentDate().month()))
+	    : mYear(quint16(QDate::currentDate().year())), mMonth(quint16(QDate::currentDate().month())), mDay(0)
 		, mServiceAction(ServiceAction::NoChange)
-		, mPppoeProfileName("")
+		, mSpeedProfileName("")
 	{	}
 
 	QString toSaveString() const;
@@ -42,24 +42,39 @@ public:
 	quint16 monthNumber()	{ return mMonth;	}
 
 	void setYear(quint16 y)	{ mYear = y;	}
+	quint16 year() const	{ return mYear;		}
+
+	quint16 month() const	{ return mMonth;	}
 	void setMonth(const QString &m)	{ mMonth = monthNumber(m);	}
 
-	quint16 year() const	{ return mYear;		}
-	quint16 month() const	{ return mMonth;	}
+	int monthDay() const;
+	bool isMonthDay() const;
+	bool isFirstsDays() const;
+	bool isLastsDays() const;
+	void setDay(int d);
+	void setFirstsDays();
+	void setLastsDays();
+	static const QStringList &dayNames();
+	static int lastDaysIndex();
+	static int firstDaysIndex();
+	static int monthDayToArrayIndex(int d);
+	static int arrayIndexToMonthDay(int d);
+	int dayIndex();
+	void setDay(QString name);
+	QString dayName()const;
 
-	const QString &profileName() const		{ return mPppoeProfileName;	}
-	void setProfileName(const QString &p)	{ mPppoeProfileName = p;	}
+	const QString &profileName() const		{ return mSpeedProfileName;	}
+	void setProfileName(const QString &p)	{ mSpeedProfileName = p;	}
 
-	const QString &pppoeProfileName() const		{ return mPppoeProfileName;	}
-	void setPppoeProfileName(const QString &p)	{ mPppoeProfileName = p;	}
-
-	const QString &oltProfileName() const		{ return mPppoeProfileName;	}
-	void setOltProfileName(const QString &p)	{ mPppoeProfileName = p;	}
+	const QString &speedProfileName() const		{ return mSpeedProfileName;	}
+	void setSpeedProfileName(const QString &p)	{ mSpeedProfileName = p;	}
 
 	static const QStringList &serviceActionNames();
 	ServiceAction serviceAction() const		{ return mServiceAction;	}
 	void setServiceAction(ServiceAction s)	{ mServiceAction = s;		}
 	void setServiceAction(const QString &s);
+	bool operator!=(const Data &other) const;
+	bool operator==(const Data &other) const;
 };
 
 class DataList : public QList<Data>
@@ -82,6 +97,7 @@ public:
 		}
 		QList::append(newData);
 	}
+	bool operator==(const DataList &dataList) const;
 };
 
 class SchedulerMap : public QMap<QString, DataList>
@@ -95,7 +111,9 @@ public:
 	QStringList userNames()	const	{ return keys();	}
 	const DataList &constDataList(const QString &userName) { return contains(userName) ? dataList(userName) : dummyData;	}
 	DataList &dataList(const QString &userName)	{ return operator[](userName);	}
-	void setDataList(const QString &userName, const DataList &list) { dataList(userName) = list; }
+	bool setDataList(const QString &userName, const DataList &list);
+
+	void changeUserName(const QString &oldUserName, const QString &newUserName);
 };
 
 using SchedulerMapIterator = QMapIterator<QString, DataList>;
@@ -103,6 +121,6 @@ using SchedulerMapIterator = QMapIterator<QString, DataList>;
 
 }	// End namespace ServiceScheduler
 
-extern ServiceScheduler::SchedulerMap gSchedulerData;
+extern ServiceScheduler::SchedulerMap gServiceSchedulerMap;
 
 #endif // SCHEDULERDATA_H

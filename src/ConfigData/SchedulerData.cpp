@@ -9,11 +9,11 @@ const DataList SchedulerMap::dummyData = DataList();
 QString Data::toSaveString() const
 {
 	return QString("%1,%2,%3,%4,%5,%6")
-			.arg(1)
+			.arg(1)	// Version
 			.arg(mYear).arg(mMonth)
 			.arg(mServiceAction)
-			.arg(mPppoeProfileName)
-			.arg(mOltProfileName);
+			.arg(mSpeedProfileName)
+			.arg(mDay);
 }
 
 void Data::fromSaveString(const QString &saveString)
@@ -25,13 +25,13 @@ void Data::fromSaveString(const QString &saveString)
 	switch( bits.at(0).toUInt() )
 	{
 	case 1:	// Versión 1.
-		if( bits.count() == 6 )
+		if( bits.count() >= 6 )
 		{
 			mYear = quint16(bits.at(1).toUInt());
 			mMonth = quint16(bits.at(2).toUInt());
 			mServiceAction = ServiceAction(bits.at(3).toUInt());
-			mPppoeProfileName = bits.at(4);
-			mOltProfileName = bits.at(5);
+			mSpeedProfileName = bits.at(4);
+			mDay = bits.at(5).toInt();
 		}
 		break;
 	default:
@@ -57,6 +57,23 @@ void Data::setServiceAction(const QString &s)
 		mServiceAction = ServiceAction(i);
 }
 
+bool Data::operator!=(const Data &other) const
+{
+	return	(other.mYear != mYear) ||
+			(other.mMonth != mMonth) ||
+			(other.mDay != mDay) ||
+			(other.mServiceAction != mServiceAction) ||
+			(other.mSpeedProfileName != mSpeedProfileName);
+}
+
+bool Data::operator==(const Data &other) const
+{
+	return	(other.mYear == mYear) &&
+			(other.mMonth == mMonth) &&
+			(other.mDay == mDay) &&
+			(other.mServiceAction == mServiceAction) &&
+			(other.mSpeedProfileName == mSpeedProfileName);
+}
 
 QString Data::monthName() const
 {
@@ -78,6 +95,86 @@ const QStringList &Data::months()
 quint16 Data::monthNumber(const QString &monthName)
 {
 	return quint16(Data::months().indexOf(monthName));
+}
+
+const QStringList &Data::dayNames()
+{
+	static const QStringList names = { QObject::tr("Ultimos días"), QObject::tr("Primeros días"),
+									   "1", "2", "3", "4", "5", "6", "7", "8", "9",
+									   "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+									   "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+									   "30", "31" };
+
+	return names;
+}
+
+int Data::lastDaysIndex()
+{
+	return 0;
+}
+
+int Data::firstDaysIndex()
+{
+	return 1;
+}
+
+int Data::monthDayToArrayIndex(int d)	{ return d + 1;	}
+int Data::arrayIndexToMonthDay(int d)	{ return d - 1;	}
+
+int Data::dayIndex()
+{
+	Q_ASSERT(isMonthDay());
+	return monthDayToArrayIndex(mDay);
+}
+
+int Data::monthDay() const
+{
+	Q_ASSERT(isMonthDay());
+	return mDay - 1;
+}
+
+bool Data::isMonthDay() const
+{
+	return !isFirstsDays() && !isLastsDays();
+}
+
+bool Data::isFirstsDays() const
+{
+	return mDay == firstDaysIndex();
+}
+
+bool Data::isLastsDays() const
+{
+	return mDay == lastDaysIndex();
+}
+
+void Data::setDay(int d)
+{
+	Q_ASSERT((d>1)&&(d<32));
+	mDay = d;
+}
+
+void Data::setFirstsDays()
+{
+	mDay = 1;
+}
+
+void Data::setLastsDays()
+{
+	mDay = 0;
+}
+
+void Data::setDay(QString name)
+{
+	Q_ASSERT( dayNames().contains(name) );
+	mDay = dayNames().indexOf(name);
+	if( mDay < 0 )
+		mDay = 0;
+}
+
+QString Data::dayName() const
+{
+	return dayNames().at(mDay);
 }
 
 QString SchedulerMap::saveFName() const
@@ -107,6 +204,28 @@ void SchedulerMap::save()
 	QIniFile::save(saveFName(), saveData);
 }
 
+bool SchedulerMap::setDataList(const QString &userName, const DataList &list)
+{
+	if( constDataList(userName) == list )
+		return false;
+
+	if( list.isEmpty() )
+		remove(userName);
+	else
+		dataList(userName) = list;
+
+	return true;
+}
+
+void SchedulerMap::changeUserName(const QString &oldUserName, const QString &newUserName)
+{
+	if( !oldUserName.isEmpty() && !newUserName.isEmpty() && (oldUserName != newUserName) && contains(oldUserName) )
+	{
+		setDataList( newUserName, dataList(oldUserName) );
+		remove(oldUserName);
+	}
+}
+
 void SchedulerMap::load()
 {
 	QIniData saveData;
@@ -125,4 +244,18 @@ void SchedulerMap::load()
 	}
 }
 
-SchedulerMap gSchedulerData;
+bool DataList::operator==(const DataList &dataList) const
+{
+	if( QList::operator==(dataList) )
+		return true;
+	if( count() != dataList.count() )
+		return false;
+	for( int i = count()-1; i >= 0; i-- )
+	{
+		if( at(i) != dataList.at(i) )
+			return false;
+	}
+	return true;
+}
+
+SchedulerMap gServiceSchedulerMap;

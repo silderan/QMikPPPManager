@@ -77,6 +77,8 @@ private slots:
 	void on_addStaticRangeButton_clicked();
 	void on_delStaticRangeButton_clicked();
 	void on_profilesTable_cellChanged(int row, int column);
+	void on_upButton_clicked();
+	void on_downButton_clicked();
 };
 
 #endif // DLGCONFIGURACION_H

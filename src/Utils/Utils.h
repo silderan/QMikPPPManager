@@ -28,6 +28,8 @@
 
 #include "../UnitTests.h"
 
+class QTableWidget;
+
 namespace Utils
 {
 QDate fromStringDate(const char *date);
@@ -46,6 +48,9 @@ QStringList allColumnTexts(const QAbstractItemModel *model, int col, Qt::ItemDat
 
 void raiseWarning(QWidget *papi, const QString &info, QString title = QString());
 void raiseInfo(QWidget *papi, const QString &info, QString title = QString());
+
+void moveTableRow(QTableWidget *table, int oldRow, int newRow);
+int selectedRow(const QTableWidget *table);
 
 class QDateTimeTableItem : public QTableWidgetItem
 {

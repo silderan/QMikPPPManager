@@ -30,6 +30,7 @@ enum SchedulerTableColums
 {
 	STC_Year,
 	STC_Month,
+	STC_Day,
 	STC_Service,
 	STC_PppoeProfile,
 	STC_OltProfile
@@ -46,9 +47,9 @@ DlgPPPUser::DlgPPPUser(QConfigData &configData, ROSMultiConnectManager &rosMulti
 
 	ui->serviceTypeComboBox->addItems(ServiceInfo::serviceTypeNameList());
 
-	gSchedulerData.load();
+	gServiceSchedulerMap.load();
 	ui->schedulerTable->setColumnCount(5);
-	ui->schedulerTable->setHorizontalHeaderLabels( QStringList() << tr("Año") << tr("Mes") << tr("Servicio") << tr("Perfil PPPoE") << tr("Perfil OLT (fibra)") );
+	ui->schedulerTable->setHorizontalHeaderLabels( QStringList() << tr("Año") << tr("Mes") << tr("Día") << tr("Servicio") << tr("Perfil PPPoE") << tr("Perfil OLT (fibra)") );
 	ui->schedulerTable->resizeColumnsToContents();
 
 	ui->schedulerTable->
@@ -70,6 +71,13 @@ DlgPPPUser::DlgPPPUser(QConfigData &configData, ROSMultiConnectManager &rosMulti
 		setItemDelegateForColumn( SchedulerTableColums::STC_Month,
 								  new QComboBoxItemDelegated( this, "", "", false,
 			/*add list*/			  [] (int)			{ return ServiceScheduler::Data::months();	},
+			/*skip list*/			  [] (int)			{ return QStringList(); },
+			/*allow change*/		  [] (const QModelIndex &,const QString &)	{ return true; } ) );
+
+	ui->schedulerTable->
+		setItemDelegateForColumn( SchedulerTableColums::STC_Day,
+								  new QComboBoxItemDelegated( this, "", "", false,
+			/*add list*/			  [] (int)			{ return ServiceScheduler::Data::dayNames();	},
 			/*skip list*/			  [] (int)			{ return QStringList(); },
 			/*allow change*/		  [] (const QModelIndex &,const QString &)	{ return true; } ) );
 
@@ -361,27 +369,32 @@ bool DlgPPPUser::getLocalPorts()
 
 bool DlgPPPUser::getSchedulerData()
 {
-	ServiceScheduler::DataList dataList;
-	for( int row = 0; row < ui->schedulerTable->rowCount(); row++ )
+	if( ui->schedulerGroupBox->isVisible() && ui->schedulerGroupBox->isEnabled() )
 	{
-		ServiceScheduler::Data data;
-		data.setYear( quint16(ui->schedulerTable->item(row, SchedulerTableColums::STC_Year)->text().toUInt()) );
-		if( !data.isYearValid() )
+		ServiceScheduler::DataList dataList;
+		for( int row = 0; row < ui->schedulerTable->rowCount(); row++ )
 		{
-			raiseWarning( tr("El año '%1' programado en la fila %2 no es válido").arg(data.year()).arg(row) );
-			return false;
+			ServiceScheduler::Data data;
+			data.setYear( quint16(ui->schedulerTable->item(row, SchedulerTableColums::STC_Year)->text().toUInt()) );
+			if( !data.isYearValid() )
+			{
+				raiseWarning( tr("El año '%1' programado en la fila %2 no es válido").arg(data.year()).arg(row) );
+				return false;
+			}
+			data.setMonth( ui->schedulerTable->item(row, SchedulerTableColums::STC_Month)->text() );
+			if( !data.isMonthValid() )
+			{
+				raiseWarning( tr("El mes '%1' programado en la fila %2 no es válido").arg(data.monthName()).arg(row) );
+				return false;
+			}
+			data.setProfileName( ui->schedulerTable->item(row, SchedulerTableColums::STC_PppoeProfile)->text() );
+			data.setServiceAction( ui->schedulerTable->item(row, SchedulerTableColums::STC_Service)->text() );
+			data.setDay( ui->schedulerTable->item(row, SchedulerTableColums::STC_Day)->text() );
+			dataList.append(data);
 		}
-		data.setMonth( ui->schedulerTable->item(row, SchedulerTableColums::STC_Month)->text() );
-		if( !data.isMonthValid() )
-		{
-			raiseWarning( tr("El mes '%1' programado en la fila %2 no es válido").arg(data.monthName()).arg(row) );
-			return false;
-		}
-		data.setProfileName( ui->schedulerTable->item(row, SchedulerTableColums::STC_PppoeProfile)->text() );
-		data.setServiceAction( ui->schedulerTable->item(row, SchedulerTableColums::STC_Service)->text() );
-		dataList.append(data);
+		if( gServiceSchedulerMap.setDataList(m_pppSecret.userName(), dataList) )
+			gServiceSchedulerMap.save();
 	}
-	gSchedulerData.setDataList(m_pppSecret.userName(), dataList);
 	return true;
 }
 
@@ -391,6 +404,7 @@ void DlgPPPUser::addServiceSchedulerRow(const ServiceScheduler::Data &schedulerD
 	ui->schedulerTable->insertRow(row);
 	ui->schedulerTable->setItem( row, SchedulerTableColums::STC_Year, new QTableWidgetItem(QString::number(schedulerData.year())) );
 	ui->schedulerTable->setItem( row, SchedulerTableColums::STC_Month, new QTableWidgetItem(schedulerData.monthName()) );
+	ui->schedulerTable->setItem( row, SchedulerTableColums::STC_Day, new QTableWidgetItem(schedulerData.dayName()) );
 	ui->schedulerTable->setItem( row, SchedulerTableColums::STC_PppoeProfile, new QTableWidgetItem(schedulerData.profileName()) );
 	ui->schedulerTable->setItem( row, SchedulerTableColums::STC_Service, new QTableWidgetItem(schedulerData.serviceActionName()) );
 }
@@ -544,7 +558,7 @@ void DlgPPPUser::updateUserData()
 
 	ui->schedulerTable->setRowCount(0);
 
-	for( const ServiceScheduler::Data &schedulerData : gSchedulerData.constDataList(m_pppSecret.userName()) )
+	for( const ServiceScheduler::Data &schedulerData : gServiceSchedulerMap.constDataList(m_pppSecret.userName()) )
 		addServiceSchedulerRow(schedulerData);
 }
 
@@ -656,6 +670,50 @@ void DlgPPPUser::on_pppProfileComboBox_currentIndexChanged(int index)
 	updateStaticIPComboBox();
 }
 
+
+void DlgPPPUser::on_serviceTypeComboBox_currentIndexChanged(int index)
+{
+	switch( static_cast<ServiceInfo::ServiceType>(index) )
+	{
+	case ServiceInfo::Unk:
+		ui->ontSNComboBox->setEnabled(false);
+		ui->iocCheckBox->setEnabled(false);
+		ui->tofCheckBox->setEnabled(false);
+		break;
+	case ServiceInfo::WiFi:
+		ui->ontSNComboBox->setEnabled(false);
+		ui->iocCheckBox->setEnabled(false);
+		ui->tofCheckBox->setEnabled(false);
+		break;
+	case ServiceInfo::FTTH:
+		ui->ontSNComboBox->setEnabled(true);
+		ui->iocCheckBox->setEnabled(true);
+		ui->tofCheckBox->setEnabled(true);
+		break;
+	case ServiceInfo::WTTB:
+		ui->ontSNComboBox->setEnabled(false);
+		ui->iocCheckBox->setEnabled(false);
+		ui->tofCheckBox->setEnabled(false);
+		break;
+	case ServiceInfo::FTTB:
+		ui->ontSNComboBox->setEnabled(false);
+		ui->iocCheckBox->setEnabled(false);
+		ui->tofCheckBox->setEnabled(false);
+		break;
+	case ServiceInfo::PtP_WiFi:
+		ui->ontSNComboBox->setEnabled(false);
+		ui->iocCheckBox->setEnabled(false);
+		ui->tofCheckBox->setEnabled(false);
+		break;
+	case ServiceInfo::PtP_FO:
+		ui->ontSNComboBox->setEnabled(false);
+		ui->iocCheckBox->setEnabled(false);
+		ui->tofCheckBox->setEnabled(false);
+		break;
+
+	}
+}
+
 void DlgPPPUser::onEditUserRequest(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive)
 {
 	clear();
@@ -694,7 +752,6 @@ void DlgPPPUser::on_applyDataButton_clicked()
 
 	{
 		multiConnectionManager.updateRemoteData( m_pppSecret, m_pppSecretMap.toRouterIDMap() );
-		gSchedulerData.save();
 	}
 }
 

@@ -28,8 +28,8 @@
 struct ClientProfileData
 {
 private:
-	QString m_name;
-	QString m_group;
+	QString mName;
+	QString mGroup;
 
 public:
 	explicit ClientProfileData(const QString &saveString = QString())
@@ -37,26 +37,26 @@ public:
 		fromSaveString(saveString);
 	}
 
-	const QString &pppProfileName() const				{ return m_name;		}
-	void setProfileName(const QString &profileName)	{ m_name = profileName;	}
+	const QString &pppProfileName() const				{ return mName;		}
+	void setProfileName(const QString &profileName)		{ mName = profileName;	}
 
-	const QString &groupName() const			{ return m_group;	}
-	void setGroupName(const QString &group)	{ m_group = group;	}
+	const QString &groupName() const			{ return mGroup;	}
+	void setGroupName(const QString &group)		{ mGroup = group;	}
 
 	static QString serviceCanceledGroupName();
 
-	bool isServiceCanceledProfile() const	{ return m_group == serviceCanceledGroupName();	}
-	void setServiceCanceledProfile()		{ m_group = serviceCanceledGroupName();	}
+	bool isServiceCanceledProfile() const	{ return mGroup == serviceCanceledGroupName();	}
+	void setServiceCanceledProfile()		{ mGroup = serviceCanceledGroupName();	}
 
-	bool isValid() const				{ return !m_name.isEmpty() && !m_group.isEmpty();	}
+	bool isValid() const				{ return !mName.isEmpty() && !mGroup.isEmpty();	}
 
 	bool operator==(const QString &profileName) const
 	{
-		return m_name == profileName;
+		return mName == profileName;
 	}
 	bool operator==(const ClientProfileData &clientProfileData) const
 	{
-		return m_name == clientProfileData.pppProfileName();
+		return mName == clientProfileData.pppProfileName();
 	}
 
 	QString saveString()const;
@@ -65,6 +65,7 @@ public:
 
 class QClientProfileMap : public QMap<QString, ClientProfileData>
 {
+
 public:
 	void save(QIniData &cnfgData) const;
 	void load(const QIniData &cnfgData);
@@ -72,7 +73,9 @@ public:
 	void insert(const ClientProfileData &clientProfileData);
 	ClientProfileData serviceCanceledProfile() const;
 
-	QString groupName(const QString &clientProfileName)const;
+	ClientProfileData clientProfile(const QString &profileName) const;
+	QString groupName(const QString &clientProfileName) const	{ return clientProfile(clientProfileName).groupName();	}
+
 	QStringList profileNames() const;
 	QStringList groupNames() const;
 

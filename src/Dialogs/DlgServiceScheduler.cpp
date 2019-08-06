@@ -11,7 +11,10 @@
 
 #include "../ROSMultiConnectorManager.h"
 #include "../ConfigData/SchedulerData.h"
+#include "../ConfigData/QConfigData.h"
 #include "../Widgets/QROSSecretTableWidget.h"
+
+//#define INCLUDE_YEAR_MONTH
 
 enum Columns
 {
@@ -19,9 +22,12 @@ enum Columns
 	ColUserName,
 	ColCClient,
 	ColName,
+#ifdef INCLUDE_YEAR_MONTH
 	ColYear,
 	ColMonth,
-	ColChange,
+#endif
+	ColServiceChange,
+	ColProfileChange,
 	ColCount
 };
 
@@ -29,9 +35,12 @@ const QStringList columnNames = QStringList() << QObject::tr("")
 											  << QObject::tr("Nombre usuario")
 											  << QObject::tr("CCliente")
 											  << QObject::tr("Nombre")
+#ifdef INCLUDE_YEAR_MONTH
 											  << QObject::tr("Año")
 											  << QObject::tr("Mes")
-											  << QObject::tr("Cambio");
+#endif
+											  << QObject::tr("Cambio estado servicio")
+											  << QObject::tr("Cambio velocidad");
 
 DlgServiceScheduler::DlgServiceScheduler(ROSMultiConnectManager &rosMultiConnectManager, QROSSecretTableWidget &rosSecretTable, QWidget *parent)
 	: QDialog(parent)
@@ -50,36 +59,32 @@ DlgServiceScheduler::DlgServiceScheduler(ROSMultiConnectManager &rosMultiConnect
 		ui->yearComboBox->addItem( QString::number(year) );
 	ui->monthComboBox->insertItems( 0, ServiceScheduler::Data::months() );
 
-	// For the lasts 5 days of the month, let's select the next month.
-	if( curDate.daysInMonth() >=25 )
-	{
-		if( curDate.month() < 12 )
-		{
-			ui->monthComboBox->setCurrentIndex( 1 );
-			ui->yearComboBox->setCurrentIndex( 10 );
-		}
-		else
-		{
-			ui->monthComboBox->setCurrentIndex( curDate.month()+1 );
-			ui->yearComboBox->setCurrentIndex( 9 );
-		}
-	}
+	ui->actionComboBox->addItems( ServiceScheduler::Data::dayNames() );
+
+	int day = curDate.day();
+	if( day >= 25 )
+		ui->actionComboBox->setCurrentIndex( ServiceScheduler::Data::lastDaysIndex() );
 	else
-	{
-		ui->monthComboBox->setCurrentIndex( curDate.month() );
-		ui->yearComboBox->setCurrentIndex( 9 );
-	}
+	if( day <= 10 )
+		ui->actionComboBox->setCurrentIndex( ServiceScheduler::Data::firstDaysIndex() );
+	else
+		ui->actionComboBox->setCurrentIndex( ServiceScheduler::Data::monthDayToArrayIndex(day) );
+
+	ui->monthComboBox->setCurrentIndex( curDate.month() );
+	ui->yearComboBox->setCurrentIndex( 10 );
+
 	ui->monthComboBox->setCurrentIndex( curDate.month() );
 	connect( ui->yearComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(updateTable(int)) );
 	connect( ui->monthComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(updateTable(int)) );
+	connect( ui->actionComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(updateTable(int)) );
 
-	gSchedulerData.load();
+	gServiceSchedulerMap.load();
 	updateTable();
 }
 
 void DlgServiceScheduler::updateTable(int )
 {
-	ServiceScheduler::SchedulerMapIterator it(gSchedulerData);
+	ServiceScheduler::SchedulerMapIterator it(gServiceSchedulerMap);
 	const ROSPPPSecret *secret;
 	QCheckBox *ch;
 	QTableWidgetItem *item;
@@ -88,59 +93,99 @@ void DlgServiceScheduler::updateTable(int )
 	quint16 showYear = quint16(ui->yearComboBox->currentText().toUInt());
 	quint16 showMonth = quint16(ui->monthComboBox->currentIndex());
 	ui->tableWidget->setRowCount(0);
+	bool onlyFirstsDays = false;
+	bool onlyLastsDays = false;
+	int specificDay = 0;
+	if( ui->actionComboBox->currentIndex() == ServiceScheduler::Data::firstDaysIndex() )
+		onlyFirstsDays = true;
+	else
+	if( ui->actionComboBox->currentIndex() == ServiceScheduler::Data::lastDaysIndex() )
+		onlyLastsDays = true;
+	else
+		specificDay = ServiceScheduler::Data::arrayIndexToMonthDay( ui->actionComboBox->currentIndex() );
 	while( it.hasNext() )
 	{
 		it.next();
 		for( const ServiceScheduler::Data &data : it.value() )
 		{
-			if( (data.year() == showYear) && (data.month() == showMonth) )
+			if( data.year() != showYear )
+				continue;
+			if( data.month() != showMonth )
+				continue;
+
+			if( (onlyFirstsDays && data.isFirstsDays()) ||
+				(onlyLastsDays && data.isLastsDays()) ||
+				(data.isMonthDay() && (specificDay == data.monthDay())) )
 			{
+				row = ui->tableWidget->rowCount();
+				ui->tableWidget->insertRow(row);
+
+				ui->tableWidget->setCellWidget(row, Columns::ColSelect, ch = new QCheckBox("Cambiar"));
+
+				ui->tableWidget->setItem( row, Columns::ColUserName, item = new QTableWidgetItem(it.key()) );
+				item->setFlags( item->flags() & ~Qt::ItemIsEditable );
+
+				ui->tableWidget->setItem( row, Columns::ColCClient, item = new QTableWidgetItem("??") );
+				item->setFlags( item->flags() & ~Qt::ItemIsEditable );
+
+				ui->tableWidget->setItem( row, Columns::ColName, item = new QTableWidgetItem("??") );
+				item->setFlags( item->flags() & ~Qt::ItemIsEditable );
+
+				ui->tableWidget->setItem( row, Columns::ColServiceChange, item = new QTableWidgetItem("??") );
+				item->setFlags( item->flags() & ~Qt::ItemIsEditable );
+
+				ui->tableWidget->setItem( row, Columns::ColProfileChange, item = new QTableWidgetItem("??") );
+				item->setFlags( item->flags() & ~Qt::ItemIsEditable );
+
+#ifdef INCLUDE_YEAR_MONTH
+				ui->tableWidget->setItem( row, Columns::ColYear, item = new QTableWidgetItem(QString::number(data.year())) );
+				item->setFlags( item->flags() & ~Qt::ItemIsEditable );
+
+				ui->tableWidget->setItem( row, Columns::ColMonth, item = new QTableWidgetItem(data.monthName()) );
+				item->setFlags( item->flags() & ~Qt::ItemIsEditable );
+#endif
+
+				switch( data.serviceAction() )
+				{
+				case ServiceScheduler::NoChange:ui->tableWidget->item(row, Columns::ColServiceChange)->setText( tr("Sin cambios") );break;
+				case ServiceScheduler::Activate:ui->tableWidget->item(row, Columns::ColServiceChange)->setText( tr("Activar") );	break;
+				case ServiceScheduler::Cancel:	ui->tableWidget->item(row, Columns::ColServiceChange)->setText( tr("Cancelar") );	break;
+				}
+				if( data.profileName().isEmpty() )
+					ui->tableWidget->item(row, Columns::ColProfileChange)->setText( tr("Sin cambios") );
+				else
+					ui->tableWidget->item(row, Columns::ColProfileChange)->setText( data.profileName() );
+
 				secret = mRosSecretTable.rosPppSecret(it.key());
+				bool changeSomethng = false;
 				if( secret )
 				{
-					row = ui->tableWidget->rowCount();
-					ui->tableWidget->insertRow(row);
-					ui->tableWidget->setCellWidget(row, Columns::ColSelect, ch = new QCheckBox());
-					ch->setChecked(true);
-
-					ui->tableWidget->setItem( row, Columns::ColUserName, item = new QTableWidgetItem(secret->userName()) );
-					item->setFlags( item->flags() & ~Qt::ItemIsEditable );
-
-					ui->tableWidget->setItem( row, Columns::ColCClient, item = new QTableWidgetItem(secret->clientCode()) );
-					item->setFlags( item->flags() & ~Qt::ItemIsEditable );
-
-					ui->tableWidget->setItem( row, Columns::ColName, item = new QTableWidgetItem(secret->clientName()) );
-					item->setFlags( item->flags() & ~Qt::ItemIsEditable );
-
-					ui->tableWidget->setItem( row, Columns::ColYear, item = new QTableWidgetItem(QString::number(data.year())) );
-					item->setFlags( item->flags() & ~Qt::ItemIsEditable );
-
-					ui->tableWidget->setItem( row, Columns::ColMonth, item = new QTableWidgetItem(data.monthName()) );
-					item->setFlags( item->flags() & ~Qt::ItemIsEditable );
-
 					QString changeDescription;
-					if( ServiceState::isCanceledState(secret->serviceState()) && (data.serviceAction() == ServiceScheduler::ServiceAction::Activate) )
-						changeDescription = tr("Activar servicio");
-					else
-					if( !ServiceState::isCanceledState(secret->serviceState()) && (data.serviceAction() == ServiceScheduler::ServiceAction::Cancel) )
-						changeDescription = tr("Desactivar servicio");
-
-					if( !data.profileName().isEmpty() && (data.profileName() != secret->pppProfileName()) )
+					if( data.serviceAction() != ServiceScheduler::NoChange )
 					{
-						if( !changeDescription.isEmpty() )
-							changeDescription += ", ";
-						changeDescription += tr("Cambiar perfil de %1 a %2").arg(secret->pppProfileName()).arg(data.profileName());
+						if( ServiceState::isCanceledState(secret->serviceState()) && (data.serviceAction() == ServiceScheduler::ServiceAction::Cancel) )
+							ui->tableWidget->item(row, Columns::ColServiceChange)->setForeground(Qt::gray);
+						else
+						if( !ServiceState::isCanceledState(secret->serviceState()) && (data.serviceAction() == ServiceScheduler::ServiceAction::Activate) )
+							ui->tableWidget->item(row, Columns::ColServiceChange)->setForeground(Qt::gray);
+						else
+							changeSomethng = true;
 					}
 
-					if( changeDescription.isEmpty() )
+					if( !data.profileName().isEmpty() )
 					{
-						changeDescription = tr("¡Ningún cambio a realizar!");
-						ch->setDisabled(true);
-						ch->setChecked(false);
+						changeDescription = tr("%1 -> %2").arg(secret->pppProfileName()).arg(data.profileName());
+
+						if( data.profileName() == secret->pppProfileName() )
+							ui->tableWidget->item(row, Columns::ColProfileChange)->setForeground(Qt::gray);
+						else
+							changeSomethng = true;
 					}
-					ui->tableWidget->setItem(row, Columns::ColChange, new QTableWidgetItem(changeDescription) );
 				}
-				break;
+				if( !changeSomethng )
+					ch->setDisabled(true);
+				else
+					ch->setChecked(true);
 			}
 		}
 	}
@@ -176,17 +221,26 @@ void DlgServiceScheduler::on_applyButton_clicked()
 
 }
 
+const int fontSize = 8;
 const int startLineTop = 50;
 const int startLineLeft = 40;
 const int userNameBoxWidth = 150;
 const int clientCodeBoxWidth = 60;
+const int clientServiceBoxWidth = 200;
+const int clientProfileBoxWidth = 200;
 const int lineHeight = 14;
-const int linesPerPage = 70;
+const int linesPerPage = 74;
+const int pageHeaderLines = 4;
+const int pageFooterLines = 2;
+const int tableHeaderLines = 4;
+const int tableFooterLines = 0;
+const int rowsPerPage = linesPerPage - pageHeaderLines - pageFooterLines - tableHeaderLines - tableFooterLines;
 
-void DlgServiceScheduler::paintLine( QPainter &painter, int line,
+void DlgServiceScheduler::writeLine( QPainter &painter, int line,
 									 const QString &userName,
 									 const QString &clientCode,
-									 const QString &changeDescription )
+									 const QString &serviceChange,
+									 const QString &profileChange )
 {
 	static QRect rect;
 
@@ -197,39 +251,54 @@ void DlgServiceScheduler::paintLine( QPainter &painter, int line,
 	rect.setWidth( userNameBoxWidth );
 	painter.drawText( rect, Qt::AlignLeft, userName );
 
-	rect.setLeft( rect.right() + 8 );
+	rect.setLeft( rect.right() + fontSize );
 	rect.setWidth( clientCodeBoxWidth );
 	painter.drawText( rect, Qt::AlignLeft, clientCode );
 
-	rect.setLeft( rect.right() + 8 );
-	rect.setWidth( 800 );
-	painter.drawText( rect, Qt::AlignLeft, changeDescription );
+	rect.setLeft( rect.right() + fontSize );
+	rect.setWidth( clientServiceBoxWidth );
+	painter.drawText( rect, Qt::AlignLeft, serviceChange );
+
+	rect.setLeft( rect.right() + fontSize );
+	rect.setWidth( clientProfileBoxWidth );
+	painter.drawText( rect, Qt::AlignLeft, profileChange );
 }
 
-void DlgServiceScheduler::paintTable(QPainter &painter, int firstRow, int lastRow)
+void DlgServiceScheduler::paintTable(QPainter &painter, int page)
 {
+	painter.setFont( QFont("Arial", fontSize) );
 
-}
+	writeLine(painter, pageHeaderLines + 2, "NOMBRE USUARIO", "CCLIENTE", "CAMBIO SERVICIO", "CAMBIO VELOCIDAD");
+	painter.drawLine( startLineLeft,
+					  startLineTop + lineHeight * pageHeaderLines,
+					  startLineLeft + fontSize + userNameBoxWidth + fontSize + clientCodeBoxWidth + clientServiceBoxWidth + clientProfileBoxWidth,
+					  startLineTop + lineHeight * 4 );
 
-void DlgServiceScheduler::paintPage(QPainter &painter, int currentPage, int pageCount, int firstRow, int lastRow)
-{
-	painter.setFont( QFont("Arial", 12) );
-	painter.drawText( startLineLeft, startLineTop, tr("Cambios del servicio a los clientes para el %1 del %2. Página %3 de %4")
-					  .arg(ui->monthComboBox->currentText()).arg(ui->yearComboBox->currentText())
-					  .arg(currentPage).arg(pageCount));
+	painter.setFont( QFont("Arial", fontSize) );
 
-	painter.setFont( QFont("Arial", 8, 2) );
-
-	paintLine(painter, 6, "NOMBRE USUARIO", "CCLIENTE", "CAMBIO EN EL SERVICIO");
-	painter.drawLine( startLineLeft, startLineTop + lineHeight * 4, startLineLeft + 8 + userNameBoxWidth + 8 + clientCodeBoxWidth + 400, startLineTop + lineHeight * 4 );
-
-	painter.setFont( QFont("Arial", 8, 1) );
-
-//	for( int row = 0; row < ui->tableWidget->rowCount(); row++ )
-	for( int line = 0; line < linesPerPage; line++ )
+	for( int line = 0; line < rowsPerPage; line++ )
 	{
-		paintLine( painter, line + 8, "PPPoE_Novatel", "12345", "Cambia perfil de asdfasfasfasfd a asfasfasfasf y activa servicio" );
+		int row = line + ((page - 1) * rowsPerPage);
+		if( row >= /*ui->tableWidget->rowCount()*/ 150 )
+			break;
+		writeLine( painter, pageHeaderLines + tableHeaderLines + line, QString("Line:%1").arg(line), QString("row:%1").arg(row), "Activa servicio", "Mantiene velocidad" );
 	}
+}
+
+void DlgServiceScheduler::paintPage(QPainter &painter, int currentPage, int pageCount)
+{
+	painter.setFont( QFont("Arial", fontSize + 4) );
+	painter.drawText( startLineLeft, startLineTop, tr("Cambios del servicio a los clientes para el %1 del %2")
+					  .arg(ui->monthComboBox->currentText()).arg(ui->yearComboBox->currentText()) );
+
+	paintTable(painter, currentPage);
+
+	painter.drawLine( startLineLeft,
+					  startLineTop + lineHeight * (linesPerPage - 1),
+					  startLineLeft + fontSize + userNameBoxWidth + fontSize + clientCodeBoxWidth + 400,
+					  startLineTop + lineHeight * (linesPerPage - 1) );
+
+	painter.drawText( startLineLeft, startLineTop + (linesPerPage * lineHeight), tr("Página %3 de %4").arg(currentPage).arg(pageCount) );
 }
 
 void DlgServiceScheduler::on_printButton_clicked()
@@ -246,10 +315,10 @@ void DlgServiceScheduler::on_printButton_clicked()
 			return;
 		}
 
-		int totalPages = (ui->tableWidget->rowCount() / linesPerPage)+3;
+		int totalPages = (/*ui->tableWidget->rowCount()*/ 150 / rowsPerPage) + 1;
 		for( int page = 0; page < totalPages; page++ )
 		{
-			paintPage( painter, page+1, totalPages, page * linesPerPage, linesPerPage );
+			paintPage( painter, page+1, totalPages );
 			if( (page+1) != totalPages )
 				printer.newPage();
 		}
@@ -276,10 +345,11 @@ void DlgServiceScheduler::on_exportButton_clicked()
 		QString csv;
 		for( int row = ui->tableWidget->rowCount()-1; row >= 0; --row )
 		{
-			csv += QString("%1\t%2\t%3\n")
+			csv += QString("%1\t%2\t%3\t%4\n")
 					.arg(ui->tableWidget->item(row, Columns::ColUserName)->text())
 					.arg(ui->tableWidget->item(row, Columns::ColCClient)->text())
-					.arg(ui->tableWidget->item(row, Columns::ColChange)->text());
+					.arg(ui->tableWidget->item(row, Columns::ColServiceChange)->text())
+					.arg(ui->tableWidget->item(row, Columns::ColProfileChange)->text());
 		}
 		f.write( csv.toLatin1() );
 		f.flush();

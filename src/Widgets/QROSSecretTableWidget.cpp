@@ -29,6 +29,7 @@
 #include "../Utils/Utils.h"
 #include "../ConfigData/QConfigData.h"
 #include "../ConfigData/ClientProfile.h"
+#include "../ConfigData/SchedulerData.h"
 #include "../ROSMultiConnectorManager.h"
 
 #include "QRemoteIPCellItem.h"
@@ -448,6 +449,7 @@ void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &pppSecret)
 	// As username is key for this map, has special code.
 	if( item(userNameItem->row(), Columns::UserName)->text() != pppSecret.userName() )
 	{
+		gServiceSchedulerMap.changeUserName(pppSecret.userName(), item(userNameItem->row(), Columns::UserName)->text());
 		// Copy the item to the new name key.
 		m_userNameMap[pppSecret.userName()] = m_userNameMap.take( item(userNameItem->row(), Columns::UserName)->text() );
 		setupCellItem(userNameItem->row(), UserName,				pppSecret.userName(), false );
@@ -464,9 +466,7 @@ void QROSSecretTableWidget::onROSSecretModReply(const ROSPPPSecret &pppSecret)
 	setupCellItem( userNameItem->row(), Columns::ClientAnnotations,	pppSecret.clientNotes(), true );
 	setupCellItem( userNameItem->row(), Columns::InstallAnnotations,pppSecret.installNotes(), true );
 
-	// This columns can be filled by active data before the secred was reported. So, here will set data only if they're empty.
-	// TODO: Last logg off must show the last (date-nearest) value because every router will has diferent time-stamp.
-	//       Maybe, could be interesting also keep all data and show to user via cell tool-tip
+	// This columns can be filled by active data before the secret was reported. So, here will set data only if they're empty.
 	setupActiveStatusCellItem( userNameItem->row() )->setLastDowntime( pppSecret.routerName(), pppSecret.lastLogOff() );
 
 	if( item(userNameItem->row(), Columns::ActiveRouter) == Q_NULLPTR )
