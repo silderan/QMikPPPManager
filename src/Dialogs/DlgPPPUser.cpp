@@ -687,17 +687,17 @@ void DlgPPPUser::on_serviceTypeComboBox_currentIndexChanged(int index)
 		break;
 	case ServiceInfo::FTTH:
 		ui->ontSNComboBox->setEnabled(true);
-		ui->iocCheckBox->setEnabled(true);
+		ui->iocCheckBox->setEnabled(false);
 		ui->tofCheckBox->setEnabled(true);
 		break;
 	case ServiceInfo::WTTB:
 		ui->ontSNComboBox->setEnabled(false);
-		ui->iocCheckBox->setEnabled(false);
+		ui->iocCheckBox->setEnabled(true);
 		ui->tofCheckBox->setEnabled(false);
 		break;
 	case ServiceInfo::FTTB:
 		ui->ontSNComboBox->setEnabled(false);
-		ui->iocCheckBox->setEnabled(false);
+		ui->iocCheckBox->setEnabled(true);
 		ui->tofCheckBox->setEnabled(false);
 		break;
 	case ServiceInfo::PtP_WiFi:

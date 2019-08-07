@@ -116,8 +116,6 @@ private slots:
 	void on_copyInfoButton_clicked();
 	void on_delChedulerButton_clicked();
 	void on_addSchedulerButton_clicked();
-
-
 	void on_serviceTypeComboBox_currentIndexChanged(int index);
 
 public slots:
