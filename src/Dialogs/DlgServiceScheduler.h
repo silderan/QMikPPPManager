@@ -20,7 +20,7 @@ class DlgServiceScheduler : public QDialog
 
 	void changeSelection(bool newSel);
 
-	void writeLine(QPainter &painter, int line, const QString &userName, const QString &clientCode, const QString &serviceChange, const QString &profileChange);
+	void writeLine(QPainter &painter, int line, const QString &userName, const QString &clientCode, const QString &serviceChange, const QString &profileChange, const QColor &textClr);
 	void paintTable(QPainter &painter, int page);
 	void paintPage(QPainter &painter, int currentPage, int pageCount);
 

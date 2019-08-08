@@ -45,9 +45,14 @@ const QStringList &Data::serviceActionNames()
 	return l;
 }
 
+QString Data::serviceActionName(const ServiceAction &s)
+{
+	return serviceActionNames().at(s);
+}
+
 QString Data::serviceActionName() const
 {
-	return serviceActionNames().at(mServiceAction);
+	return serviceActionName(mServiceAction);
 }
 
 void Data::setServiceAction(const QString &s)
@@ -75,12 +80,33 @@ bool Data::operator==(const Data &other) const
 			(other.mSpeedProfileName == mSpeedProfileName);
 }
 
+QString Data::monthName(quint16 m)
+{
+	Q_ASSERT( (m>0) && (m<=12) );
+	return months().at(m);
+}
+
+quint16 Data::nextMonth(quint16 m)
+{
+	Q_ASSERT( (m>0) && (m<=12) );
+
+	return (m>=12) ? 1 : m + 1;
+}
+
+quint16 Data::prevMonth(quint16 m)
+{
+	Q_ASSERT( (m>0) && (m<=12) );
+
+	return (m<=1) ? 12 : m - 1;
+}
+
 QString Data::monthName() const
 {
 	if( isMonthValid() )
-		return months().at(mMonth);
+		return monthName(mMonth);
 	return QString("Error mes %1").arg(mMonth);
 }
+
 bool Data::isMonthValid() const
 {
 	return (mMonth >= 1) && (mMonth <= 12);
@@ -172,9 +198,14 @@ void Data::setDay(QString name)
 		mDay = 0;
 }
 
+QString Data::dayName(int d)
+{
+	return dayNames().at(d);
+}
+
 QString Data::dayName() const
 {
-	return dayNames().at(mDay);
+	return dayName(mDay);
 }
 
 QString SchedulerMap::saveFName() const

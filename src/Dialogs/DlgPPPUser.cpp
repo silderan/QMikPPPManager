@@ -89,6 +89,8 @@ DlgPPPUser::DlgPPPUser(QConfigData &configData, ROSMultiConnectManager &rosMulti
 			/*allow change*/		  [] (const QModelIndex &,const QString &)	{ return true; } ) );
 
 	updateGUI();
+	if( ui->schedulerGroupBox->isVisible() && ui->schedulerGroupBox->isEnabled() )
+		connect( ui->schedulerTable, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(updateSchedulerCell(QTableWidgetItem*)) );
 }
 
 DlgPPPUser::~DlgPPPUser()
@@ -394,12 +396,46 @@ bool DlgPPPUser::getSchedulerData()
 		}
 		if( gServiceSchedulerMap.setDataList(m_pppSecret.userName(), dataList) )
 			gServiceSchedulerMap.save();
+		checkSchedulerData();
 	}
 	return true;
 }
 
+static QColor green = QColor(0xF0, 0xFF, 0xF0);
+static QColor red = QColor(0xFF, 0xF0, 0xF0);
+
+void DlgPPPUser::updateSchedulerCell(QTableWidgetItem *item)
+{
+	Q_ASSERT( ui->schedulerGroupBox->isVisible() && ui->schedulerGroupBox->isEnabled() );
+	static QString lastsDaysText = ServiceScheduler::Data::dayName( ServiceScheduler::Data::lastDaysIndex() );
+	static QString firstsDaysText = ServiceScheduler::Data::dayName( ServiceScheduler::Data::firstDaysIndex() );
+
+	static QString activateText = ServiceScheduler::Data::serviceActionName(ServiceScheduler::Activate);
+	static QString cancelText = ServiceScheduler::Data::serviceActionName(ServiceScheduler::Cancel);
+
+	if( item->column() == SchedulerTableColums::STC_Service )
+	{
+		if( item->text() == activateText )
+			item->setBackground(green);
+		else
+		if( item->text() == cancelText )
+			item->setBackground(red);
+	}
+	else
+	if( item->column() == SchedulerTableColums::STC_Day )
+	{
+		if( item->text() == lastsDaysText )
+			item->setBackground(green);
+		else
+		if( item->text() == firstsDaysText )
+			item->setBackground(red);
+	}
+}
+
 void DlgPPPUser::addServiceSchedulerRow(const ServiceScheduler::Data &schedulerData)
 {
+	Q_ASSERT( ui->schedulerGroupBox->isVisible() && ui->schedulerGroupBox->isEnabled() );
+
 	int row = ui->schedulerTable->rowCount();
 	ui->schedulerTable->insertRow(row);
 	ui->schedulerTable->setItem( row, SchedulerTableColums::STC_Year, new QTableWidgetItem(QString::number(schedulerData.year())) );
@@ -445,6 +481,31 @@ void DlgPPPUser::updateGUI()
 		ui->schedulerGroupBox->setVisible(true);
 		break;
 	}
+}
+
+bool DlgPPPUser::checkSchedulerData()
+{
+	Q_ASSERT( ui->schedulerGroupBox->isVisible() && ui->schedulerGroupBox->isEnabled() );
+
+	bool lastWasActivatingLastsDays = false;
+	quint16 lastMonth = 0;
+	for( const ServiceScheduler::Data &schedulerData : gServiceSchedulerMap.constDataList(m_pppSecret.userName()) )
+	{
+		if( lastWasActivatingLastsDays && (schedulerData.serviceAction() == ServiceScheduler::Cancel) &&
+			ServiceScheduler::Data::nextMonth(lastMonth) == schedulerData.month() )
+		{
+			raiseWarning(tr("Hay una programación entre los meses %1 y %2 que no parece correcta:\n"
+							"Cuando se activa un servicio para un mes, la activación debe ir para finales "
+							"del mes anterior y la activación para principios del mes siguiente.")
+							.arg(ServiceScheduler::Data::monthName(lastMonth))
+							.arg(ServiceScheduler::Data::monthName(schedulerData.month())) );
+			return false;
+		}
+		lastWasActivatingLastsDays = schedulerData.serviceAction() == ServiceScheduler::Activate;
+		if( lastWasActivatingLastsDays )
+			lastMonth = schedulerData.month();
+	}
+	return true;
 }
 
 void DlgPPPUser::onConfigDataChanged()
@@ -556,10 +617,14 @@ void DlgPPPUser::updateUserData()
 	ui->lanDMZLineEdit->setText( m_pppSecret.installLANDMZ().isValid() ? m_pppSecret.installLANDMZ().toString() : QString() );
 	ui->lanPortsTableWidget->setup( m_pppSecret.portForwardList() );
 
-	ui->schedulerTable->setRowCount(0);
+	if( ui->schedulerTable->isVisible() && ui->schedulerTable->isEnabled() )
+	{
+		ui->schedulerTable->setRowCount(0);
 
-	for( const ServiceScheduler::Data &schedulerData : gServiceSchedulerMap.constDataList(m_pppSecret.userName()) )
-		addServiceSchedulerRow(schedulerData);
+		for( const ServiceScheduler::Data &schedulerData : gServiceSchedulerMap.constDataList(m_pppSecret.userName()) )
+			addServiceSchedulerRow(schedulerData);
+		checkSchedulerData();
+	}
 }
 
 void DlgPPPUser::updateDialogInfo()

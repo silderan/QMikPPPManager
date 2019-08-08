@@ -20,7 +20,7 @@ enum Columns
 {
 	ColSelect,
 	ColUserName,
-	ColCClient,
+	ColClientCode,
 	ColName,
 #ifdef INCLUDE_YEAR_MONTH
 	ColYear,
@@ -125,7 +125,7 @@ void DlgServiceScheduler::updateTable(int )
 				ui->tableWidget->setItem( row, Columns::ColUserName, item = new QTableWidgetItem(it.key()) );
 				item->setFlags( item->flags() & ~Qt::ItemIsEditable );
 
-				ui->tableWidget->setItem( row, Columns::ColCClient, item = new QTableWidgetItem("??") );
+				ui->tableWidget->setItem( row, Columns::ColClientCode, item = new QTableWidgetItem("??") );
 				item->setFlags( item->flags() & ~Qt::ItemIsEditable );
 
 				ui->tableWidget->setItem( row, Columns::ColName, item = new QTableWidgetItem("??") );
@@ -145,11 +145,21 @@ void DlgServiceScheduler::updateTable(int )
 				item->setFlags( item->flags() & ~Qt::ItemIsEditable );
 #endif
 
+				static QColor green = QColor(0xF0, 0xFF, 0xF0);
+				static QColor red = QColor(0xFF, 0xF0, 0xF0);
+
+				ui->tableWidget->item(row, Columns::ColServiceChange)->setData(Qt::UserRole, data.serviceAction());
 				switch( data.serviceAction() )
 				{
 				case ServiceScheduler::NoChange:ui->tableWidget->item(row, Columns::ColServiceChange)->setText( tr("Sin cambios") );break;
-				case ServiceScheduler::Activate:ui->tableWidget->item(row, Columns::ColServiceChange)->setText( tr("Activar") );	break;
-				case ServiceScheduler::Cancel:	ui->tableWidget->item(row, Columns::ColServiceChange)->setText( tr("Cancelar") );	break;
+				case ServiceScheduler::Activate:
+					ui->tableWidget->item(row, Columns::ColServiceChange)->setText( tr("Activar") );
+					ui->tableWidget->item(row, Columns::ColServiceChange)->setBackground(green);
+					break;
+				case ServiceScheduler::Cancel:
+					ui->tableWidget->item(row, Columns::ColServiceChange)->setText( tr("Cancelar") );
+					ui->tableWidget->item(row, Columns::ColServiceChange)->setBackground(red);
+					break;
 				}
 				if( data.profileName().isEmpty() )
 					ui->tableWidget->item(row, Columns::ColProfileChange)->setText( tr("Sin cambios") );
@@ -161,6 +171,8 @@ void DlgServiceScheduler::updateTable(int )
 				if( secret )
 				{
 					QString changeDescription;
+					ui->tableWidget->item(row, Columns::ColName)->setText( secret->clientName() );
+					ui->tableWidget->item(row, Columns::ColClientCode)->setText( secret->clientCode() );
 					if( data.serviceAction() != ServiceScheduler::NoChange )
 					{
 						if( ServiceState::isCanceledState(secret->serviceState()) && (data.serviceAction() == ServiceScheduler::ServiceAction::Cancel) )
@@ -240,10 +252,12 @@ void DlgServiceScheduler::writeLine( QPainter &painter, int line,
 									 const QString &userName,
 									 const QString &clientCode,
 									 const QString &serviceChange,
-									 const QString &profileChange )
+									 const QString &profileChange,
+									 const QColor &textClr)
 {
 	static QRect rect;
 
+	painter.setPen(textClr);
 	rect.setTop( line * lineHeight );
 	rect.setHeight( lineHeight );
 
@@ -268,7 +282,7 @@ void DlgServiceScheduler::paintTable(QPainter &painter, int page)
 {
 	painter.setFont( QFont("Arial", fontSize) );
 
-	writeLine(painter, pageHeaderLines + 2, "NOMBRE USUARIO", "CCLIENTE", "CAMBIO SERVICIO", "CAMBIO VELOCIDAD");
+	writeLine(painter, pageHeaderLines + 2, "NOMBRE USUARIO", "CCLIENTE", "CAMBIO SERVICIO", "CAMBIO VELOCIDAD", Qt::black);
 	painter.drawLine( startLineLeft,
 					  startLineTop + lineHeight * pageHeaderLines,
 					  startLineLeft + fontSize + userNameBoxWidth + fontSize + clientCodeBoxWidth + clientServiceBoxWidth + clientProfileBoxWidth,
@@ -276,12 +290,20 @@ void DlgServiceScheduler::paintTable(QPainter &painter, int page)
 
 	painter.setFont( QFont("Arial", fontSize) );
 
+	static QColor red(0x80, 0x00, 0x00);
+	static QColor green(0x00, 0x80, 0x00);
 	for( int line = 0; line < rowsPerPage; line++ )
 	{
 		int row = line + ((page - 1) * rowsPerPage);
-		if( row >= /*ui->tableWidget->rowCount()*/ 150 )
+		if( row >= ui->tableWidget->rowCount() )
 			break;
-		writeLine( painter, pageHeaderLines + tableHeaderLines + line, QString("Line:%1").arg(line), QString("row:%1").arg(row), "Activa servicio", "Mantiene velocidad" );
+		writeLine( painter, pageHeaderLines + tableHeaderLines + line,
+				   ui->tableWidget->item(row, Columns::ColUserName)->text(),
+				   ui->tableWidget->item(row, Columns::ColClientCode)->text(),
+				   ui->tableWidget->item(row, Columns::ColServiceChange)->text(),
+				   ui->tableWidget->item(row, Columns::ColProfileChange)->text(),
+				   (ui->tableWidget->item(row, Columns::ColServiceChange)->data(Qt::UserRole).toInt() == ServiceScheduler::Activate) ? green :
+				   (ui->tableWidget->item(row, Columns::ColServiceChange)->data(Qt::UserRole).toInt() == ServiceScheduler::Cancel) ? red : Qt::black );
 	}
 }
 
@@ -293,6 +315,7 @@ void DlgServiceScheduler::paintPage(QPainter &painter, int currentPage, int page
 
 	paintTable(painter, currentPage);
 
+	painter.setPen(Qt::black);
 	painter.drawLine( startLineLeft,
 					  startLineTop + lineHeight * (linesPerPage - 1),
 					  startLineLeft + fontSize + userNameBoxWidth + fontSize + clientCodeBoxWidth + 400,
@@ -315,7 +338,7 @@ void DlgServiceScheduler::on_printButton_clicked()
 			return;
 		}
 
-		int totalPages = (/*ui->tableWidget->rowCount()*/ 150 / rowsPerPage) + 1;
+		int totalPages = (ui->tableWidget->rowCount() / rowsPerPage) + 1;
 		for( int page = 0; page < totalPages; page++ )
 		{
 			paintPage( painter, page+1, totalPages );
@@ -347,7 +370,7 @@ void DlgServiceScheduler::on_exportButton_clicked()
 		{
 			csv += QString("%1\t%2\t%3\t%4\n")
 					.arg(ui->tableWidget->item(row, Columns::ColUserName)->text())
-					.arg(ui->tableWidget->item(row, Columns::ColCClient)->text())
+					.arg(ui->tableWidget->item(row, Columns::ColClientCode)->text())
 					.arg(ui->tableWidget->item(row, Columns::ColServiceChange)->text())
 					.arg(ui->tableWidget->item(row, Columns::ColProfileChange)->text());
 		}

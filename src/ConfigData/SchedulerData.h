@@ -30,12 +30,15 @@ public:
 
 	QString toSaveString() const;
 	void fromSaveString(const QString &saveString);
+	static QString serviceActionName(const ServiceAction &s);
 	QString serviceActionName() const;
+	static QString monthName(quint16 m);
+	static quint16 nextMonth(quint16 m);
+	static quint16 prevMonth(quint16 m);
 	QString monthName() const;
-	bool isYearValid() const
-	{
-		return (mYear >= 1900);
-	}
+	quint16 nextMonth() const	{ return nextMonth(mMonth); }
+	quint16 prevMonth() const	{ return prevMonth(mMonth);	}
+	bool isYearValid() const	{return (mYear >= 1900);	}
 	bool isMonthValid() const;
 	static const QStringList &months();
 	static quint16 monthNumber(const QString &monthName);
@@ -61,6 +64,7 @@ public:
 	static int arrayIndexToMonthDay(int d);
 	int dayIndex();
 	void setDay(QString name);
+	static QString dayName(int d);
 	QString dayName()const;
 
 	const QString &profileName() const		{ return mSpeedProfileName;	}

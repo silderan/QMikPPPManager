@@ -28,6 +28,8 @@
 #include "../ConfigData/QConfigData.h"
 #include "../ConfigData/SchedulerData.h"
 
+class QTableWidgetItem;
+
 namespace Ui
 {
 	class DlgPPPUser;
@@ -91,6 +93,7 @@ class DlgPPPUser : public QDlgMultiDataBase
 
 	void updateGUI();
 
+	bool checkSchedulerData();
 	void addServiceSchedulerRow(const ServiceScheduler::Data &schedulerData = ServiceScheduler::Data());
 public:
 	DlgPPPUser(QConfigData &configData, ROSMultiConnectManager &rosMultiConnectManager, QWidget *papi);
@@ -105,6 +108,8 @@ public:
 	void onConfigDataChanged() override;
 
 private slots:
+	void updateSchedulerCell(QTableWidgetItem *item);
+
 	void on_pppProfileComboBox_currentIndexChanged(int index);
 	void on_applyDataButton_clicked();
 	void on_addPortButton_clicked();
