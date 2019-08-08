@@ -309,9 +309,17 @@ void DlgServiceScheduler::paintTable(QPainter &painter, int page)
 
 void DlgServiceScheduler::paintPage(QPainter &painter, int currentPage, int pageCount)
 {
+	QString txt;
+	if( ui->actionComboBox->currentIndex() == ServiceScheduler::Data::lastDaysIndex() )
+		txt = tr("Cambios del servicio a los clientes para finales de %1 del %2").arg(ui->monthComboBox->currentText()).arg(ui->yearComboBox->currentText());
+	else
+	if( ui->actionComboBox->currentIndex() == ServiceScheduler::Data::firstDaysIndex() )
+		txt = tr("Cambios del servicio a los clientes para princios de %1 del %2").arg(ui->monthComboBox->currentText()).arg(ui->yearComboBox->currentText());
+	else
+		txt = tr("Cambios del servicio a los clientes para el %1 de %2 del %3").arg(ui->actionComboBox->currentText()).arg(ui->monthComboBox->currentText()).arg(ui->yearComboBox->currentText());
+
 	painter.setFont( QFont("Arial", fontSize + 4) );
-	painter.drawText( startLineLeft, startLineTop, tr("Cambios del servicio a los clientes para el %1 del %2")
-					  .arg(ui->monthComboBox->currentText()).arg(ui->yearComboBox->currentText()) );
+	painter.drawText( startLineLeft, startLineTop, txt );
 
 	paintTable(painter, currentPage);
 
@@ -351,9 +359,20 @@ void DlgServiceScheduler::on_printButton_clicked()
 
 void DlgServiceScheduler::on_exportButton_clicked()
 {
-	QString fileNameTip = QString("%1/%2_%3.tsv")
-			.arg(QStandardPaths::writableLocation(QStandardPaths::DesktopLocation))
-			.arg(ui->yearComboBox->currentText()).arg(ui->monthComboBox->currentText());
+	QString fileNameTip;
+	if( ui->actionComboBox->currentIndex() == ServiceScheduler::Data::lastDaysIndex() )
+		fileNameTip = QString("%1/%2_%3_finales.tsv")
+				.arg(QStandardPaths::writableLocation(QStandardPaths::DesktopLocation))
+				.arg(ui->yearComboBox->currentText()).arg(ui->monthComboBox->currentText());
+	else
+	if( ui->actionComboBox->currentIndex() == ServiceScheduler::Data::firstDaysIndex() )
+		fileNameTip = QString("%1/%2_%3_principios.tsv")
+				.arg(QStandardPaths::writableLocation(QStandardPaths::DesktopLocation))
+				.arg(ui->yearComboBox->currentText()).arg(ui->monthComboBox->currentText());
+	else
+		fileNameTip = QString("%1/%2_%3_dia_%4.tsv")
+							.arg(QStandardPaths::writableLocation(QStandardPaths::DesktopLocation))
+							.arg(ui->yearComboBox->currentText()).arg(ui->monthComboBox->currentText()).arg(ui->actionComboBox->currentText());
 
 	QString fname = QFileDialog::getSaveFileName(this, tr("Exportar datos"), fileNameTip, "*.tsv");
 	if( !fname.isEmpty() )
