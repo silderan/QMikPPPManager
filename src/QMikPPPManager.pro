@@ -63,7 +63,6 @@ SOURCES += main.cpp\
     Dialogs/DlgPPPLogViewer.cpp \
     Dialogs/DlgNewPPPProfile.cpp \
     Widgets/QSpeedTableWidget.cpp \
-    Widgets/QFancyComboBox.cpp \
     Widgets/QROSDataTableWidget.cpp \
     Dialogs/DlgNewROSAPIUser.cpp \
     Dialogs/DlgExportUserData.cpp \
