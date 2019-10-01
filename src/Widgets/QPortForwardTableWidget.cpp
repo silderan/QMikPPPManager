@@ -134,3 +134,11 @@ QPortForwardList QPortForwardTableWidget::portForwardList()
 	}
 	return rtn;
 }
+
+void QPortForwardTableWidget::parsePortLine(const QStringList &words, int i)
+{
+}
+
+void QPortForwardTableWidget::parsePortText(const QString &txt)
+{
+}

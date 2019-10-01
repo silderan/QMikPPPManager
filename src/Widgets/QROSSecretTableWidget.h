@@ -136,9 +136,12 @@ private:
 	QMap<QString, QROSUserNameWidgetItem *> m_activeIDMap;
 	QStringList m_usedStaticIPList;	// For the static IP delegate, to know IPs to hide.
 
+	bool m_applyFilter;
 	QString m_filterText;
 	ServiceState::Type m_filterServiceState;
 	Columns m_filterFields;
+	int m_voipFilter;
+	int m_portsFilter;
 
 	QROSUserNameWidgetItem *addNewRow(const QString &userName);
 
@@ -165,7 +168,6 @@ private:
 
 	void raiseWarning( const QString &info ) const;
 	bool checkStringData(ROSPPPSecret &pppSecret, const QString &fieldName, const QString &text, std::function<bool(ROSPPPSecret &, const QString &)> setFnc) const;
-	void applyFilter();
 
 	void changeUserProfile(QROSUserNameWidgetItem *userNameItem, const QString &newProfile);
 	void changeMultipleProfiles(const QList<QROSUserNameWidgetItem*> &selectedList, const QString newProfile);
@@ -189,7 +191,8 @@ public:
 	QString originalProfile(int row) const	{ return cellText(row, UserProfile); }
 	QString currentIP(int row);
 
-	void filter(const QString &text, Columns col, ServiceState::Type filterStates);
+	void applyFilter(bool active);
+	void filter(const QString &text, Columns col, ServiceState::Type filterStates, int voipFilter, int portsFilter);
 
 	void clear();
 	void onROSModReply(const ROSDataBase &rosData);

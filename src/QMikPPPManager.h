@@ -96,6 +96,8 @@ private slots:
 
 	void on_schedulerButton_clicked();
 
+	void on_filterGroupBox_clicked(bool checked);
+
 public slots:
 	void updateConfig();
 

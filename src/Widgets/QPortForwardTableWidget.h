@@ -22,6 +22,7 @@ class QPortForwardTableWidget : public QTableWidget
 	};
 
 	PortForward portForwardRow( int row );
+	void parsePortLine(const QStringList &words, int i);
 
 public:
 	explicit QPortForwardTableWidget(QWidget *papi = Q_NULLPTR);
@@ -29,6 +30,7 @@ public:
 	void setup( const QPortForwardList &portForwardList );
 	QPortForwardList portForwardList();
 	const QString &lastError() const { return m_lastError;	}
+	void parsePortText(const QString &txt);
 };
 
 #endif // QPORTFORWARDTABLEWIDGET_H

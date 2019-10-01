@@ -83,9 +83,23 @@ QMikPPPManager::QMikPPPManager(QWidget *parent)
 											  << ServiceState::serviceStateNameList() );
 	ui->serviceStateFilterComboBox->setCurrentIndex(0);
 
+	ui->VoIPFilterComboBox->addItems( QStringList()
+									  << "Sin VoIP"
+									  << "Con y sin VoIP"
+									  << "Con VoIP" );
+	ui->VoIPFilterComboBox->setCurrentIndex(1);
+
+	ui->portFilterComboBox->addItems( QStringList()
+									  << "Sin puertos"
+									  << "Con y sin puertos"
+									  << "Con puertos" );
+	ui->portFilterComboBox->setCurrentIndex(1);
+
 	connect( ui->fieldFilterComboBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(applyUsersRowFilter(QString)) );
 	connect( ui->serviceStateFilterComboBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(applyUsersRowFilter(QString)) );
 	connect( ui->textFilterLineEdit, SIGNAL(textChanged(QString)), this, SLOT(applyUsersRowFilter(QString)) );
+	connect( ui->VoIPFilterComboBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(applyUsersRowFilter(QString)) );
+	connect( ui->portFilterComboBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(applyUsersRowFilter(QString)) );
 
 	onAllRoutersDisconnected();
 	ui->usersTable->horizontalHeader()->setFixedHeight(20);
@@ -101,12 +115,14 @@ QMikPPPManager::QMikPPPManager(QWidget *parent)
 
 void QMikPPPManager::applyUsersRowFilter(QString)
 {
-	int st = ui->serviceStateFilterComboBox->currentIndex() - (ui->serviceStateFilterComboBox->count() - ServiceState::serviceStateNameList().count());
-	int col = ui->fieldFilterComboBox->currentIndex() - (ui->fieldFilterComboBox->count() - QROSSecretTableWidget::Columns::TotalColumns);
+	int serviceStateType = ui->serviceStateFilterComboBox->currentIndex() - (ui->serviceStateFilterComboBox->count() - ServiceState::serviceStateNameList().count());
+	int columnIndex = ui->fieldFilterComboBox->currentIndex() - (ui->fieldFilterComboBox->count() - QROSSecretTableWidget::Columns::TotalColumns);
 
 	ui->usersTable->filter( ui->textFilterLineEdit->text(),
-							static_cast<QROSSecretTableWidget::Columns>(col),
-							static_cast<ServiceState::Type>(st) );
+							static_cast<QROSSecretTableWidget::Columns>(columnIndex),
+							static_cast<ServiceState::Type>(serviceStateType),
+							ui->VoIPFilterComboBox->currentIndex()-1,
+							ui->portFilterComboBox->currentIndex()-1);
 }
 
 QMikPPPManager::~QMikPPPManager()
@@ -488,4 +504,9 @@ void QMikPPPManager::on_schedulerButton_clicked()
 {
 	DlgServiceScheduler dlg(multiConnectionManager, *ui->usersTable, this);
 	dlg.exec();
+}
+
+void QMikPPPManager::on_filterGroupBox_clicked(bool checked)
+{
+	ui->usersTable->applyFilter(ui->filterGroupBox->isChecked());
 }

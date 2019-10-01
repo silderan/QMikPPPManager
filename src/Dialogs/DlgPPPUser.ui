@@ -643,6 +643,13 @@
            </item>
           </layout>
          </item>
+         <item row="1" column="2">
+          <widget class="QPushButton" name="pastePortsPushButton">
+           <property name="text">
+            <string>Pegar Puertos</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
       </item>
@@ -739,7 +746,7 @@
   <customwidget>
    <class>QFancyComboBox</class>
    <extends>QComboBox</extends>
-   <header>Widgets/QFancyComboBox.h</header>
+   <header>../../Utils/src/QFancyComboBox.h</header>
   </customwidget>
   <customwidget>
    <class>QPortForwardTableWidget</class>
@@ -758,7 +765,13 @@
   <tabstop>clientNameLineEdit</tabstop>
   <tabstop>clientAddressLineEdit</tabstop>
   <tabstop>clientCityComboBox</tabstop>
+  <tabstop>clientPhonesLineEdit</tabstop>
+  <tabstop>clientEmailLineEdit</tabstop>
   <tabstop>clientNotesTextEdit</tabstop>
+  <tabstop>serviceTypeComboBox</tabstop>
+  <tabstop>ontSNComboBox</tabstop>
+  <tabstop>iocCheckBox</tabstop>
+  <tabstop>tofCheckBox</tabstop>
   <tabstop>voipGroupBox</tabstop>
   <tabstop>voipPhoneNumber</tabstop>
   <tabstop>voipUserName</tabstop>
@@ -770,16 +783,21 @@
   <tabstop>wifi5GroupBox</tabstop>
   <tabstop>wifi5SSIDLineEdit</tabstop>
   <tabstop>wifi5WPALineEdit</tabstop>
+  <tabstop>installNotesTextEdit</tabstop>
   <tabstop>lanGroupBox</tabstop>
   <tabstop>lanIPLineEdit</tabstop>
   <tabstop>lanDMZLineEdit</tabstop>
+  <tabstop>pastePortsPushButton</tabstop>
   <tabstop>addPortButton</tabstop>
   <tabstop>delPortButton</tabstop>
   <tabstop>lanPortsTableWidget</tabstop>
-  <tabstop>installNotesTextEdit</tabstop>
   <tabstop>copyInfoButton</tabstop>
   <tabstop>applyDataButton</tabstop>
   <tabstop>clientLogsButton</tabstop>
+  <tabstop>schedulerTable</tabstop>
+  <tabstop>delChedulerButton</tabstop>
+  <tabstop>addSchedulerButton</tabstop>
+  <tabstop>installerComboBox</tabstop>
  </tabstops>
  <resources>
   <include location="../iconos.qrc"/>

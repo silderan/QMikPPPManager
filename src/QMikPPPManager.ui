@@ -128,9 +128,15 @@
      </spacer>
     </item>
     <item row="2" column="0" colspan="2">
-     <widget class="QGroupBox" name="groupBox">
+     <widget class="QGroupBox" name="filterGroupBox">
       <property name="title">
        <string>Filtro</string>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
        <property name="leftMargin">
@@ -151,9 +157,6 @@
        <property name="verticalSpacing">
         <number>4</number>
        </property>
-       <item row="1" column="0">
-        <widget class="QComboBox" name="fieldFilterComboBox"/>
-       </item>
        <item row="0" column="0">
         <widget class="QLineEdit" name="textFilterLineEdit">
          <property name="sizePolicy">
@@ -164,8 +167,17 @@
          </property>
         </widget>
        </item>
+       <item row="1" column="0">
+        <widget class="QComboBox" name="fieldFilterComboBox"/>
+       </item>
        <item row="2" column="0">
         <widget class="QComboBox" name="serviceStateFilterComboBox"/>
+       </item>
+       <item row="3" column="0">
+        <widget class="QComboBox" name="VoIPFilterComboBox"/>
+       </item>
+       <item row="4" column="0">
+        <widget class="QComboBox" name="portFilterComboBox"/>
        </item>
       </layout>
      </widget>
@@ -208,6 +220,25 @@
    <header>Widgets/QROSSecretTableWidget.h</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>connectButton</tabstop>
+  <tabstop>disconnectButton</tabstop>
+  <tabstop>usersTable</tabstop>
+  <tabstop>filterGroupBox</tabstop>
+  <tabstop>textFilterLineEdit</tabstop>
+  <tabstop>fieldFilterComboBox</tabstop>
+  <tabstop>serviceStateFilterComboBox</tabstop>
+  <tabstop>VoIPFilterComboBox</tabstop>
+  <tabstop>portFilterComboBox</tabstop>
+  <tabstop>addUserButton</tabstop>
+  <tabstop>localConfigButton</tabstop>
+  <tabstop>connectionConfigButton</tabstop>
+  <tabstop>apiUsersButton</tabstop>
+  <tabstop>advancedConfigButton</tabstop>
+  <tabstop>pppProfilesButton</tabstop>
+  <tabstop>pppLogsButton</tabstop>
+  <tabstop>schedulerButton</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

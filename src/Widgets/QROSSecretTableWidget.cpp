@@ -121,7 +121,10 @@ void QROSSecretTableWidget::setColumnHidden(int col, bool hidden)
 
 QROSSecretTableWidget::QROSSecretTableWidget(QWidget *papi)
 	: QTableWidget(papi)
+	, m_applyFilter(false)
 	, m_filterServiceState( static_cast<ServiceState::Type>(-3))
+	, m_voipFilter(0)
+	, m_portsFilter(0)
 {
 	setColumnCount( columnsNames().count() );
 	setHorizontalHeaderLabels( columnsNames() );
@@ -180,6 +183,8 @@ QList<int> QROSSecretTableWidget::findData(const QString &text, QList<Columns> c
 
 bool QROSSecretTableWidget::shouldBeVisible(const QROSUserNameWidgetItem *userNameItem)
 {
+	if( m_applyFilter == false )
+		return true;
 	if( !userNameItem || userNameItem->pppSecretMap.isEmpty() )
 		return false;
 	const ROSPPPSecret &rosPPPSecret = userNameItem->pppSecretMap.first();
@@ -199,6 +204,32 @@ bool QROSSecretTableWidget::shouldBeVisible(const QROSUserNameWidgetItem *userNa
 			break;
 		default:
 			if( rosPPPSecret.serviceState() != m_filterServiceState )
+				return false;
+			break;
+		}
+		switch( m_voipFilter )
+		{
+		case -1:	// Muestra sólo los que no tienen VoIP
+			if( !rosPPPSecret.voipSIPServer().isEmpty() )
+				return false;
+			break;
+		case 0:		// Muestra todos.
+			break;
+		case 1:		// Muestra sólo los que sí tienen VoIP
+			if( rosPPPSecret.voipSIPServer().isEmpty() )
+				return false;
+			break;
+		}
+		switch( m_portsFilter )
+		{
+		case -1:	// Muestra sólo los que no tienen puertos redirigidos
+			if( !rosPPPSecret.portForwardList().isEmpty() )
+				return false;
+			break;
+		case 0:		// Muestra todos.
+			break;
+		case 1:		// Muestra sólo los que sí tienen puertos redirigidos
+			if( rosPPPSecret.portForwardList().isEmpty() )
 				return false;
 			break;
 		}
@@ -266,8 +297,9 @@ bool QROSSecretTableWidget::checkStringData(ROSPPPSecret &pppSecret, const QStri
 	return true;
 }
 
-void QROSSecretTableWidget::applyFilter()
+void QROSSecretTableWidget::applyFilter(bool active)
 {
+	m_applyFilter = active;
 	for( int row = rowCount()-1; row >= 0; --row )
 		showRowIfValid( userNameWidgetItem(row) );
 }
@@ -611,12 +643,14 @@ QString QROSSecretTableWidget::currentIP(int row)
 	return QString();
 }
 
-void QROSSecretTableWidget::filter(const QString &text, Columns col, ServiceState::Type filterStates)
+void QROSSecretTableWidget::filter(const QString &text, Columns col, ServiceState::Type filterStates, int voipFilter, int portsFilter)
 {
 	m_filterText = text;
 	m_filterFields = col;
 	m_filterServiceState = filterStates;
-	applyFilter();
+	m_voipFilter = voipFilter;
+	m_portsFilter = portsFilter;
+	applyFilter(m_applyFilter);
 }
 
 QStringList QROSSecretTableWidget::usedStaticIPs() const
@@ -802,7 +836,7 @@ void QROSSecretTableWidget::onCellDobleClic(QTableWidgetItem *item)
 
 void QROSSecretTableWidget::onConfigDataChanged()
 {
-	applyFilter();
+	applyFilter(m_applyFilter);
 }
 
 const ROSPPPSecret *QROSSecretTableWidget::rosPppSecret(const QString &userName)

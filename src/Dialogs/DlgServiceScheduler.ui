@@ -97,6 +97,12 @@
    </item>
    <item row="2" column="0" rowspan="6" colspan="4">
     <widget class="QTableWidget" name="tableWidget">
+     <property name="sortingEnabled">
+      <bool>true</bool>
+     </property>
+     <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+      <bool>true</bool>
+     </attribute>
      <attribute name="horizontalHeaderStretchLastSection">
       <bool>true</bool>
      </attribute>

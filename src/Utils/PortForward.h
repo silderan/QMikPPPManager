@@ -113,12 +113,17 @@ public:
 	void setProtocol(const QString &protocol)			{ setProtocol( IPProtocol::fromString(protocol) ); }
 
 	quint16 publicPortIni() const		{ return m_publicPortIni;	}
+	void setPublicPortIni(quint16 p)	{ m_publicPortIni = p;		}
 	quint16 publicPortEnd() const		{ return m_publicPortEnd;	}
+	void setPublicPortEnd(quint16 p)	{ m_publicPortEnd = p;		}
 
 	quint16 privatePortIni() const		{ return m_privatePortIni;	}
+	void setPrivatePortIni(quint16 p)	{ m_privatePortIni = p;		}
 	quint16 privatePortEnd() const		{ return m_privatePortEnd;	}
+	void setPrivatePortEnd(quint16 p)	{ m_privatePortEnd = p;		}
 
-	IPv4 destIP() const					{ return m_destIP;	}
+	IPv4 destIP() const						{ return m_destIP;	}
+	void setDestIP(const IPv4 &ip)		 	{ m_destIP = ip;	}
 
 	QString toSaveString() const;
 	void fromSaveString(const QString &saveString);

@@ -264,7 +264,7 @@ void SchedulerMap::load()
 	QMapIterator<QString, QString> it(saveData);
 	clear();
 	Data data;
-	if( it.hasNext() )
+	while( it.hasNext() )
 	{
 		it.next();
 		for( const QString &saveString : it.value().split(';', QString::SkipEmptyParts) )

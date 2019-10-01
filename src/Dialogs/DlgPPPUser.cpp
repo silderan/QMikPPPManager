@@ -89,7 +89,7 @@ DlgPPPUser::DlgPPPUser(QConfigData &configData, ROSMultiConnectManager &rosMulti
 			/*allow change*/		  [] (const QModelIndex &,const QString &)	{ return true; } ) );
 
 	updateGUI();
-	if( ui->schedulerGroupBox->isVisible() && ui->schedulerGroupBox->isEnabled() )
+	if( ui->schedulerGroupBox->isEnabled() )
 		connect( ui->schedulerTable, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(updateSchedulerCell(QTableWidgetItem*)) );
 }
 
@@ -371,7 +371,7 @@ bool DlgPPPUser::getLocalPorts()
 
 bool DlgPPPUser::getSchedulerData()
 {
-	if( ui->schedulerGroupBox->isVisible() && ui->schedulerGroupBox->isEnabled() )
+	if( ui->schedulerGroupBox->isEnabled() )
 	{
 		ServiceScheduler::DataList dataList;
 		for( int row = 0; row < ui->schedulerTable->rowCount(); row++ )
@@ -406,7 +406,7 @@ static QColor red = QColor(0xFF, 0xF0, 0xF0);
 
 void DlgPPPUser::updateSchedulerCell(QTableWidgetItem *item)
 {
-	Q_ASSERT( ui->schedulerGroupBox->isVisible() && ui->schedulerGroupBox->isEnabled() );
+	Q_ASSERT( ui->schedulerGroupBox->isEnabled() );
 	static QString lastsDaysText = ServiceScheduler::Data::dayName( ServiceScheduler::Data::lastDaysIndex() );
 	static QString firstsDaysText = ServiceScheduler::Data::dayName( ServiceScheduler::Data::firstDaysIndex() );
 
@@ -434,7 +434,7 @@ void DlgPPPUser::updateSchedulerCell(QTableWidgetItem *item)
 
 void DlgPPPUser::addServiceSchedulerRow(const ServiceScheduler::Data &schedulerData)
 {
-	Q_ASSERT( ui->schedulerGroupBox->isVisible() && ui->schedulerGroupBox->isEnabled() );
+	Q_ASSERT( ui->schedulerGroupBox->isEnabled() );
 
 	int row = ui->schedulerTable->rowCount();
 	ui->schedulerTable->insertRow(row);
@@ -485,7 +485,7 @@ void DlgPPPUser::updateGUI()
 
 bool DlgPPPUser::checkSchedulerData()
 {
-	Q_ASSERT( ui->schedulerGroupBox->isVisible() && ui->schedulerGroupBox->isEnabled() );
+	Q_ASSERT( ui->schedulerGroupBox->isEnabled() );
 
 	bool lastWasActivatingLastsDays = false;
 	quint16 lastMonth = 0;
@@ -617,7 +617,7 @@ void DlgPPPUser::updateUserData()
 	ui->lanDMZLineEdit->setText( m_pppSecret.installLANDMZ().isValid() ? m_pppSecret.installLANDMZ().toString() : QString() );
 	ui->lanPortsTableWidget->setup( m_pppSecret.portForwardList() );
 
-	if( ui->schedulerTable->isVisible() && ui->schedulerTable->isEnabled() )
+	if( ui->schedulerTable->isEnabled() )
 	{
 		ui->schedulerTable->setRowCount(0);
 
@@ -934,4 +934,42 @@ void DlgPPPUser::on_copyInfoButton_clicked()
 void DlgPPPUser::onConfigChanged()
 {
 	updateGUI();
+}
+
+void DlgPPPUser::parseLinePort(const QStringList &words, int i)
+{
+	PortForward pd;
+	pd.setDestIP( IPv4(words[i+1]) );
+	pd.setPrivatePortIni( quint16(words[i+2].toUInt()) );
+	pd.setPrivatePortEnd( pd.privatePortIni() );
+
+	pd.setProtocol( words[i+3].toLower() );
+
+	pd.setPublicPortIni( quint16(words[i+6].toUInt()) );
+	pd.setPublicPortEnd( pd.publicPortIni() );
+
+	if( words.count() > i+7 )
+		pd.setName( words[i+7] );
+	else
+		pd.setName( QString("Port%1").arg(pd.publicPortIni()) );
+	ui->lanPortsTableWidget->addPortForwardRow(pd);
+}
+
+void DlgPPPUser::on_pastePortsPushButton_clicked()
+{
+	for( QString line : QGuiApplication::clipboard()->text().split('\n') )
+	{
+		int i = 0;
+		QStringList words = line.split('\t', QString::SkipEmptyParts);
+		if( words.count() < 7 )
+			continue;
+		for( i = 0 ; i <= 3; ++ i )
+		{
+			if( (words[i] == "TUNNEL0") || (words[i] == "PPP") )
+			{
+				parseLinePort(words, i);
+				break;
+			}
+		}
+	}
 }

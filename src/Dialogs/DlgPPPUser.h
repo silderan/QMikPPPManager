@@ -95,6 +95,8 @@ class DlgPPPUser : public QDlgMultiDataBase
 
 	bool checkSchedulerData();
 	void addServiceSchedulerRow(const ServiceScheduler::Data &schedulerData = ServiceScheduler::Data());
+	void parseLinePort(const QStringList &words, int i);
+
 public:
 	DlgPPPUser(QConfigData &configData, ROSMultiConnectManager &rosMultiConnectManager, QWidget *papi);
 	~DlgPPPUser() override;
@@ -122,6 +124,8 @@ private slots:
 	void on_delChedulerButton_clicked();
 	void on_addSchedulerButton_clicked();
 	void on_serviceTypeComboBox_currentIndexChanged(int index);
+
+	void on_pastePortsPushButton_clicked();
 
 public slots:
 	void onEditUserRequest(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive);

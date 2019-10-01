@@ -1,6 +1,18 @@
 #include "QMikPPPManager.h"
 #include <QApplication>
 
+struct PortData
+{
+	QString ip;
+	QString protocolo;
+	QString lanFirstPort;
+	QString lanLastPort;
+	QString wanFirstPort;
+	QString wanLastPort;
+	QString name;
+};
+
+
 #include "Utils/QPPPLogger.h"
 int main(int argc, char *argv[])
 {

@@ -125,7 +125,6 @@ HEADERS  += QMikPPPManager.h \
     Widgets/QComboBoxItemDelegate.h \
     Widgets/QRemoteIPCellItem.h \
     Dialogs/DlgPPPUser.h \
-    Widgets/QFancyComboBox.h \
     Utils/PortForward.h \
     Widgets/QPortForwardTableWidget.h \
     Utils/QPPPLogger.h \
