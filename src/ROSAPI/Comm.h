@@ -82,7 +82,7 @@ private:
 	int incomingWordCount;
 	int incomingWordPos;
 	int wordCount;
-	char wordCountBuf[4];
+	unsigned char wordCountBuf[4];
 	CommError lastCommError;
 	bool mOldLogin;
 
@@ -115,7 +115,7 @@ signals:
 	void loginStateChanged(ROS::Comm::LoginState s);
 
 public:
-	Comm(QObject *papi = NULL);
+	Comm(QObject *papi = Q_NULLPTR);
 	~Comm();
 
 	/**

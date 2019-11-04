@@ -30,3 +30,4 @@
 
 # Qt compiled folders
 *build-*/
+*.autosave

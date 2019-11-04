@@ -99,8 +99,10 @@ void Comm::resetWord()
 	incomingWordSize = -1;
 	incomingWordPos = 0;
 	incomingWordCount = -1;
-	int *i = (int*)wordCountBuf;
-	(*i) = 0;
+	wordCountBuf[0] = 0;
+	wordCountBuf[1] = 0;
+	wordCountBuf[2] = 0;
+	wordCountBuf[3] = 0;
 }
 
 /**
@@ -238,7 +240,7 @@ void Comm::sendUserPass()
 int Comm::receiveWordCount()
 {
 	unsigned char c;
-	int i = m_sock.read((char*)&c, 1);
+	int i = static_cast<int>(m_sock.read( reinterpret_cast<char*>(&c), 1) );
 	if( i <= 0 )
 		return i;
 
@@ -284,12 +286,12 @@ int Comm::receiveWordCount()
 #if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
 		incomingWordCount = 0;
 		for( int i = 0; i < incomingWordSize; i++ )
-			((char*)&incomingWordCount)[i] = wordCountBuf[(incomingWordSize-1)-i];
+			reinterpret_cast<unsigned char*>(&incomingWordCount)[i] = wordCountBuf[(incomingWordSize-1)-i];
 #else
-		((char*)&incomingWordCount)[0] = wordCountBuf[3];
-		((char*)&incomingWordCount)[1] = wordCountBuf[2];
-		((char*)&incomingWordCount)[2] = wordCountBuf[1];
-		((char*)&incomingWordCount)[3] = wordCountBuf[0];
+		reinterpret_cast<unsigned char*>(&incomingWordCount)[0] = wordCountBuf[3];
+		reinterpret_cast<unsigned char*>(&incomingWordCount)[1] = wordCountBuf[2];
+		reinterpret_cast<unsigned char*>(&incomingWordCount)[2] = wordCountBuf[1];
+		reinterpret_cast<unsigned char*>(&incomingWordCount)[3] = wordCountBuf[0];
 #endif
 	}
 	return 1;
@@ -538,7 +540,7 @@ void Comm::sendWordCount(int wordCount)
 	}
 	else
 	{
-		char c = 0xF0;
+		char c = static_cast<char>(0xF0);
 		m_sock.write( &c, 1 );
 		m_sock.write( buffOut.buff+3, 1 );
 		m_sock.write( buffOut.buff+2, 1 );
