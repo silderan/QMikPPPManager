@@ -1,23 +1,22 @@
 /*
 	Copyright 2015-2019 Rafael Dellà Bort. silderan (at) gmail (dot) com
 
-	This file is part of QMikPPPManager
+	This file is part of QMikAPI.
 
-	QMikPPPManager is free software: you can redistribute it and/or modify
+	QMikAPI is free software: you can redistribute it and/or modify
 	it under the terms of the GNU Lesser General Public License as
 	published by the Free Software Foundation, either version 3 of
 	the License, or (at your option) any later version.
 
-	QMikPPPManager is distributed in the hope that it will be useful,
+	QMikAPI is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
 
 	You should have received a copy of the GNU General Public License
-	and GNU Lesser General Public License. along with QMikPPPManager.
-	If not, see <http://www.gnu.org/licenses/>.
+	and GNU Lesser General Public License. along with QMikAPI.  If not,
+	see <http://www.gnu.org/licenses/>.
  */
-
 
 #ifndef APICOM_H
 #define APICOM_H
@@ -72,7 +71,6 @@ public:
 
 private:
 	QTcpSocket m_sock;
-	QString m_routerName;
 	QString m_addr;
 	quint16 m_port;
 	QString m_Username;
@@ -86,6 +84,7 @@ private:
 	int wordCount;
 	char wordCountBuf[4];
 	CommError lastCommError;
+	bool mOldLogin;
 
 	void doLogin();
 	void tryLogin();
@@ -101,6 +100,8 @@ private:
 	void sendWord(const QString &strWord);
 
 	void setComError(CommError ce);
+
+	void sendUserPass();
 
 private slots:
 	void onSocketError(QAbstractSocket::SocketError err);
@@ -179,13 +180,11 @@ public:
 
 	inline const QString &hostAddr() const	{ return m_addr;	}
 	inline quint16 hostPort() const			{ return m_port;	}
-	inline QString routerName() const		{ return m_routerName; }
 
 public slots:
-	void setRouterName(const QString &routerName)	{ m_routerName = routerName;	}
 	void setRemoteHost(const QString &addr, quint16 port) { m_addr = addr; m_port = port; }
 	void setUserNamePass(const QString &uname, const QString &upass) { m_Username = uname; m_Password = upass; }
-	void connectToROS();
+	void connectToROS(bool oldLogin = false);
 	void closeCom(bool force = false);
 };
 }

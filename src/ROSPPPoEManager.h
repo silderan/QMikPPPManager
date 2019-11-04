@@ -55,7 +55,8 @@ private:
 	ROSIPAddressManager m_rosIPAddressManager;
 	ROSIPPoolManager m_rosIPPoolManager;
 	ROSPPPSecretManager m_rosSecretManager;
-	ROSPPPActiveManager  m_rosActiveManager;
+	ROSPPPActiveManager m_rosActiveManager;
+	QString mRouterName;
 
 	ROSDataManagerBase &rosDataManager(DataTypeID dataTypeID);
 	const ROSDataManagerBase &rosDataManager(DataTypeID dataTypeID) const;
@@ -72,6 +73,9 @@ public:
 
 	void requestRemoteData(DataTypeID dataTypeID);
 	void updateRemoteData(const ROSDataBase &newROSData, const QString &rosObjectID);
+
+	void setRouterName(const QString &name)	{ mRouterName = name;	}
+	QString routerName() const	{ return mRouterName;	}
 
 #ifdef SIMULATE_ROS_INPUTS
 private slots:

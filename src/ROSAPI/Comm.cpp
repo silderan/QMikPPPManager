@@ -1,23 +1,22 @@
 /*
 	Copyright 2015-2019 Rafael Dellà Bort. silderan (at) gmail (dot) com
 
-	This file is part of QMikPPPManager
+	This file is part of QMikAPI.
 
-	QMikPPPManager is free software: you can redistribute it and/or modify
+	QMikAPI is free software: you can redistribute it and/or modify
 	it under the terms of the GNU Lesser General Public License as
 	published by the Free Software Foundation, either version 3 of
 	the License, or (at your option) any later version.
 
-	QMikPPPManager is distributed in the hope that it will be useful,
+	QMikAPI is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
 
 	You should have received a copy of the GNU General Public License
-	and GNU Lesser General Public License. along with QMikPPPManager.
-	If not, see <http://www.gnu.org/licenses/>.
+	and GNU Lesser General Public License. along with QMikAPI.  If not,
+	see <http://www.gnu.org/licenses/>.
  */
-
 
 #include "Comm.h"
 
@@ -26,7 +25,11 @@ using namespace ROS;
 #include <QMessageBox>
 
 Comm::Comm(QObject *papi)
- : QObject(papi), m_loginState(NoLoged), incomingWordSize(-1), lastCommError(NoCommError)
+	: QObject(papi)
+	, m_loginState(NoLoged)
+	, incomingWordSize(-1)
+	, lastCommError(NoCommError)
+	, mOldLogin(false)
 {
 	connect( &m_sock, SIGNAL(error(QAbstractSocket::SocketError)), SLOT(onSocketError(QAbstractSocket::SocketError)) );
 	connect( &m_sock, SIGNAL(readyRead()), this, SLOT(receiveSentence()) );
@@ -203,6 +206,23 @@ void Comm::setComError(Comm::CommError ce)
 		lastCommError = ce;
 }
 
+void Comm::sendUserPass()
+{
+	if( mOldLogin )
+	{
+		sendSentence("/login", false,
+					 QStringList() << QString("=name=%1").arg(m_Username)
+					 << QString("=response=00%1").arg(QMD5::encode(m_Password, incomingSentence.attribute("ret"))));
+	}
+	else
+	{
+		sendSentence("/login", false,
+					 QStringList() << QString("=name=%1").arg(m_Username) << QString("=password=%1").arg(m_Password) );
+	}
+	resetSentence();
+	setLoginState(UserPassSended);
+}
+
 /**
  * @brief Comm::receiveWordCount
  * Reads the word length from socket.
@@ -354,8 +374,10 @@ void Comm::receiveSentence()
  * @param addr The addres where the ROS is. Can be a URL.
  * @param port The port where the ROS API is listening.
  */
-void ROS::Comm::connectToROS()
+void ROS::Comm::connectToROS(bool oldLogin)
 {
+	mOldLogin = oldLogin;
+
 	if( m_sock.state() == QAbstractSocket::UnconnectedState )
 	{
 		if( m_addr.isEmpty() )
@@ -439,12 +461,7 @@ void Comm::doLogin()
 			closeCom();
 			break;
 		}
-
-		sendSentence("/login", false,
-							 QStringList() << QString("=name=%1").arg(m_Username)
-										<< QString("=response=00%1").arg(QMD5::encode(m_Password, incomingSentence.attribute("ret"))));
-		resetSentence();
-		setLoginState(UserPassSended);
+		sendUserPass();
 		break;
 	}
 	case UserPassSended:
@@ -603,8 +620,11 @@ void Comm::onSocketStateChanges(QAbstractSocket::SocketState s)
 		emit comStateChanged(Connected);
 		setLoginState(NoLoged);
 		resetSentence();
-		sendSentence( QSentence("/login"), false );
-		setLoginState(LoginRequested);
+		if( mOldLogin )
+			sendSentence( QSentence("/login"), false );
+		setLoginState( LoginRequested );
+		if( !mOldLogin )
+			sendUserPass();
 		return;
 	case QAbstractSocket::BoundState: // Este estado sólo se da en caso de ser un servidor.
 		return;
