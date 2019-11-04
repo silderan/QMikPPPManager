@@ -134,10 +134,6 @@ private:
 	QString m_wifi5WPA;
 	QString m_clientNotes;
 	QString m_installNotes;
-	QString m_voipPhoneNumber;
-	QString m_voipSIPServer;
-	QString m_voipSIPUserName;
-	QString m_voipSIPUserPass;
 	IPv4 m_installLANIP;
 	IPv4 m_installLANDMZ;
 	QPortForwardList m_portForwardList;
@@ -222,18 +218,6 @@ public:
 	const IPv4 &staticIP() const					{ return m_staticIP;	}
 	bool setStaticIP(const IPv4 &staticIP)			{ updateNonROSMember(m_staticIP, staticIP); return true;	}
 
-	const QString &voipSIPServer() const			{ return m_voipSIPServer;	}
-	bool setVoIPSIPServer(const QString &p)			{ return updateNonROSMember(m_voipSIPServer, p, urlPattern, -6);	}
-
-	const QString &voipPhoneNumber() const			{ return m_voipPhoneNumber;	}
-	bool setVoIPPhoneNumber(const QString &p)		{ return updateNonROSMember(m_voipPhoneNumber, p, phonePattern, -9);	}
-
-	const QString &voipSIPUserName() const			{ return m_voipSIPUserName;	}
-	bool setVoIPSIPUserName(const QString &p)		{ return updateNonROSMember(m_voipSIPUserName, p, userNamePattern, -8);	}
-
-	const QString &voipSIPUserPass() const			{ return m_voipSIPUserPass;	}
-	bool setVoIPSIPUserPass(const QString &p)		{ return updateNonROSMember(m_voipSIPUserPass, p, userPassPattern, -8);	}
-
 	const IPv4 &installLANIP() const				{ return m_installLANIP;	}
 	bool setInstallLANIP(const IPv4 &ip)			{ updateNonROSMember(m_installLANIP, ip); return true;		}
 
@@ -259,6 +243,8 @@ public:
 	ROS::QSentence &toSentence(ROS::QSentence &sentence) const override;
 	bool hasSameData(const ROSDataBase &rosData) const override;
 
+	bool isValid() const	{ return !routerName().isEmpty();	}
+
 #ifdef SIMULATE_ROS_INPUTS
 	static QList<ROS::QSentence> simulatedStepSentences(const QString &routerName, quint32 random, int step);
 #endif
@@ -269,8 +255,9 @@ class QPPPSecretMap : public QMap<QString, ROSPPPSecret>
 
 public:
 	void insert(const ROSPPPSecret &pppSecret )				{ QMap::insert(pppSecret.routerName(), pppSecret);	}
-	ROSPPPSecret pppSecret(const QString &routerName) const	{ return value(routerName, ROSPPPSecret(""));		}
-	ROSPPPSecret pppSecret() const;
+	ROSPPPSecret routerSpecificSecret(const QString &routerName) const	{ return value(routerName, ROSPPPSecret(""));		}
+	ROSPPPSecret firstSecret() const			{ return first();	}
+	ROSPPPSecret lastLogOffSecret() const;
 	QRouterIDMap toRouterIDMap() const;
 };
 using QPPPSecretMapIterator = QMapIterator<QString, ROSPPPSecret>;

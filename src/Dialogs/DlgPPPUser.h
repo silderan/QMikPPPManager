@@ -51,7 +51,7 @@ class DlgPPPUser : public QDlgMultiDataBase
 	void updateStaticIPComboBox();
 	void updateDialog();
 	void updateUserData();
-	void updateDialogInfo();
+	void updateDialogCaptionInfo();
 
 	bool currentEditing(const ROSPPPSecret &pppSecret);
 
@@ -76,10 +76,6 @@ class DlgPPPUser : public QDlgMultiDataBase
 	bool getClientNotes();
 	bool getInstallNotes();
 	bool getServiceInfo();
-	bool getVoIPPhone();
-	bool getVoIPSIPServer();
-	bool getVoIPUserName();
-	bool getVoIPUserPass();
 	bool checkWiFiSSID(const QString &fieldName, const QString &originalText, QString &ssid);
 	bool checkWiFiWPA(const QString &fieldName, const QString &originalText, QString &wpa);
 	bool getWiFi2SSID();
@@ -126,6 +122,9 @@ private slots:
 	void on_serviceTypeComboBox_currentIndexChanged(int index);
 
 	void on_pastePortsPushButton_clicked();
+	void on_addSIPButton_clicked();
+	void on_delSIPButton_clicked();
+	void on_editPortButton_clicked();
 
 public slots:
 	void onEditUserRequest(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive);

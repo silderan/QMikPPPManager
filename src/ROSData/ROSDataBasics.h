@@ -58,7 +58,7 @@ public:
 	static const char *userPassPattern;
 	static const char *profilePattern;
 	static const char *emailPattern;
-	static const char *phonePattern;
+	static const char *phonesPattern;
 	static const char *urlPattern;
 	static const char *basicNonROSMemberPatern;
 	static const char *ssidPattern;

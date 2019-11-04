@@ -15,7 +15,10 @@ win32:RC_ICONS += img/main.ico
 
 SOURCES += main.cpp\
     ConfigData/SchedulerData.cpp \
+    ConfigData/VoIPData.cpp \
+    Dialogs/DlgPortEdit.cpp \
     Dialogs/DlgServiceScheduler.cpp \
+    Dialogs/DlgVoIPData.cpp \
     Utils/IPv4Range.cpp \
 	Utils/ROSSpeed.cpp \
 	Utils/ROSRateLimit.cpp \
@@ -34,6 +37,7 @@ SOURCES += main.cpp\
     ROSData/ROSIPAddress.cpp \
     ROSData/ROSIPPool.cpp \
 	Widgets/QIPv4RangeComboBox.cpp \
+    Widgets/QPortForwardListWidget.cpp \
     Widgets/QROSAPIUserTableWidget.cpp \
     Widgets/QROSAPIUsersGroupTableWidget.cpp \
     Widgets/QRoutersLineEdit.cpp \
@@ -57,7 +61,6 @@ SOURCES += main.cpp\
     Widgets/QROSSecretTableWidget.cpp \
     Dialogs/DlgPPPUser.cpp \
     Utils/PortForward.cpp \
-    Widgets/QPortForwardTableWidget.cpp \
     ROSDataManager/ROSPPPSecretManager.cpp \
     Utils/QPPPLogger.cpp \
     Dialogs/DlgPPPLogViewer.cpp \
@@ -69,11 +72,15 @@ SOURCES += main.cpp\
     Utils/OpenBrowserInfo.cpp \
     RadiusManager/QRadiusManager.cpp \
     Widgets/QSpeedChart.cpp \
-    Dialogs/DlgUserThroughput.cpp
+    Dialogs/DlgUserThroughput.cpp \
+    Widgets/QUserVoIPDataTableWidget.cpp
 
 HEADERS  += QMikPPPManager.h \
     ConfigData/SchedulerData.h \
+    ConfigData/VoIPData.h \
+    Dialogs/DlgPortEdit.h \
     Dialogs/DlgServiceScheduler.h \
+    Dialogs/DlgVoIPData.h \
     Utils/IPv4Range.h \
 	Utils/ROSSpeed.h \
 	Utils/ROSRateLimit.h \
@@ -102,6 +109,7 @@ HEADERS  += QMikPPPManager.h \
     ConfigData/ClientProfile.h \
     ConfigData/QConfigData.h \
     Widgets/QIPv4RangeComboBox.h \
+    Widgets/QPortForwardListWidget.h \
     Widgets/QROSAPIUserTableWidget.h \
     Widgets/QROSAPIUsersGroupTableWidget.h \
     Widgets/QRoutersLineEdit.h \
@@ -126,7 +134,6 @@ HEADERS  += QMikPPPManager.h \
     Widgets/QRemoteIPCellItem.h \
     Dialogs/DlgPPPUser.h \
     Utils/PortForward.h \
-    Widgets/QPortForwardTableWidget.h \
     Utils/QPPPLogger.h \
     Dialogs/DlgPPPLogViewer.h \
     Dialogs/DlgNewPPPProfile.h \
@@ -138,10 +145,13 @@ HEADERS  += QMikPPPManager.h \
     RadiusManager/QRadiusManager.h \
     ROSDataManager/ROSIPPoolManager.h \
     Widgets/QSpeedChart.h \
-    Dialogs/DlgUserThroughput.h
+    Dialogs/DlgUserThroughput.h \
+    Widgets/QUserVoIPDataTableWidget.h
 
 FORMS    += QMikPPPManager.ui \
+    Dialogs/DlgPortEdit.ui \
     Dialogs/DlgServiceScheduler.ui \
+    Dialogs/DlgVoIPData.ui \
 	DlgNuevoUsuario.ui \
     Dialogs/DlgConfiguracion.ui \
     Dialogs/DlgCnfgConnect.ui \

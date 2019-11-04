@@ -142,6 +142,7 @@ private:
 	Columns m_filterFields;
 	int m_voipFilter;
 	int m_portsFilter;
+	int m_staticIpFilter;
 
 	QROSUserNameWidgetItem *addNewRow(const QString &userName);
 
@@ -192,7 +193,7 @@ public:
 	QString currentIP(int row);
 
 	void applyFilter(bool active);
-	void filter(const QString &text, Columns col, ServiceState::Type filterStates, int voipFilter, int portsFilter);
+	void filter(const QString &text, Columns col, ServiceState::Type filterStates, int voipFilter, int portsFilter, int staticIpFilter);
 
 	void clear();
 	void onROSModReply(const ROSDataBase &rosData);
@@ -214,6 +215,7 @@ public:
 	void onConfigDataChanged();
 
 	const ROSPPPSecret *rosPppSecret(const QString &userName);
+
 signals:
 	void editPPPUser(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive);
 	void showUserTraffic(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive);

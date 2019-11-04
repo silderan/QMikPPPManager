@@ -140,10 +140,6 @@ const QString &ROSPPPSecret::commentString() const
 		if( installLANDMZ().isValid() )	lanSaveString += QString("d%1").arg( installLANDMZ().toString() );
 		if( portForwardList().count() ) lanSaveString += QString("p%1").arg( portForwardList().toSaveString() );
 
-		QString voipSaveString;
-		if( !voipPhoneNumber().isEmpty() )
-			voipSaveString = QString("%1 %2 %3 %4").arg(voipPhoneNumber(), voipSIPServer(), voipSIPUserName(), voipSIPUserPass());
-
 		QString serviceStateString;
 		switch( m_serviceState )
 		{
@@ -190,7 +186,7 @@ const QString &ROSPPPSecret::commentString() const
 				.arg(serviceInfo().toCommentString())
 				.arg(installNotes())
 				.arg(wifiSaveString)
-				.arg(voipSaveString)
+				.arg("")
 				.arg(clientCode())
 				.arg(lanSaveString)
 				.arg(ServiceState::toSaveString(serviceState()))
@@ -326,21 +322,7 @@ void ROSPPPSecret::parseCommentString(const QString &commentString)
 				voipSaveString.clear();
 			}
 		}
-		data = voipSaveString.split(' ');
-		if( data.count() == 4 )
-		{
-			m_voipPhoneNumber	= data[0];
-			m_voipSIPServer		= data[1];
-			m_voipSIPUserName	= data[2];
-			m_voipSIPUserPass	= data[3];
-		}
-		else
-		{
-			m_voipPhoneNumber.clear();
-			m_voipSIPServer.clear();
-			m_voipSIPUserName.clear();
-			m_voipSIPUserPass.clear();
-		}
+
 		m_installLANDMZ.clear();
 		m_installLANIP.clear();
 		m_portForwardList.clear();
@@ -589,8 +571,8 @@ QList<ROS::QSentence> ROSPPPActive::simulatedStepSentences(const QString &router
 }
 #endif
 
-// Returns the secret data but checks for the last logoff data and uses this.
-ROSPPPSecret QPPPSecretMap::pppSecret() const
+// Returns the secret data. If requested, checks for the last logoff data and returns this.
+ROSPPPSecret QPPPSecretMap::lastLogOffSecret() const
 {
 	QPPPSecretMapIterator it(*this);
 	ROSPPPSecret secret("");

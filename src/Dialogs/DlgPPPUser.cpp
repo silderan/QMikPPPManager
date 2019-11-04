@@ -25,6 +25,7 @@
 #include "DlgPPPLogViewer.h"
 
 #include "../Widgets/QComboBoxItemDelegate.h"
+#include "../ConfigData/VoIPData.h"
 
 enum SchedulerTableColums
 {
@@ -88,6 +89,8 @@ DlgPPPUser::DlgPPPUser(QConfigData &configData, ROSMultiConnectManager &rosMulti
 			/*skip list*/			  [] (int)			{ return QStringList(); },
 			/*allow change*/		  [] (const QModelIndex &,const QString &)	{ return true; } ) );
 
+
+	ui->voipTableWidget->setup();
 	updateGUI();
 	if( ui->schedulerGroupBox->isEnabled() )
 		connect( ui->schedulerTable, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(updateSchedulerCell(QTableWidgetItem*)) );
@@ -258,12 +261,12 @@ bool DlgPPPUser::getServiceInfo()
 	case ServiceInfo::ServiceType::WTTB:
 		m_pppSecret.setONTSN("");
 		m_pppSecret.setHasIoC( ui->iocCheckBox->isChecked() );
-		m_pppSecret.setHasToF( ui->tofCheckBox->isChecked() );
+		m_pppSecret.setHasToF( false );
 		break;
 	case ServiceInfo::ServiceType::FTTB:
 		m_pppSecret.setONTSN("");
 		m_pppSecret.setHasIoC( ui->iocCheckBox->isChecked() );
-		m_pppSecret.setHasToF( ui->tofCheckBox->isChecked() );
+		m_pppSecret.setHasToF( false );
 		break;
 	case ServiceInfo::ServiceType::FTTH:
 		if( ui->ontSNComboBox->currentText().isEmpty() )
@@ -274,7 +277,7 @@ bool DlgPPPUser::getServiceInfo()
 		if( !updateTextMember<ROSPPPSecret>( ui->ontSNComboBox->currentText(), m_pppSecret, &ROSPPPSecret::ontSN, &ROSPPPSecret::setONTSN, tr("Número de serie de la ONT") ) )
 			return false;
 		m_pppSecret.setHasIoC(false);
-		m_pppSecret.setHasToF(false);
+		m_pppSecret.setHasToF(ui->tofCheckBox->isChecked());
 		break;
 	case ServiceInfo::ServiceType::PtP_WiFi:
 		m_pppSecret.setHasIoC(false);
@@ -287,26 +290,6 @@ bool DlgPPPUser::getServiceInfo()
 	}
 	m_pppSecret.setServiceType(newType);
 	return true;
-}
-
-bool DlgPPPUser::getVoIPPhone()
-{
-	return checkGroupedData( ui->voipGroupBox, ui->voipPhoneNumber->text(), &ROSPPPSecret::voipPhoneNumber, &ROSPPPSecret::setVoIPPhoneNumber, tr("Número de teléfono SIP") );
-}
-
-bool DlgPPPUser::getVoIPSIPServer()
-{
-	return checkGroupedData( ui->voipGroupBox, ui->voipServerLineEdit->text(), &ROSPPPSecret::voipSIPServer, &ROSPPPSecret::setVoIPSIPServer, tr("URL del servidor SIP") );
-}
-
-bool DlgPPPUser::getVoIPUserName()
-{
-	return checkGroupedData( ui->voipGroupBox, ui->voipUserName->text(), &ROSPPPSecret::voipSIPUserName, &ROSPPPSecret::setVoIPSIPUserName, tr("Nombre de Usuario SIP") );
-}
-
-bool DlgPPPUser::getVoIPUserPass()
-{
-	return checkGroupedData( ui->voipGroupBox, ui->voipUserPass->text(), &ROSPPPSecret::voipSIPUserPass, &ROSPPPSecret::setVoIPSIPUserPass, tr("Contraseña SIP") );
 }
 
 bool DlgPPPUser::getWiFi2SSID()
@@ -457,6 +440,7 @@ void DlgPPPUser::updateGUI()
 		ui->applyDataButton->setVisible(false);
 		ui->clientLogsButton->setVisible(false);
 		ui->schedulerGroupBox->setVisible(false);
+		ui->voipGroupBox->setDisabled(true);
 		break;
 	case ROSAPIUser::Instalator:
 		setReadOnly(false);
@@ -464,6 +448,7 @@ void DlgPPPUser::updateGUI()
 		ui->clientLogsButton->setVisible(false);
 		ui->pppUserPassCreateButton->setEnabled(true);
 		ui->schedulerGroupBox->setVisible(true);
+		ui->voipGroupBox->setDisabled(true);
 		break;
 	case ROSAPIUser::Administrator:
 		setReadOnly(false);
@@ -473,12 +458,14 @@ void DlgPPPUser::updateGUI()
 		ui->applyDataButton->setVisible(true);
 		ui->clientLogsButton->setVisible(true);
 		ui->schedulerGroupBox->setVisible(true);
+		ui->voipGroupBox->setDisabled(false);
 		break;
 	case ROSAPIUser::Supervisor:
 		setReadOnly(false);
 		ui->applyDataButton->setVisible(true);
 		ui->clientLogsButton->setVisible(true);
 		ui->schedulerGroupBox->setVisible(true);
+		ui->voipGroupBox->setDisabled(false);
 		break;
 	}
 }
@@ -567,13 +554,14 @@ void DlgPPPUser::updateDialog()
 	updateInstallersComboBox();
 	updateCitiesComboBox();
 	updateUserData();
-	updateDialogInfo();
+	updateDialogCaptionInfo();
 }
 
 void DlgPPPUser::updateUserData()
 {
 	ui->pppUserNameLineEdit->setText( m_pppSecret.userName() );
 	ui->pppUserPassLineEdit->setText( m_pppSecret.userPass() );
+
 	ui->pppProfileComboBox->blockSignals(true);
 	if( m_pppSecret.originalProfile().isEmpty() )
 		ui->pppProfileComboBox->setCurrentIndex(-1);
@@ -583,13 +571,15 @@ void DlgPPPUser::updateUserData()
 		updateStaticIPComboBox();
 	}
 	ui->pppProfileComboBox->blockSignals(false);
+
 	ui->serviceTypeComboBox->setCurrentIndex(m_pppSecret.serviceInfo().serviceType);
 	ui->tofCheckBox->setChecked(m_pppSecret.serviceInfo().hasToF);
 	ui->iocCheckBox->setChecked(m_pppSecret.serviceInfo().hasIoC);
+
 	ui->serviceTypeComboBox->blockSignals(true);
 	ui->ontSNComboBox->setCurrentText(m_pppSecret.ontSN());
-
 	ui->serviceTypeComboBox->blockSignals(false);
+
 	ui->installerComboBox->setCurrentText( m_pppSecret.installerName() );
 	ui->clientNameLineEdit->setText( m_pppSecret.clientName() );
 	ui->clientAddressLineEdit->setText( m_pppSecret.clientAddress() );
@@ -606,11 +596,7 @@ void DlgPPPUser::updateUserData()
 	ui->wifi5SSIDLineEdit->setText( m_pppSecret.wifi5SSID() );
 	ui->wifi5WPALineEdit->setText( m_pppSecret.wifi5WPA() );
 
-	ui->voipGroupBox->setChecked( !m_pppSecret.voipSIPUserName().isEmpty() );
-	ui->voipServerLineEdit->setText( m_pppSecret.voipSIPServer() );
-	ui->voipPhoneNumber->setText( m_pppSecret.voipPhoneNumber() );
-	ui->voipUserName->setText( m_pppSecret.voipSIPUserName() );
-	ui->voipUserPass->setText( m_pppSecret.voipSIPUserPass() );
+	ui->voipTableWidget->setupUser( m_pppSecret.userName() );
 
 	ui->lanGroupBox->setChecked( m_pppSecret.installLANIP().isValid() || m_pppSecret.installLANDMZ().isValid() || !m_pppSecret.portForwardList().isEmpty() );
 	ui->lanIPLineEdit->setText( m_pppSecret.installLANIP().isValid() ? m_pppSecret.installLANIP().toString() : QString() );
@@ -627,7 +613,7 @@ void DlgPPPUser::updateUserData()
 	}
 }
 
-void DlgPPPUser::updateDialogInfo()
+void DlgPPPUser::updateDialogCaptionInfo()
 {
 	if( m_pppSecret.rosObjectID().isEmpty() )
 	{
@@ -662,13 +648,13 @@ void DlgPPPUser::onROSModReply(const ROSDataBase &rosData)
 		if( m_pppActive.rosObjectID() == rosData.rosObjectID() )
 		{
 			m_pppActive = static_cast<const ROSPPPActive &>(rosData);
-			updateDialogInfo();
+			updateDialogCaptionInfo();
 		}
 		else
 		if( m_pppSecret.userName() == static_cast<const ROSPPPActive &>(rosData).userName() )
 		{
 			m_pppActive = static_cast<const ROSPPPActive &>(rosData);
-			updateDialogInfo();
+			updateDialogCaptionInfo();
 		}
 	}
 }
@@ -682,7 +668,7 @@ void DlgPPPUser::onROSDelReply(const QString &routerName, DataTypeID dataTypeID,
 			if( m_pppActive.rosObjectID() == rosObjectID )
 			{
 				m_pppActive = ROSPPPActive("");
-				updateDialogInfo();
+				updateDialogCaptionInfo();
 			}
 		}
 	}
@@ -698,7 +684,7 @@ void DlgPPPUser::onROSDelReply(const QString &routerName, DataTypeID dataTypeID,
 					m_pppSecret.setROSObjectID( m_pppSecretMap.first().rosObjectID() );
 				else
 					m_pppSecret = ROSPPPSecret("");
-				updateDialogInfo();
+				updateDialogCaptionInfo();
 			}
 		}
 	}
@@ -785,7 +771,7 @@ void DlgPPPUser::onEditUserRequest(const QPPPSecretMap &pppSecretMap, const ROSP
 	if( pppSecretMap.count() )
 	{
 		m_pppSecretMap = pppSecretMap;
-		m_pppSecret = m_pppSecretMap.pppSecret();
+		m_pppSecret = m_pppSecretMap.lastLogOffSecret();
 		m_pppActive = pppActive;
 		updateDialog();
 	}
@@ -810,13 +796,19 @@ void DlgPPPUser::on_applyDataButton_clicked()
 		getClientCity() && getClientPhones() && getClientEMail() &&
 		getClientNotes() && getInstallNotes() &&
 		getServiceInfo() &&
-		getVoIPPhone() && getVoIPSIPServer() && getVoIPUserName() && getVoIPUserPass() &&
 		getWiFi2SSID() && getWiFi2WPA() &&
 		getWiFi5SSID() && getWiFi5WPA() &&
 		getLocalIP() && getLocalDMZ() && getLocalPorts() && getSchedulerData() )
-
 	{
-		multiConnectionManager.updateRemoteData( m_pppSecret, m_pppSecretMap.toRouterIDMap() );
+		QString err;
+		QStringList phones = ui->voipTableWidget->sipPhones(m_pppSecret.userName(), err);
+		if( !err.isEmpty() )
+			raiseWarning(err, "Teléfonos SIP");
+		else
+		{
+			gVoipData.setUserPhones(m_pppSecret.userName(), phones);
+			multiConnectionManager.updateRemoteData( m_pppSecret, m_pppSecretMap.toRouterIDMap() );
+		}
 	}
 }
 
@@ -827,7 +819,7 @@ void DlgPPPUser::on_addPortButton_clicked()
 
 void DlgPPPUser::on_delPortButton_clicked()
 {
-	ui->lanPortsTableWidget->removeRow( ui->lanPortsTableWidget->currentRow() );
+	delete ui->lanPortsTableWidget->takeItem( ui->lanPortsTableWidget->currentRow() );
 }
 
 void DlgPPPUser::on_clientLogsButton_clicked()
@@ -888,6 +880,7 @@ void DlgPPPUser::on_copyInfoButton_clicked()
 	 * (Tiene VozIP, DVR, etc)
 	 * (Notas)
 	 * */
+	QString err;
 	QString txt = tr("%1 (%2/%3)").arg(ui->clientNameLineEdit->text(), ui->pppUserNameLineEdit->text(), ui->pppUserPassLineEdit->text());
 	txt.append( tr("\n%1. %2." ).arg(ui->clientAddressLineEdit->text(), ui->clientCityComboBox->currentText()));
 	txt.append( tr("\n%1").arg( ui->clientPhonesLineEdit->text().isEmpty()? tr("Sin teléfonos conocidos.") : tr("Teléfono: %1").arg(ui->clientPhonesLineEdit->text()) ) );
@@ -900,13 +893,15 @@ void DlgPPPUser::on_copyInfoButton_clicked()
 									   : tr("Conectado desde %1 con IP %2").arg(m_pppActive.uptime().toString("dd/MM/yyyy hh:mm:ss"))).arg(m_pppActive.currentIPv4().toString()) );
 
     txt.append( tr("\nInstalado por: %1").arg(ui->installerComboBox->currentText()) );
-	if( !m_pppSecret.voipSIPServer().isEmpty() )
+
+	for( const QString &phone : ui->voipTableWidget->sipPhones(ui->pppUserNameLineEdit->text(), err) )
 	{
-		txt.append( tr("\nVoIP: %1 ").arg(m_pppSecret.voipPhoneNumber()) );
-		if( m_pppSecret.voipPhoneNumber() != m_pppSecret.voipSIPUserName() )
-			txt.append( QString("(%1/%2)").arg(m_pppSecret.voipSIPUserName(),m_pppSecret.voipSIPUserPass()) );
+		VoIPData voipData = gVoipData.voipData(phone);
+		txt.append( tr("\nVoIP: %1 ").arg(voipData.mSipPhone) );
+		if( voipData.mSipPhone != voipData.mSipUsername )
+			txt.append( QString("(%1/%2)").arg(voipData.mSipUsername, voipData.mSipPassword) );
 		else
-			txt.append( QString("(%1)").arg(m_pppSecret.voipSIPUserPass()) );
+			txt.append( QString("(%1)").arg(voipData.mSipPassword) );
 	}
 	if( !m_pppSecret.wifi2SSID().isEmpty() )
 		txt.append( tr("\nWiFi2: SSID=%1 PASS=%2").arg(m_pppSecret.wifi2SSID(),m_pppSecret.wifi2WPA()) );
@@ -934,6 +929,11 @@ void DlgPPPUser::on_copyInfoButton_clicked()
 void DlgPPPUser::onConfigChanged()
 {
 	updateGUI();
+}
+
+void DlgPPPUser::on_editPortButton_clicked()
+{
+	ui->lanPortsTableWidget->editPortRequest();
 }
 
 void DlgPPPUser::parseLinePort(const QStringList &words, int i)
@@ -972,4 +972,14 @@ void DlgPPPUser::on_pastePortsPushButton_clicked()
 			}
 		}
 	}
+}
+
+void DlgPPPUser::on_addSIPButton_clicked()
+{
+	ui->voipTableWidget->addVoIPData(VoIPData());
+}
+
+void DlgPPPUser::on_delSIPButton_clicked()
+{
+	ui->voipTableWidget->delVoIPData(-1);
 }

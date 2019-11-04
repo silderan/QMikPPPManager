@@ -27,7 +27,7 @@
 
 #include "ConfigData/QConfigData.h"
 
-DlgExportUserData::DlgExportUserData(QList<QStringList> exportData, QWidget *parent)
+DlgExportUserData::DlgExportUserData(QList<QStringList> exportData, const QString &title, QWidget *parent)
 	: QDialog(parent)
 	, ui(new Ui::DlgExportUserData)
 	, m_exportData(exportData)
@@ -36,13 +36,10 @@ DlgExportUserData::DlgExportUserData(QList<QStringList> exportData, QWidget *par
 
 	ui->exportFileLineEdit->setText( gGlobalConfig.exportFile() );
 	if( m_exportData.count() != 0 )
-	{
-		QString t = tr("Exportar %1 usuario%2").arg(m_exportData.count()).arg( (m_exportData.count()>1) ? "s" : "" );
-		setWindowTitle( t );
-	}
+		setWindowTitle( title );
 	else
 	{
-		setWindowTitle( tr("Exportando datos de usuarios (ninguno disponible)") );
+		setWindowTitle( tr("%1 (ninguno disponible)").arg(title) );
 		ui->exportFileButton->setDisabled(true);
 	}
 }
@@ -52,9 +49,9 @@ DlgExportUserData::~DlgExportUserData()
 	delete ui;
 }
 
-void DlgExportUserData::exportData(QList<QStringList> exportData, QWidget *papi)
+void DlgExportUserData::exportData(QList<QStringList> exportData, const QString &title, QWidget *papi)
 {
-	DlgExportUserData dlg(exportData, papi);
+	DlgExportUserData dlg(exportData, title, papi);
 	dlg.exec();
 }
 

@@ -101,6 +101,13 @@
          </property>
         </widget>
        </item>
+       <item row="3" column="0">
+        <widget class="QPushButton" name="voipButton">
+         <property name="text">
+          <string>Cuentas SIP</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </item>
@@ -167,6 +174,9 @@
          </property>
         </widget>
        </item>
+       <item row="4" column="0">
+        <widget class="QComboBox" name="portFilterComboBox"/>
+       </item>
        <item row="1" column="0">
         <widget class="QComboBox" name="fieldFilterComboBox"/>
        </item>
@@ -176,8 +186,8 @@
        <item row="3" column="0">
         <widget class="QComboBox" name="VoIPFilterComboBox"/>
        </item>
-       <item row="4" column="0">
-        <widget class="QComboBox" name="portFilterComboBox"/>
+       <item row="5" column="0">
+        <widget class="QComboBox" name="staticIpFilterComboBox"/>
        </item>
       </layout>
      </widget>

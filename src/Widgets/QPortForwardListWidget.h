@@ -1,11 +1,13 @@
-#ifndef QPORTFORWARDTABLEWIDGET_H
-#define QPORTFORWARDTABLEWIDGET_H
+#ifndef QPORTFORWARDLISTWIDGET_H
+#define QPORTFORWARDLISTWIDGET_H
 
-#include <QTableWidget>
+#include <QListWidget>
 
 #include "../Utils/PortForward.h"
 
-class QPortForwardTableWidget : public QTableWidget
+class QListWidgetItem;
+
+class QPortForwardListWidget : public QListWidget
 {
 	QString m_lastError;
 
@@ -23,14 +25,18 @@ class QPortForwardTableWidget : public QTableWidget
 
 	PortForward portForwardRow( int row );
 	void parsePortLine(const QStringList &words, int i);
+	void onDoubleClic(QListWidgetItem *item);
 
 public:
-	explicit QPortForwardTableWidget(QWidget *papi = Q_NULLPTR);
+	explicit QPortForwardListWidget(QWidget *papi = Q_NULLPTR);
 	void addPortForwardRow( const PortForward &port );
 	void setup( const QPortForwardList &portForwardList );
 	QPortForwardList portForwardList();
 	const QString &lastError() const { return m_lastError;	}
 	void parsePortText(const QString &txt);
+
+public slots:
+	void editPortRequest(int row = -1);
 };
 
-#endif // QPORTFORWARDTABLEWIDGET_H
+#endif // QPORTFORWARDLISTWIDGET_H

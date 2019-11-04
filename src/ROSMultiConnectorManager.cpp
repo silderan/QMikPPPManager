@@ -90,7 +90,7 @@ bool ROSMultiConnectManager::areAllConnected() const
 
 bool ROSMultiConnectManager::allDone(DataTypeID dataTypeID, const QString &routerName) const
 {
-	foreach( ROSPPPoEManager *pppoeManager, m_rosPppoeManagerMap)
+	for( const ROSPPPoEManager *pppoeManager: m_rosPppoeManagerMap )
 	{
 		if( routerName.isEmpty() || (routerName == pppoeManager->routerName()) )
 			if( !pppoeManager->done(dataTypeID) )
@@ -103,7 +103,7 @@ ROSDataBasePList ROSMultiConnectManager::rosDataList(DataTypeID dataTypeID, cons
 {
 	ROSDataBasePList rtn;
 
-	foreach( ROSPPPoEManager *pppoeManager, m_rosPppoeManagerMap)
+	for( const ROSPPPoEManager *pppoeManager : m_rosPppoeManagerMap)
 	{
 		if( routerName.isEmpty() || (routerName == pppoeManager->routerName()) )
 			rtn.append( pppoeManager->rosDataList(dataTypeID) );
@@ -115,12 +115,27 @@ QStringList ROSMultiConnectManager::rosNameList(DataTypeID dataTypeID, std::func
 {
 	QStringList rtn;
 	QString t;
-	foreach( const ROSDataBase *rosData, rosDataList(dataTypeID, routerName) )
+	for( const ROSDataBase *rosData : rosDataList(dataTypeID, routerName) )
 	{
 		Q_ASSERT(rosData);
 		t = getFnc(rosData);
 		if( !t.isEmpty() && !rtn.contains(t) )
 			rtn.append( t );
+	}
+
+	return rtn;
+}
+
+QStringList ROSMultiConnectManager::rosNameList(DataTypeID dataTypeID, std::function<QStringList (const ROSDataBase *)> getFnc, const QString &routerName) const
+{
+	QStringList rtn;
+
+	for( const ROSDataBase *rosData : rosDataList(dataTypeID, routerName) )
+	{
+		Q_ASSERT(rosData);
+		for( QString t : getFnc(rosData) )
+			if( !t.isEmpty() && !rtn.contains(t) )
+				rtn.append( t );
 	}
 
 	return rtn;

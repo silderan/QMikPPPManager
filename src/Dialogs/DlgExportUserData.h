@@ -38,10 +38,10 @@ class DlgExportUserData : public QDialog
 	QList<QStringList> m_exportData;
 
 public:
-	explicit DlgExportUserData(QList<QStringList> exportData, QWidget *parent);
+	explicit DlgExportUserData(QList<QStringList> exportData, const QString &title, QWidget *parent);
 	~DlgExportUserData();
 
-	static void exportData(QList<QStringList> exportData, QWidget *papi);
+	static void exportData(QList<QStringList> exportData, const QString &title, QWidget *papi);
 private slots:
 	void on_exportFileButton_clicked();
 	void on_exportUsersDataButton_clicked();

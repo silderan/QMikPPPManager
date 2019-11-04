@@ -30,6 +30,7 @@
 #include "../ConfigData/QConfigData.h"
 #include "../ConfigData/ClientProfile.h"
 #include "../ConfigData/SchedulerData.h"
+#include "../ConfigData/VoIPData.h"
 #include "../ROSMultiConnectorManager.h"
 
 #include "QRemoteIPCellItem.h"
@@ -125,6 +126,7 @@ QROSSecretTableWidget::QROSSecretTableWidget(QWidget *papi)
 	, m_filterServiceState( static_cast<ServiceState::Type>(-3))
 	, m_voipFilter(0)
 	, m_portsFilter(0)
+	, m_staticIpFilter(0)
 {
 	setColumnCount( columnsNames().count() );
 	setHorizontalHeaderLabels( columnsNames() );
@@ -210,13 +212,13 @@ bool QROSSecretTableWidget::shouldBeVisible(const QROSUserNameWidgetItem *userNa
 		switch( m_voipFilter )
 		{
 		case -1:	// Muestra sólo los que no tienen VoIP
-			if( !rosPPPSecret.voipSIPServer().isEmpty() )
+			if( gVoipData.userWithVoIP(rosPPPSecret.userName()) )
 				return false;
 			break;
 		case 0:		// Muestra todos.
 			break;
 		case 1:		// Muestra sólo los que sí tienen VoIP
-			if( rosPPPSecret.voipSIPServer().isEmpty() )
+			if( !gVoipData.userWithVoIP(rosPPPSecret.userName()) )
 				return false;
 			break;
 		}
@@ -230,6 +232,19 @@ bool QROSSecretTableWidget::shouldBeVisible(const QROSUserNameWidgetItem *userNa
 			break;
 		case 1:		// Muestra sólo los que sí tienen puertos redirigidos
 			if( rosPPPSecret.portForwardList().isEmpty() )
+				return false;
+			break;
+		}
+		switch( m_staticIpFilter )
+		{
+		case -1:	// Muestra sólo los que no tienen la IP estática
+			if( !rosPPPSecret.staticIP().isValid() )
+				return false;
+			break;
+		case 0:		// Muestra todos.
+			break;
+		case 1:		// Muestra sólo los que sí tienen la IP estática
+			if( rosPPPSecret.staticIP().isValid() )
 				return false;
 			break;
 		}
@@ -643,13 +658,14 @@ QString QROSSecretTableWidget::currentIP(int row)
 	return QString();
 }
 
-void QROSSecretTableWidget::filter(const QString &text, Columns col, ServiceState::Type filterStates, int voipFilter, int portsFilter)
+void QROSSecretTableWidget::filter(const QString &text, Columns col, ServiceState::Type filterStates, int voipFilter, int portsFilter, int staticIpFilter)
 {
 	m_filterText = text;
 	m_filterFields = col;
 	m_filterServiceState = filterStates;
 	m_voipFilter = voipFilter;
 	m_portsFilter = portsFilter;
+	m_staticIpFilter = staticIpFilter;
 	applyFilter(m_applyFilter);
 }
 
@@ -719,6 +735,42 @@ bool QROSSecretTableWidget::allowCellChange(const QModelIndex &index, const QStr
 				(gGlobalConfig.userLevel() == ROSAPIUser::Level::Supervisor) )
 			{
 				newSecret.setServiceState( ServiceState::fromNameString(newText) );
+
+				switch( newSecret.serviceState() )
+				{
+				case ServiceState::Undefined:
+				case ServiceState::ActiveUndefined:
+				case ServiceState::ActiveTemporally:
+				case ServiceState::CanceledTemporally:
+				case ServiceState::CanceledTechnically:
+					break;
+				case ServiceState::CanceledNoPay:
+				case ServiceState::CanceledNoRetired:
+				case ServiceState::CanceledRetired:
+				case ServiceState::CanceledUndefined:
+					if( gVoipData.userWithVoIP(newSecret.userName()) )
+					{
+						QStringList phones = gVoipData.userPhones(newSecret.userName());
+						switch( QMessageBox::warning(this, tr("Cancelando servicios del cliente %1 (%2)").arg(newSecret.userName()).arg(newSecret.clientName()),
+													 tr("Este cliente tiene contratado%1 %2 servicio%1 de voz por IP.\n"
+														"Aunque puede mantener la VoIP, es probable que la cancelación del servicio de Internet también implique la cancelación del servio de VoIP.\n\n"
+														"¿Quieres que le desasigne la%1 cuenta%1 SIP %3 automáticamente?\n")
+												 .arg(phones.count()>1?"s":"")
+												 .arg(phones.count())
+												 .arg(phones.join(", ")), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel) )
+						{
+						case QMessageBox::Yes:
+							gVoipData.setUserPhones(newSecret.userName(), QStringList());
+							gVoipData.save();
+							break;
+						case QMessageBox::No:
+							break;
+						default:
+							return false;
+						}
+					}
+					break;
+				}
 				if( !ServiceState::isCanceledState(newSecret.serviceState()) && (newSecret.pppProfileName() == gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName()) )
 					newSecret.setPPPProfileName( newSecret.originalProfile() );
 				else
@@ -843,7 +895,7 @@ const ROSPPPSecret *QROSSecretTableWidget::rosPppSecret(const QString &userName)
 {
 	const QROSUserNameWidgetItem *item = m_userNameMap[userName];
 
-	return (item != Q_NULLPTR) ? &item->pppSecretMap.first() : Q_NULLPTR;
+	return ((item != Q_NULLPTR) && (item->pppSecretMap.count()))? &item->pppSecretMap.first() : Q_NULLPTR;
 }
 
 #include "Dialogs/DlgExportUserData.h"
@@ -854,7 +906,7 @@ void QROSSecretTableWidget::exportUsersData()
 	QStringList data;
 	if( selectedList.count() )
 	{
-		foreach( QROSUserNameWidgetItem *item, selectedList )
+		for( const QROSUserNameWidgetItem *item : selectedList )
 		{
 			data.clear();
 			for( int col = 0; col < columnCount(); ++col )
@@ -879,7 +931,11 @@ void QROSSecretTableWidget::exportUsersData()
 		}
 	}
 	if( exportData.count() )
-		DlgExportUserData::exportData(exportData, this);
+		DlgExportUserData::exportData(exportData,
+									  exportData.count() == 1 ?
+										  tr("Exportando datos de 1 usuario") :
+										  tr("Exportando datos de %1 usuarios").arg(exportData.count()),
+									  this);
 }
 
 void QROSSecretTableWidget::contextMenuEvent(QContextMenuEvent *event)

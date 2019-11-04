@@ -47,6 +47,9 @@ Q_OBJECT
 	void onRouterConnected(const QString &routerName);
 	void onRouterDisconnected(const QString &routerName);
 
+	QStringList rosNameList(DataTypeID dataTypeID, std::function<QString (const ROSDataBase *)> getFnc, const QString &routerName = QString()) const;
+	QStringList rosNameList(DataTypeID dataTypeID, std::function<QStringList (const ROSDataBase *)> getFnc, const QString &routerName = QString()) const;
+
 public:
 	ROSMultiConnectManager(QObject *papi = Q_NULLPTR);
 	~ROSMultiConnectManager();
@@ -72,7 +75,6 @@ public:
 	void requestAll(DataTypeID dataTypeID);
 
 	ROSDataBasePList rosDataList(DataTypeID dataTypeID, const QString &routerName = QString()) const;
-	QStringList rosNameList(DataTypeID dataTypeID, std::function<QString (const ROSDataBase *)> getFnc, const QString &routerName = QString()) const;
 	QStringList rosAPIUserNameList(const QString &routerName = QString()) const;
 	QStringList rosAPIUsersGrupList(const QString &routerName = QString()) const;
 	QStringList pppProfileNameList(const QString &routerName = QString()) const;

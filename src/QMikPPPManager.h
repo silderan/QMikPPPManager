@@ -98,6 +98,8 @@ private slots:
 
 	void on_filterGroupBox_clicked(bool checked);
 
+	void on_voipButton_clicked();
+
 public slots:
 	void updateConfig();
 
