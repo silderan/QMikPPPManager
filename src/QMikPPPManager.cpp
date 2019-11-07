@@ -87,29 +87,35 @@ QMikPPPManager::QMikPPPManager(QWidget *parent)
 	ui->serviceStateFilterComboBox->setCurrentIndex(0);
 
 	ui->VoIPFilterComboBox->addItems( QStringList()
-									  << "Sin VoIP"
-									  << "Con y sin VoIP"
-									  << "Con VoIP" );
+									  << tr("Sin VoIP")
+									  << tr("Con y sin VoIP")
+									  << tr("Con VoIP") );
 	ui->VoIPFilterComboBox->setCurrentIndex(1);
 
 	ui->portFilterComboBox->addItems( QStringList()
-									  << "Sin puertos"
-									  << "Con y sin puertos"
-									  << "Con puertos" );
+									  << tr("Sin puertos")
+									  << tr("Con y sin puertos")
+									  << tr("Con puertos") );
 	ui->portFilterComboBox->setCurrentIndex(1);
 
 	ui->staticIpFilterComboBox->addItems( QStringList()
-									  << "Sin IP fija"
-									  << "Con y sin IP fija"
-									  << "Con IP Fija" );
+									  << tr("Sin IP fija")
+									  << tr("Con y sin IP fija")
+									  << tr("Con IP Fija") );
 	ui->staticIpFilterComboBox->setCurrentIndex(1);
 
-	connect( ui->fieldFilterComboBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(applyUsersRowFilter(QString)) );
-	connect( ui->serviceStateFilterComboBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(applyUsersRowFilter(QString)) );
-	connect( ui->textFilterLineEdit, SIGNAL(textChanged(QString)), this, SLOT(applyUsersRowFilter(QString)) );
-	connect( ui->VoIPFilterComboBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(applyUsersRowFilter(QString)) );
-	connect( ui->portFilterComboBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(applyUsersRowFilter(QString)) );
-	connect( ui->staticIpFilterComboBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(applyUsersRowFilter(QString)) );
+	ui->serviceTypeComboBox->addItems( QStringList()
+									   << tr("Todos los tipos")
+									   << ServiceInfo::serviceTypeNameList() );
+	ui->serviceTypeComboBox->setCurrentIndex(0);
+
+	connect( ui->fieldFilterComboBox, SIGNAL(currentIndexChanged(QString)),			this, SLOT(applyUsersRowFilter(QString)) );
+	connect( ui->serviceStateFilterComboBox, SIGNAL(currentIndexChanged(QString)),	this, SLOT(applyUsersRowFilter(QString)) );
+	connect( ui->textFilterLineEdit, SIGNAL(textChanged(QString)),					this, SLOT(applyUsersRowFilter(QString)) );
+	connect( ui->VoIPFilterComboBox, SIGNAL(currentIndexChanged(QString)),			this, SLOT(applyUsersRowFilter(QString)) );
+	connect( ui->portFilterComboBox, SIGNAL(currentIndexChanged(QString)),			this, SLOT(applyUsersRowFilter(QString)) );
+	connect( ui->staticIpFilterComboBox, SIGNAL(currentIndexChanged(QString)),		this, SLOT(applyUsersRowFilter(QString)) );
+	connect( ui->serviceTypeComboBox, SIGNAL(currentIndexChanged(QString)),			this, SLOT(applyUsersRowFilter(QString)) );
 
 	onAllRoutersDisconnected();
 	ui->usersTable->horizontalHeader()->setFixedHeight(20);
@@ -117,7 +123,8 @@ QMikPPPManager::QMikPPPManager(QWidget *parent)
 	setUserLevel(ROSAPIUser::Level::NoRights);
 	if( gGlobalConfig.connectInfoList().isEmpty() )
 	{
-		Utils::raiseInfo( this, tr("Parece que es la primera vez que se inicia el programa en este entorno.\nConfigura el acceso a los routers.") );
+		Utils::raiseInfo( this, tr("Parece que es la primera vez que se inicia el programa en este entorno.\n"
+								   "Configura el acceso a los routers.") );
 		on_connectionConfigButton_clicked();
 	}
 	ui->connectButton->setDisabled( gGlobalConfig.connectInfoList().isEmpty() );
@@ -133,9 +140,15 @@ void QMikPPPManager::applyUsersRowFilter(QString)
 	ui->usersTable->filter( ui->textFilterLineEdit->text(),
 							static_cast<QROSSecretTableWidget::Columns>(columnIndex),
 							static_cast<ServiceState::Type>(serviceStateType),
+							static_cast<ServiceInfo::ServiceType>(ui->serviceTypeComboBox->currentIndex() - 1),
 							ui->VoIPFilterComboBox->currentIndex()-1,
 							ui->portFilterComboBox->currentIndex()-1,
 							ui->staticIpFilterComboBox->currentIndex()-1);
+}
+
+void QMikPPPManager::on_filterGroupBox_clicked(bool checked)
+{
+	ui->usersTable->applyFilter(checked);
 }
 
 QMikPPPManager::~QMikPPPManager()
@@ -517,11 +530,6 @@ void QMikPPPManager::on_schedulerButton_clicked()
 {
 	DlgServiceScheduler dlg(multiConnectionManager, *ui->usersTable, this);
 	dlg.exec();
-}
-
-void QMikPPPManager::on_filterGroupBox_clicked(bool checked)
-{
-	ui->usersTable->applyFilter(ui->filterGroupBox->isChecked());
 }
 
 void QMikPPPManager::on_voipButton_clicked()

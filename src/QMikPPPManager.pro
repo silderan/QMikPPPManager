@@ -152,7 +152,6 @@ FORMS    += QMikPPPManager.ui \
     Dialogs/DlgPortEdit.ui \
     Dialogs/DlgServiceScheduler.ui \
     Dialogs/DlgVoIPData.ui \
-	DlgNuevoUsuario.ui \
     Dialogs/DlgConfiguracion.ui \
     Dialogs/DlgCnfgConnect.ui \
     Dialogs/DlgLookConfig.ui \

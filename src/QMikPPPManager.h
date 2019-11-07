@@ -91,13 +91,11 @@ private slots:
 	void onPPPEditRequest(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive);
 	void onShowUserTraffic(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive);
 
-	void on_pppLogsButton_clicked();
+	void on_filterGroupBox_clicked(bool checked);
 	void applyUsersRowFilter(QString);
 
 	void on_schedulerButton_clicked();
-
-	void on_filterGroupBox_clicked(bool checked);
-
+	void on_pppLogsButton_clicked();
 	void on_voipButton_clicked();
 
 public slots:

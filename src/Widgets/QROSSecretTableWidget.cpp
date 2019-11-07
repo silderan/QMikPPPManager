@@ -124,6 +124,7 @@ QROSSecretTableWidget::QROSSecretTableWidget(QWidget *papi)
 	: QTableWidget(papi)
 	, m_applyFilter(false)
 	, m_filterServiceState( static_cast<ServiceState::Type>(-3))
+	, mFilterServiceType( static_cast<ServiceInfo::ServiceType>(-1))
 	, m_voipFilter(0)
 	, m_portsFilter(0)
 	, m_staticIpFilter(0)
@@ -208,6 +209,11 @@ bool QROSSecretTableWidget::shouldBeVisible(const QROSUserNameWidgetItem *userNa
 			if( rosPPPSecret.serviceState() != m_filterServiceState )
 				return false;
 			break;
+		}
+		if( static_cast<int>(mFilterServiceType) !=  -1 )	// Meaning, specific type.
+		{
+			if( rosPPPSecret.serviceInfo().serviceType != mFilterServiceType )
+				return false;
 		}
 		switch( m_voipFilter )
 		{
@@ -658,11 +664,12 @@ QString QROSSecretTableWidget::currentIP(int row)
 	return QString();
 }
 
-void QROSSecretTableWidget::filter(const QString &text, Columns col, ServiceState::Type filterStates, int voipFilter, int portsFilter, int staticIpFilter)
+void QROSSecretTableWidget::filter(const QString &text, Columns col, ServiceState::Type filterStates, ServiceInfo::ServiceType serviceType, int voipFilter, int portsFilter, int staticIpFilter)
 {
 	m_filterText = text;
 	m_filterFields = col;
 	m_filterServiceState = filterStates;
+	mFilterServiceType = serviceType;
 	m_voipFilter = voipFilter;
 	m_portsFilter = portsFilter;
 	m_staticIpFilter = staticIpFilter;

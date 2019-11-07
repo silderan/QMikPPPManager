@@ -71,7 +71,7 @@ void DlgPortEdit::onAcceptButtonClicked()
 	if( (mValidPort.publicPortEnd() - mValidPort.publicPortIni()) != (mValidPort.privatePortEnd() - mValidPort.privatePortIni()) )
 		QMessageBox::warning( this, tr("Rango puertos"), tr("La cantidad de puertos públicos y privados no coinciden") );
 	else
-	if( mValidPort.destIP().isValid() )
+	if( !mValidPort.destIP().isValid() )
 		QMessageBox::warning(this, tr("IP destino"), tr("La IP destino no es válida") );
 	else
 	if( !ui->nameLineEdit->hasAcceptableInput() )

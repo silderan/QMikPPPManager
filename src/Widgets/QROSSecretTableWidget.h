@@ -139,6 +139,7 @@ private:
 	bool m_applyFilter;
 	QString m_filterText;
 	ServiceState::Type m_filterServiceState;
+	ServiceInfo::ServiceType mFilterServiceType;
 	Columns m_filterFields;
 	int m_voipFilter;
 	int m_portsFilter;
@@ -193,7 +194,10 @@ public:
 	QString currentIP(int row);
 
 	void applyFilter(bool active);
-	void filter(const QString &text, Columns col, ServiceState::Type filterStates, int voipFilter, int portsFilter, int staticIpFilter);
+	void filter(const QString &text, Columns col,
+				ServiceState::Type filterStates,
+				ServiceInfo::ServiceType serviceType,
+				int voipFilter, int portsFilter, int staticIpFilter);
 
 	void clear();
 	void onROSModReply(const ROSDataBase &rosData);
