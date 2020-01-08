@@ -93,6 +93,7 @@ class DlgPPPUser : public QDlgMultiDataBase
 	void addServiceSchedulerRow(const ServiceScheduler::Data &schedulerData = ServiceScheduler::Data());
 	void parseLinePort(const QStringList &words, int i);
 
+	void completeClientPhonesWithVoIP();
 public:
 	DlgPPPUser(QConfigData &configData, ROSMultiConnectManager &rosMultiConnectManager, QWidget *papi);
 	~DlgPPPUser() override;

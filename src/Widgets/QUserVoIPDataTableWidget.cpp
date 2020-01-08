@@ -82,7 +82,7 @@ void QUserVoIPDataTableWidget::setup()
 	verticalHeader()->setDefaultSectionSize(17);
 }
 
-QStringList QUserVoIPDataTableWidget::sipPhones(const QString &userName, QString &err) const
+QStringList QUserVoIPDataTableWidget::sipPhones(QString &err) const
 {
 	QStringList rtn;
 	err.clear();

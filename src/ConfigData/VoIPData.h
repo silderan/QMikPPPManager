@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QMap>
+#include <QList>
 
 struct VoIPData
 {
@@ -15,14 +16,14 @@ struct VoIPData
 	QString mComments;
 };
 
-class VoIPDataMap : public QMap<QString, VoIPData>
+class VoIPDataList : public QList<VoIPData>
 {
 	bool loadTxt();
 	bool loadCompressed();
 
 public:
-	void setVoipData(const VoIPData &voipData)			{ insert(voipData.mSipPhone, voipData);	}
-	VoIPData voipData(const QString &phone) const		{ return value(phone);	}
+	void setVoipData(const VoIPData &voipData);
+	VoIPData voipData(const QString &phone) const;
 	QStringList userPhones(const QString &userName) const;
 	QList<VoIPData> userVoIPData(const QString &userName) const;
 	bool userWithVoIP(const QString &userName) const;
@@ -34,6 +35,6 @@ public:
 	void save() const;
 };
 
-extern VoIPDataMap gVoipData;
+extern VoIPDataList gVoipData;
 
 #endif // VOIPDATA_H

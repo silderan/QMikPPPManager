@@ -19,7 +19,7 @@ public:
 	void setupUser(const QString &userName);
 
 	void setup();
-	QStringList sipPhones(const QString &userName, QString &err) const;
+	QStringList sipPhones(QString &err) const;
 };
 
 #endif // QUSERVOIPDATATABLEWIDGET_H

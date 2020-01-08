@@ -557,6 +557,22 @@ void DlgPPPUser::updateDialog()
 	updateDialogCaptionInfo();
 }
 
+void DlgPPPUser::completeClientPhonesWithVoIP()
+{
+	QString tmp;
+	for( const QString &phone : ui->voipTableWidget->sipPhones(tmp) )
+	{
+		if( !(tmp = ui->clientPhonesLineEdit->text()).contains(phone) )
+		{
+			if( tmp.count() )
+				ui->clientPhonesLineEdit->setText( QString("%1, %2").arg(tmp).arg(phone) );
+			else
+				ui->clientPhonesLineEdit->setText( phone );
+		}
+	}
+}
+
+
 void DlgPPPUser::updateUserData()
 {
 	ui->pppUserNameLineEdit->setText( m_pppSecret.userName() );
@@ -597,6 +613,7 @@ void DlgPPPUser::updateUserData()
 	ui->wifi5WPALineEdit->setText( m_pppSecret.wifi5WPA() );
 
 	ui->voipTableWidget->setupUser( m_pppSecret.userName() );
+	completeClientPhonesWithVoIP();
 
 	ui->lanGroupBox->setChecked( m_pppSecret.installLANIP().isValid() || m_pppSecret.installLANDMZ().isValid() || !m_pppSecret.portForwardList().isEmpty() );
 	ui->lanIPLineEdit->setText( m_pppSecret.installLANIP().isValid() ? m_pppSecret.installLANIP().toString() : QString() );
@@ -761,7 +778,6 @@ void DlgPPPUser::on_serviceTypeComboBox_currentIndexChanged(int index)
 		ui->iocCheckBox->setEnabled(false);
 		ui->tofCheckBox->setEnabled(false);
 		break;
-
 	}
 }
 
@@ -791,6 +807,7 @@ void DlgPPPUser::hideEvent(QHideEvent *event)
 
 void DlgPPPUser::on_applyDataButton_clicked()
 {
+	completeClientPhonesWithVoIP();
 	if( getPPPUserName() && getPPPUserPass() && getPPPProfile() && getStaticIP() &&
 		getClientName() && getClientAddress() && getClientInstaller() &&
 		getClientCity() && getClientPhones() && getClientEMail() &&
@@ -801,7 +818,7 @@ void DlgPPPUser::on_applyDataButton_clicked()
 		getLocalIP() && getLocalDMZ() && getLocalPorts() && getSchedulerData() )
 	{
 		QString err;
-		QStringList phones = ui->voipTableWidget->sipPhones(m_pppSecret.userName(), err);
+		QStringList phones = ui->voipTableWidget->sipPhones(err);
 		if( !err.isEmpty() )
 			raiseWarning(err, "Teléfonos SIP");
 		else
@@ -894,7 +911,7 @@ void DlgPPPUser::on_copyInfoButton_clicked()
 
     txt.append( tr("\nInstalado por: %1").arg(ui->installerComboBox->currentText()) );
 
-	for( const QString &phone : ui->voipTableWidget->sipPhones(ui->pppUserNameLineEdit->text(), err) )
+	for( const QString &phone : ui->voipTableWidget->sipPhones(err) )
 	{
 		VoIPData voipData = gVoipData.voipData(phone);
 		txt.append( tr("\nVoIP: %1 ").arg(voipData.mSipPhone) );

@@ -36,17 +36,12 @@ DlgVoIPData::DlgVoIPData(QROSSecretTableWidget &rosSecretTable, QWidget *parent)
 {
 	ui->setupUi(this);
 
-	QMapIterator<QString, VoIPData> it(gVoipData);
-
 
 	ui->voipTable->setColumnCount(Columns::ColCount);
 	ui->voipTable->setHorizontalHeaderLabels( columnNames );
 
-	while( it.hasNext() )
-	{
-		it.next();
-		addRow(it.value());
-	}
+	for( const VoIPData &d : gVoipData )
+		addRow(d);
 }
 
 DlgVoIPData::~DlgVoIPData()

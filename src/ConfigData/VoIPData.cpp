@@ -9,7 +9,7 @@
 
 const QString voipFileName( "telefonia" );
 
-bool VoIPDataMap::loadTxt()
+bool VoIPDataList::loadTxt()
 {
 	QFile f(QString("%1.txt").arg(voipFileName));
 	if( f.open(QIODevice::ReadOnly) )
@@ -37,7 +37,7 @@ bool VoIPDataMap::loadTxt()
 	return false;
 }
 
-bool VoIPDataMap::loadCompressed()
+bool VoIPDataList::loadCompressed()
 {
 	QFile f(QString("%1.voip").arg(voipFileName));
 	if( f.open(QIODevice::ReadOnly) )
@@ -57,7 +57,7 @@ bool VoIPDataMap::loadCompressed()
 				voip.mSecretUsername	= words[4];
 				voip.mComments			= words[5];
 
-				setVoipData(voip);
+				append(voip);
 			}
 		}
 		return true;
@@ -65,82 +65,96 @@ bool VoIPDataMap::loadCompressed()
 	return false;
 }
 
-QStringList VoIPDataMap::userPhones(const QString &userName) const
+void VoIPDataList::setVoipData(const VoIPData &voipData)
+{
+	for( VoIPData &d : *this )
+	{
+		if( d.mSipPhone == voipData.mSipPhone )
+		{
+			d = voipData;
+			return;
+		}
+	}
+	append(voipData);
+}
+
+VoIPData VoIPDataList::voipData(const QString &phone) const
+{
+	for( const VoIPData &d : *this )
+	{
+		if( d.mSipPhone == phone )
+			return d;
+	}
+	return VoIPData();
+}
+
+QStringList VoIPDataList::userPhones(const QString &userName) const
 {
 	QStringList rtn;
-	QMapIterator<QString, VoIPData> it(*this);
-	while( it.hasNext() )
+	for( const VoIPData &d : *this )
 	{
-		it.next();
-		if( it.value().mSecretUsername == userName )
-			rtn.append(it.value().mSipPhone);
+		if( d.mSecretUsername == userName )
+			rtn.append(d.mSipPhone);
 	}
 	return rtn;
 }
 
-QList<VoIPData> VoIPDataMap::userVoIPData(const QString &userName) const
+QList<VoIPData> VoIPDataList::userVoIPData(const QString &userName) const
 {
 	QList<VoIPData> rtn;
-	QMapIterator<QString, VoIPData> it(*this);
 	Q_ASSERT( !userName.isEmpty() );
-	while( it.hasNext() )
+	for( const VoIPData &d : *this )
 	{
-		it.next();
-		if( it.value().mSecretUsername == userName )
-			rtn.append(it.value());
+		if( d.mSecretUsername == userName )
+			rtn.append(d);
 	}
 	return rtn;
 }
 
-bool VoIPDataMap::userWithVoIP(const QString &userName) const
+bool VoIPDataList::userWithVoIP(const QString &userName) const
 {
-	QMapIterator<QString, VoIPData> it(*this);
-	while( it.hasNext() )
+	for( const VoIPData &d : *this )
 	{
-		it.next();
-		if( it.value().mSecretUsername == userName )
+		if( d.mSecretUsername == userName )
 			return true;
 	}
 	return false;
 }
 
-QStringList VoIPDataMap::unusedPhones() const
+QStringList VoIPDataList::unusedPhones() const
 {
 	QStringList rtn;
-	QMapIterator<QString, VoIPData> it(*this);
-	while( it.hasNext() )
+	for( const VoIPData &d : *this )
 	{
-		it.next();
-		if( it.value().mSecretUsername.isEmpty() )
-			rtn.append(it.key());
+		if( d.mSecretUsername.isEmpty() )
+			rtn.append(d.mSipPhone);
 	}
 	return rtn;
 }
 
-void VoIPDataMap::setUserPhones(const QString &username, QStringList newPhones)
+void VoIPDataList::setUserPhones(const QString &username, QStringList newPhones)
 {
-	// Function not only "sets" username on the voipData.
-	// also, it clear "old" data.
-	// Maybe there are more optimized ways to do that, but it's not a problem because it's not done massively
+	// Function not only "sets" username on the voipData,
+	// also, it clears old phones binded to the username.
 
 	bool needSave = false;
-	for( const QString &phone : userPhones(username) )
+	for( VoIPData &d : *this )
 	{
-		if( !newPhones.contains(phone) )
+		if( d.mSecretUsername == username )
 		{
-			operator[](phone).mSecretUsername.clear();
-			needSave = true;
+			if( !newPhones.contains(d.mSipPhone) )
+			{
+				d.mSecretUsername.clear();
+				needSave = true;
+			}
 		}
 		else
-			newPhones.removeOne(phone);
-	}
-
-	if( newPhones.count() )
-	{
-		needSave = true;
-		for( const QString &phone : newPhones )
 		{
-			operator[](phone).mSecretUsername = username;
+			if( newPhones.contains(d.mSipPhone) )
+			{
+				d.mSecretUsername = username;
+				needSave = true;
+			}
 		}
 	}
 
@@ -148,26 +162,25 @@ void VoIPDataMap::setUserPhones(const QString &username, QStringList newPhones)
 		save();
 }
 
-void VoIPDataMap::load()
+void VoIPDataList::load()
 {
 	if( !loadCompressed() )
 		loadTxt();
 }
 
-void VoIPDataMap::save(const QString filename) const
+void VoIPDataList::save(const QString filename) const
 {
 	QString data;
-	QMapIterator<QString, VoIPData> it(*this);
-	while( it.hasNext() )
+
+	for( const VoIPData &d : *this )
 	{
-		it.next();
 		data += QString("%1\t%2\t%3\t%4\t%5\t%6\n")
-				.arg(it.value().mSipPhone)
-				.arg(it.value().mSipUsername)
-				.arg(it.value().mSipPassword)
-				.arg(it.value().mSipServer)
-				.arg(it.value().mSecretUsername)
-				.arg(it.value().mComments);
+				.arg(d.mSipPhone)
+				.arg(d.mSipUsername)
+				.arg(d.mSipPassword)
+				.arg(d.mSipServer)
+				.arg(d.mSecretUsername)
+				.arg(d.mComments);
 	}
 
 	QFile fCompressed(QString("%1.voip").arg(filename));
@@ -180,9 +193,9 @@ void VoIPDataMap::save(const QString filename) const
 #endif
 }
 
-void VoIPDataMap::save() const
+void VoIPDataList::save() const
 {
 	return save(voipFileName);
 }
 
-VoIPDataMap gVoipData;
+VoIPDataList gVoipData;
