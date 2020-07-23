@@ -181,7 +181,7 @@ QString QPortForwardList::toSaveString() const
 void QPortForwardList::fromSaveString(const QString &saveString)
 {
 	clear();
-	foreach( QString portSaveString, saveString.split(',', QString::SkipEmptyParts) )
+	foreach( QString portSaveString, saveString.split(',', Qt::SkipEmptyParts) )
 		append( PortForward(portSaveString) );
 }
 

@@ -31,7 +31,7 @@ void ROSRateLimit::clear()
 void ROSRateLimit::fromString(const QString &str)
 {
 	clear();
-	QStringList speeds = str.split( QRegExp("[/ ]"), QString::SkipEmptyParts );
+	QStringList speeds = str.split( QRegExp("[/ ]"), Qt::SkipEmptyParts );
 	switch( speeds.count() )
 	{
 	case 8:	m_rxAverageSeconds = speeds.at(7).toUInt(); [[clang::fallthrough]];

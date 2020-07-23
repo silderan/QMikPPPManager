@@ -248,7 +248,7 @@ void ROSPPPSecret::parseCommentString(const QString &commentString)
 			if( i != -1 )
 			{
 				m_originalProfile = profileString.mid(3, i-3);
-				data = profileString.mid(i+1).split(',', QString::SkipEmptyParts);
+				data = profileString.mid(i+1).split(',', Qt::SkipEmptyParts);
 				if( (data.count() % 2) == 0 )
 				{
 					for( i = 0; i < data.count(); i += 2 )

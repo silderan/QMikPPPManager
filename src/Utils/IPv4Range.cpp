@@ -60,7 +60,7 @@ QString IPv4Range::toLoadString() const
 
 void IPv4Range::fromLoadString(const QString &line)
 {
-	QStringList l = line.split( '-', QString::SkipEmptyParts );
+	QStringList l = line.split( '-', Qt::SkipEmptyParts );
 	if( l.count() >= 2 )
 	{
 		m_first.fromString( l[0] );
@@ -166,7 +166,7 @@ void IPv4RangeListMap::load(const QIniData &iniData)
 			QString key = line.left(sep);
 			QString ipv4RangeList_loadString = line.mid(sep+1);
 
-			foreach( QString ipv4Range_LoadString,  ipv4RangeList_loadString.split(',', QString::SkipEmptyParts) )
+			foreach( QString ipv4Range_LoadString,  ipv4RangeList_loadString.split(',', Qt::SkipEmptyParts) )
 				ipv4RangeList.append( IPv4Range(ipv4Range_LoadString) );
 
 			insert(key, ipv4RangeList);

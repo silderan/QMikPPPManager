@@ -127,6 +127,8 @@ private slots:
 	void on_delSIPButton_clicked();
 	void on_editPortButton_clicked();
 
+	void on_configFileButton_clicked();
+
 public slots:
 	void onEditUserRequest(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive);
 

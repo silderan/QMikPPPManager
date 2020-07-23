@@ -982,7 +982,7 @@ void DlgPPPUser::on_pastePortsPushButton_clicked()
 	for( QString line : QGuiApplication::clipboard()->text().split('\n') )
 	{
 		int i = 0;
-		QStringList words = line.split('\t', QString::SkipEmptyParts);
+		QStringList words = line.split('\t', Qt::SkipEmptyParts);
 		if( words.count() < 7 )
 			continue;
 		for( i = 0 ; i <= 3; ++ i )
@@ -1004,4 +1004,9 @@ void DlgPPPUser::on_addSIPButton_clicked()
 void DlgPPPUser::on_delSIPButton_clicked()
 {
 	ui->voipTableWidget->delVoIPData(-1);
+}
+
+void DlgPPPUser::on_configFileButton_clicked()
+{
+
 }

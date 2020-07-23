@@ -69,7 +69,7 @@ void QConfigData::loadLocalUserData()
 	m_altoPantalla			= cnfgData[LKEY_ALTO_PANTALLA].toInt();
 	m_pantallaMaximizada	= cnfgData[LKEY_MAXIMIZADA] == "true";
 	m_columnsHidden.clear();
-	foreach( const QString &col, cnfgData[LKEY_COLSHIDDEN].split(',', QString::SkipEmptyParts) )
+	foreach( const QString &col, cnfgData[LKEY_COLSHIDDEN].split(',', Qt::SkipEmptyParts) )
 		m_columnsHidden.append( col.toInt() );
 
 	m_tableCellLook.load(cnfgData);
@@ -80,8 +80,8 @@ void QConfigData::loadGlobalProtectedData()
 	QIniData cnfgData;
 	QIniFile::load(m_rosProtectedFName, &cnfgData);
 
-	m_instaladores	= cnfgData[GPKEY_INSTALADORES].split(',', QString::SkipEmptyParts);
-	m_comerciales	= cnfgData[GPKEY_COMERCIALES].split(',', QString::SkipEmptyParts);
+	m_instaladores	= cnfgData[GPKEY_INSTALADORES].split(',', Qt::SkipEmptyParts);
+	m_comerciales	= cnfgData[GPKEY_COMERCIALES].split(',', Qt::SkipEmptyParts);
 
 	m_clientProfileMap.load(cnfgData);
 	m_staticIPv4RangeListMap.load(cnfgData);

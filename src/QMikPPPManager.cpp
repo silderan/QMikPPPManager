@@ -513,6 +513,7 @@ void QMikPPPManager::onPPPEditRequest(const QPPPSecretMap &pppSecretMap, const R
 
 void QMikPPPManager::onShowUserTraffic(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive)
 {
+	Q_UNUSED(pppSecretMap);
 	new DlgUserThroughput(multiConnectionManager, pppActive, this);
 }
 

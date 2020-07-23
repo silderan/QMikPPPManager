@@ -267,7 +267,7 @@ void SchedulerMap::load()
 	while( it.hasNext() )
 	{
 		it.next();
-		for( const QString &saveString : it.value().split(';', QString::SkipEmptyParts) )
+		for( const QString &saveString : it.value().split(';', Qt::SkipEmptyParts) )
 		{
 			data.fromSaveString(saveString);
 			dataList(it.key()).append(data);

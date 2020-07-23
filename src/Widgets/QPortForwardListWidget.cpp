@@ -122,6 +122,8 @@ QPortForwardList QPortForwardListWidget::portForwardList()
 
 void QPortForwardListWidget::parsePortLine(const QStringList &words, int i)
 {
+	Q_UNUSED(words);
+	Q_UNUSED(i);
 }
 
 void QPortForwardListWidget::onDoubleClic(QListWidgetItem *item)
@@ -133,6 +135,7 @@ void QPortForwardListWidget::onDoubleClic(QListWidgetItem *item)
 
 void QPortForwardListWidget::parsePortText(const QString &txt)
 {
+	Q_UNUSED(txt);
 }
 
 void QPortForwardListWidget::editPortRequest(int row)

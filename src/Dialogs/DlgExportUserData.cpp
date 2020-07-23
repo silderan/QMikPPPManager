@@ -117,7 +117,7 @@ void DlgExportUserData::on_openFolderButton_clicked()
 	}
 	// Mac, Windows support folder or file.
 #if defined(Q_OS_WIN)
-	QProcess::startDetached( QString("explorer.exe /select,\"%1\"").arg(pathIn));
+	QProcess::startDetached( QString("explorer.exe"), QStringList() << QString("/select,\"%1\"").arg(pathIn));
 #elif defined(Q_OS_MAC)
 	QStringList scriptArgs;
 	scriptArgs << QLatin1String("-e")

@@ -33,5 +33,6 @@ int QROSIPoolTableWidget::rowOf(const ROSDataBase &rosData)
 
 ROSDataBase *QROSIPoolTableWidget::getRosData(int row)
 {
+	Q_UNUSED(row);
 	return Q_NULLPTR;
 }
