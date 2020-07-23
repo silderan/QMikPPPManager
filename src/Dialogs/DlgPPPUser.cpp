@@ -448,7 +448,10 @@ void DlgPPPUser::updateGUI()
 		ui->clientLogsButton->setVisible(false);
 		ui->pppUserPassCreateButton->setEnabled(true);
 		ui->schedulerGroupBox->setVisible(true);
-		ui->voipGroupBox->setDisabled(true);
+		ui->voipGroupBox->setDisabled(false);
+		ui->voipTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+		ui->addSIPButton->setDisabled(true);
+		ui->delSIPButton->setDisabled(true);
 		break;
 	case ROSAPIUser::Administrator:
 		setReadOnly(false);
@@ -459,6 +462,7 @@ void DlgPPPUser::updateGUI()
 		ui->clientLogsButton->setVisible(true);
 		ui->schedulerGroupBox->setVisible(true);
 		ui->voipGroupBox->setDisabled(false);
+		ui->voipTableWidget->setEditTriggers(QAbstractItemView::AllEditTriggers);
 		break;
 	case ROSAPIUser::Supervisor:
 		setReadOnly(false);
@@ -466,6 +470,7 @@ void DlgPPPUser::updateGUI()
 		ui->clientLogsButton->setVisible(true);
 		ui->schedulerGroupBox->setVisible(true);
 		ui->voipGroupBox->setDisabled(false);
+		ui->voipTableWidget->setEditTriggers(QAbstractItemView::AllEditTriggers);
 		break;
 	}
 }

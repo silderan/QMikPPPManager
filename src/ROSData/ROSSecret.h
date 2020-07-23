@@ -144,7 +144,6 @@ private:
 
 
 	void parseCommentString(const QString &commentString);
-	const QString &commentString() const;
 
 	template<typename T>
 	void updateNonROSMember( T &member, const T &newData )				{ if(member != newData) { member = newData; m_commentString.clear(); }	}
@@ -160,6 +159,8 @@ public:
 	explicit ROSPPPSecret(const QString &routerName) : ROSDataBase(DataTypeID::PPPSecret, routerName),
 	  m_serviceState(ServiceState::ActiveUndefined)
 	{	}
+
+	const QString &commentString() const;
 
 	const QString &userName() const				{ return m_userName;	}
 	bool setUserName(const QString &userName)	{ return updateMember(m_userName, userName, userNamePattern, 8);	}

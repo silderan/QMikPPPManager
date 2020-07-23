@@ -25,6 +25,8 @@
 #include <QFont>
 #include <QHeaderView>
 #include <QMessageBox>
+#include <QUrl>
+#include <QContextMenuEvent>
 
 #include "../Utils/Utils.h"
 #include "../ConfigData/QConfigData.h"
@@ -257,20 +259,17 @@ bool QROSSecretTableWidget::shouldBeVisible(const QROSUserNameWidgetItem *userNa
 		if( !m_filterText.isEmpty() )
 		{
 			// Meaning: search on all fields.
-			if( static_cast<int>(m_filterFields) == -2 )
+			if( static_cast<int>(m_filterFields) == -3 )
 				return	rosPPPSecret.userName().contains(m_filterText, Qt::CaseInsensitive) ||
-						rosPPPSecret.clientName().contains(m_filterText, Qt::CaseInsensitive) ||
-						rosPPPSecret.clientAddress().contains(m_filterText, Qt::CaseInsensitive) ||
-						rosPPPSecret.clientCity().contains(m_filterText, Qt::CaseInsensitive) ||
-						rosPPPSecret.clientPhones().contains(m_filterText) ||
-						rosPPPSecret.clientCode().contains(m_filterText) ||
-						rosPPPSecret.clientEmail().contains(m_filterText, Qt::CaseInsensitive) ||
-						rosPPPSecret.clientNotes().contains(m_filterText, Qt::CaseInsensitive) ||
-						rosPPPSecret.installNotes().contains(m_filterText, Qt::CaseInsensitive);
+						rosPPPSecret.commentString().contains(m_filterText, Qt::CaseInsensitive);
 
 			// Meaning: Multiple user names.
-			if( static_cast<int>(m_filterFields) == -1 )
+			if( static_cast<int>(m_filterFields) == -2 )
 				return m_filterText.contains(rosPPPSecret.userName(), Qt::CaseInsensitive);
+
+			// Meaning: Multiple Client Codes.
+			if( static_cast<int>(m_filterFields) == -1 )
+				return rosPPPSecret.clientCode().count() && m_filterText.contains(rosPPPSecret.clientCode(), Qt::CaseSensitive);
 
 			switch( m_filterFields )
 			{

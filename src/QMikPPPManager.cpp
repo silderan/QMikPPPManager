@@ -76,6 +76,7 @@ QMikPPPManager::QMikPPPManager(QWidget *parent)
 	ui->fieldFilterComboBox->addItems( QStringList()
 									   << tr("Cualquier dato")
 									   << tr("Múltiples usuarios")
+									   << tr("Múltiples CCliente")
 									   << ui->usersTable->columnsNames() );
 	ui->fieldFilterComboBox->setCurrentIndex(0);
 

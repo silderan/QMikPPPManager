@@ -140,6 +140,16 @@
    <header>Utils/PortForward.h</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>nameLineEdit</tabstop>
+  <tabstop>protocolComboBox</tabstop>
+  <tabstop>ipLineEdit</tabstop>
+  <tabstop>fromPublicPortLineEdit</tabstop>
+  <tabstop>toPublicPortLineEdit</tabstop>
+  <tabstop>fromPrivatePortLineEdit</tabstop>
+  <tabstop>toPrivatePortLineEdit</tabstop>
+  <tabstop>acceptButton</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
