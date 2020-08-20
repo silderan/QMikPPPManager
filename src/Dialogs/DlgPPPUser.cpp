@@ -23,6 +23,7 @@
 #include "DlgPPPUser.h"
 #include "ui_DlgPPPUser.h"
 #include "DlgPPPLogViewer.h"
+#include "DlgCreateConfigFile.h"
 
 #include "../Widgets/QComboBoxItemDelegate.h"
 #include "../ConfigData/VoIPData.h"
@@ -1009,4 +1010,10 @@ void DlgPPPUser::on_delSIPButton_clicked()
 void DlgPPPUser::on_configFileButton_clicked()
 {
 
+}
+
+void DlgPPPUser::on_fileConfigButton_clicked()
+{
+	DlgCreateConfigFile dlg(&m_pppSecret, this);
+	dlg.exec();
 }

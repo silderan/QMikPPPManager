@@ -129,6 +129,8 @@ private slots:
 
 	void on_configFileButton_clicked();
 
+	void on_fileConfigButton_clicked();
+
 public slots:
 	void onEditUserRequest(const QPPPSecretMap &pppSecretMap, const ROSPPPActive &pppActive);
 

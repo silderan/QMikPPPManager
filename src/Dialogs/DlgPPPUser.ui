@@ -833,6 +833,13 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QPushButton" name="fileConfigButton">
+       <property name="text">
+        <string>Fichero Configuración</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
   </layout>
