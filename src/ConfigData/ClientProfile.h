@@ -23,7 +23,7 @@
 
 #include <QStringList>
 
-#include "Utils/QIniFile.h"
+#include "../../SildeQtUtils/src/QIniFile.h"
 
 struct ClientProfileData
 {

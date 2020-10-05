@@ -1,7 +1,7 @@
 #ifndef SCHEDULERDATA_H
 #define SCHEDULERDATA_H
 
-#include "../Utils/QIniFile.h"
+#include "../../SildeQtUtils/src/QIniFile.h"
 
 #include <QDate>
 namespace ServiceScheduler {

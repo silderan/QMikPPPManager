@@ -25,7 +25,7 @@
 #include <QComboBox>
 #include <QSpinBox>
 
-#include "IPv4Range.h"
+#include "../../SildeQtUtils/src/IPv4Range.h"
 
 class IPProtocol
 {

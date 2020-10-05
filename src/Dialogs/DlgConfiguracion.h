@@ -23,7 +23,7 @@
 
 #include <QDialog>
 
-#include "../Utils/IPv4Range.h"
+#include "../../SildeQtUtils/src/IPv4Range.h"
 #include "../ConfigData/QConfigData.h"
 #include "../ROSMultiConnectorManager.h"
 

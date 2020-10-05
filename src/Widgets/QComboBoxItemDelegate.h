@@ -4,7 +4,7 @@
 #include <QStyledItemDelegate>
 #include <QSpinBox>
 
-#include "../../Utils/src/QFancyComboBox.h"
+#include "../../SildeQtUtils/src/QFancyComboBox.h"
 
 class QFancyItemDelegate : public QStyledItemDelegate
 {

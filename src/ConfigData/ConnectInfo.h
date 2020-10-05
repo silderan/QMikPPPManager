@@ -23,7 +23,7 @@
 
 #include <QStringList>
 
-#include "Utils/IPv4Range.h"
+#include "../../SildeQtUtils/src/IPv4Range.h"
 
 class ConnectInfo
 {

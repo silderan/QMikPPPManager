@@ -1007,11 +1007,6 @@ void DlgPPPUser::on_delSIPButton_clicked()
 	ui->voipTableWidget->delVoIPData(-1);
 }
 
-void DlgPPPUser::on_configFileButton_clicked()
-{
-
-}
-
 void DlgPPPUser::on_fileConfigButton_clicked()
 {
 	DlgCreateConfigFile dlg(&m_pppSecret, this);

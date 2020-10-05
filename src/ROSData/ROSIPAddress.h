@@ -22,7 +22,7 @@
 #define ROSIPADDRESS_H
 
 #include "../UnitTests.h"
-#include "../Utils/IPv4Range.h"
+#include "../../SildeQtUtils/src/IPv4Range.h"
 #include "ROSDataBasics.h"
 
 class ROSIPAddress : public ROSDataBase
