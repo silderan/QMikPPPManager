@@ -15,6 +15,7 @@ win32:RC_ICONS += img/main.ico
 
 SOURCES += main.cpp\
     ConfigData/SchedulerData.cpp \
+    ConfigData/ServiceInfo.cpp \
     ConfigData/VoIPData.cpp \
 	Dialogs/DlgCreateConfigFile.cpp \
     Dialogs/DlgPortEdit.cpp \
@@ -78,6 +79,7 @@ SOURCES += main.cpp\
 
 HEADERS  += QMikPPPManager.h \
     ConfigData/SchedulerData.h \
+    ConfigData/ServiceInfo.h \
     ConfigData/VoIPData.h \
 	Dialogs/DlgCreateConfigFile.h \
     Dialogs/DlgPortEdit.h \

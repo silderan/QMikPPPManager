@@ -19,6 +19,8 @@
  */
 
 #include <QSpinBox>
+#include <QJsonObject>
+#include <QJsonDocument>
 
 #include "DlgPPPUser.h"
 #include "ui_DlgPPPUser.h"
@@ -95,6 +97,8 @@ DlgPPPUser::DlgPPPUser(QConfigData &configData, ROSMultiConnectManager &rosMulti
 	updateGUI();
 	if( ui->schedulerGroupBox->isEnabled() )
 		connect( ui->schedulerTable, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(updateSchedulerCell(QTableWidgetItem*)) );
+
+	ui->permLabel->setText("");
 }
 
 DlgPPPUser::~DlgPPPUser()
@@ -507,6 +511,7 @@ void DlgPPPUser::onConfigDataChanged()
 	updateCitiesComboBox();
 	updatePPPProfilesComboBox();
 	updateStaticIPComboBox();
+	updatePermText();
 }
 
 void DlgPPPUser::updatePPPProfilesComboBox()
@@ -561,6 +566,7 @@ void DlgPPPUser::updateDialog()
 	updateCitiesComboBox();
 	updateUserData();
 	updateDialogCaptionInfo();
+	updatePermText();
 }
 
 void DlgPPPUser::completeClientPhonesWithVoIP()
@@ -594,7 +600,7 @@ void DlgPPPUser::updateUserData()
 	}
 	ui->pppProfileComboBox->blockSignals(false);
 
-	ui->serviceTypeComboBox->setCurrentIndex(m_pppSecret.serviceInfo().serviceType);
+	ui->serviceTypeComboBox->setCurrentIndex(m_pppSecret.serviceType());
 	ui->tofCheckBox->setChecked(m_pppSecret.serviceInfo().hasToF);
 	ui->iocCheckBox->setChecked(m_pppSecret.serviceInfo().hasIoC);
 
@@ -651,6 +657,18 @@ void DlgPPPUser::updateDialogCaptionInfo()
 			ui->infoLabel->clear();
 		else
 			ui->infoLabel->setText( tr("Usuario activo con IP %1 en el router %2").arg(m_pppActive.currentIPv4().toString(), m_pppActive.routerName()) );
+	}
+}
+
+void DlgPPPUser::updatePermText()
+{
+	if( m_pppSecret.isValid() )
+	{
+		const auto &st = static_cast<ServiceInfo::ServiceType>(ui->serviceTypeComboBox->currentIndex());
+		if( gGlobalConfig.inPermTime(st, gGlobalConfig.userPassToTime(m_pppSecret.userPass())) )
+			ui->permLabel->setText(tr("Permanencia hasta %1").arg(gGlobalConfig.permDate(st, gGlobalConfig.userPassToTime(m_pppSecret.userPass())).toString("dd/MM/yyyy")));
+		else
+			ui->permLabel->setText( "" );
 	}
 }
 
@@ -715,8 +733,8 @@ void DlgPPPUser::onROSDelReply(const QString &routerName, DataTypeID dataTypeID,
 
 void DlgPPPUser::onROSDone(const QString &routerName, DataTypeID dataTypeID)
 {
-	Q_UNUSED(routerName);
-	Q_UNUSED(dataTypeID);
+	Q_UNUSED(routerName)
+	Q_UNUSED(dataTypeID)
 }
 
 void DlgPPPUser::clear()
@@ -740,13 +758,14 @@ void DlgPPPUser::onDisconnected(const QString &routerName)
 
 void DlgPPPUser::on_pppProfileComboBox_currentIndexChanged(int index)
 {
-	Q_UNUSED(index);
+	Q_UNUSED(index)
 	updateStaticIPComboBox();
 }
 
 
 void DlgPPPUser::on_serviceTypeComboBox_currentIndexChanged(int index)
 {
+	updatePermText();
 	switch( static_cast<ServiceInfo::ServiceType>(index) )
 	{
 	case ServiceInfo::Unk:
@@ -783,6 +802,8 @@ void DlgPPPUser::on_serviceTypeComboBox_currentIndexChanged(int index)
 		ui->ontSNComboBox->setEnabled(false);
 		ui->iocCheckBox->setEnabled(false);
 		ui->tofCheckBox->setEnabled(false);
+		break;
+	case ServiceInfo::Cantidad:
 		break;
 	}
 }
@@ -871,10 +892,7 @@ void DlgPPPUser::on_pppUserPassCopyButton_clicked()
 
 void DlgPPPUser::on_pppUserPassCreateButton_clicked()
 {
-	QDateTime d = QDateTime::currentDateTime();
-
-	QString str = d.toString("ddMMyyyyhhmm");
-	ui->pppUserPassLineEdit->setText(str);
+	ui->pppUserPassLineEdit->setText(gGlobalConfig.currentTimeToUserPass());
 }
 
 void DlgPPPUser::on_delChedulerButton_clicked()
@@ -894,57 +912,101 @@ void DlgPPPUser::on_addSchedulerButton_clicked()
 
 void DlgPPPUser::on_copyInfoButton_clicked()
 {
-	/* Formato creado:
-	 * <nombre> <User>/<Pass>
-	 * <dirección> <Pueblo>
-	 * <teléfonos>
-	 * Contrato [alta/baja] de <perfil>. Estado actual [activo <fecha> /inactivo <fecha>]
-     * Instalado por: <nombre_instalador>
-	 * (Tiene VozIP, DVR, etc)
-	 * (Notas)
-	 * */
-	QString err;
-	QString txt = tr("%1 (%2/%3)").arg(ui->clientNameLineEdit->text(), ui->pppUserNameLineEdit->text(), ui->pppUserPassLineEdit->text());
-	txt.append( tr("\n%1. %2." ).arg(ui->clientAddressLineEdit->text(), ui->clientCityComboBox->currentText()));
-	txt.append( tr("\n%1").arg( ui->clientPhonesLineEdit->text().isEmpty()? tr("Sin teléfonos conocidos.") : tr("Teléfono: %1").arg(ui->clientPhonesLineEdit->text()) ) );
-	txt.append( tr("\nServicio: %1%2").arg( ServiceState::readableString(m_pppSecret.serviceState()),
-										   !ServiceState::isCanceledState(m_pppSecret.serviceState())
-										 ? tr(". Perfil: %1").arg(m_pppSecret.originalProfile())
-										 : "") );
-	txt.append( tr("\nEstado: %1").arg(m_pppActive.rosObjectID().isEmpty()
-									   ? tr("Desconectado desde %1").arg(m_pppSecret.lastLogOff().toString("dd/MM/yyyy hh:mm:ss"))
-									   : tr("Conectado desde %1 con IP %2").arg(m_pppActive.uptime().toString("dd/MM/yyyy hh:mm:ss"))).arg(m_pppActive.currentIPv4().toString()) );
+	QString txt;
+	Qt::KeyboardModifiers k = QApplication::keyboardModifiers();
+	Qt::KeyboardModifiers kk = QGuiApplication::queryKeyboardModifiers();
 
-    txt.append( tr("\nInstalado por: %1").arg(ui->installerComboBox->currentText()) );
-
-	for( const QString &phone : ui->voipTableWidget->sipPhones(err) )
+	// Si está apretada la tecla mayúsculas o la tecla "Alt", el formato será para pasar los datos a la web de NovaGest.
+	// Este formato son lineas con dos campos separados por |
+	if( (kk & Qt::ShiftModifier) || (k & Qt::AltModifier) )
 	{
-		VoIPData voipData = gVoipData.voipData(phone);
-		txt.append( tr("\nVoIP: %1 ").arg(voipData.mSipPhone) );
-		if( voipData.mSipPhone != voipData.mSipUsername )
-			txt.append( QString("(%1/%2)").arg(voipData.mSipUsername, voipData.mSipPassword) );
+		QJsonObject data;
+		data.insert("nombre", ui->clientNameLineEdit->text());
+		QRegExp rx("([a-zA-Z0-9]+)([^a-zA-Z0-9]+)([a-zA-Z0-9]+)");
+		if( rx.indexIn(ui->pppUserNameLineEdit->text(), 0) >= 0 )
+		{
+			data.insert("pppoe_prefix", rx.cap(1) );
+			data.insert("pppoe_split", rx.cap(2) );
+			data.insert("dni", rx.cap(3) );
+		}
 		else
-			txt.append( QString("(%1)").arg(voipData.mSipPassword) );
+			data.insert("pppoe_uname", ui->pppUserNameLineEdit->text() );
+
+		rx.setPattern( "(CTO\\d+F\\d+|CTON\\d+AC\\d+|CEX\\d+F\\d+)" );
+		QString installNotes = ui->installNotesTextEdit->toPlainText();
+		if( rx.indexIn(installNotes, 0) >= 0 )
+		{
+			data.insert("install_node", rx.cap(1) );
+			installNotes.replace(rx, "");
+		}
+		data.insert("install_note", installNotes.replace("\n", " ") );
+
+		data.insert("ccliente", m_pppSecret.clientCode() );
+		data.insert("direccion", ui->clientAddressLineEdit->text() );
+		data.insert("poblacion", ui->clientCityComboBox->currentText() );
+		data.insert("telefonos", ui->clientPhonesLineEdit->text() );
+		data.insert("email", ui->clientEmailLineEdit->text() );
+		data.insert("pppoe_upass", ui->pppUserPassLineEdit->text() );
+		data.insert("client_note", ui->clientNotesTextEdit->toPlainText().replace("\n", " ") );
+		data.insert("ont_sn", ui->ontSNComboBox->currentText() );
+		data.insert("wifi2_ssid", ui->wifi2SSIDLineEdit->text() );
+		data.insert("wifi5_ssid", ui->wifi5SSIDLineEdit->text() );
+		data.insert("wifi_pass", ui->wifi2WPALineEdit->text() );
+		txt = QJsonDocument(data).toJson(QJsonDocument::Compact);
 	}
-	if( !m_pppSecret.wifi2SSID().isEmpty() )
-		txt.append( tr("\nWiFi2: SSID=%1 PASS=%2").arg(m_pppSecret.wifi2SSID(),m_pppSecret.wifi2WPA()) );
+	else
+	{
+		/* Formato creado:
+		 * <nombre> <User>/<Pass>
+		 * <dirección> <Pueblo>
+		 * <teléfonos>
+		 * Contrato [alta/baja] de <perfil>. Estado actual [activo <fecha> /inactivo <fecha>]
+		 * Instalado por: <nombre_instalador>
+		 * (Tiene VozIP, DVR, etc)
+		 * (Notas)
+		 * */
+		QString err;
+		txt = tr("%1 (%2/%3)").arg(ui->clientNameLineEdit->text(), ui->pppUserNameLineEdit->text(), ui->pppUserPassLineEdit->text());
+		txt.append( tr("\n%1. %2." ).arg(ui->clientAddressLineEdit->text(), ui->clientCityComboBox->currentText()));
+		txt.append( tr("\n%1").arg( ui->clientPhonesLineEdit->text().isEmpty()? tr("Sin teléfonos conocidos.") : tr("Teléfono: %1").arg(ui->clientPhonesLineEdit->text()) ) );
+		txt.append( tr("\nServicio: %1%2").arg( ServiceState::readableString(m_pppSecret.serviceState()),
+											   !ServiceState::isCanceledState(m_pppSecret.serviceState())
+											 ? tr(". Perfil: %1").arg(m_pppSecret.originalProfile())
+											 : "") );
+		txt.append( tr("\nEstado: %1").arg(m_pppActive.rosObjectID().isEmpty()
+										   ? tr("Desconectado desde %1").arg(m_pppSecret.lastLogOff().toString("dd/MM/yyyy hh:mm:ss"))
+										   : tr("Conectado desde %1 con IP %2").arg(m_pppActive.uptime().toString("dd/MM/yyyy hh:mm:ss"))).arg(m_pppActive.currentIPv4().toString()) );
 
-	if( !m_pppSecret.wifi5SSID().isEmpty() )
-		txt.append( tr("\nWiFi5: SSID=%1 PASS=%2").arg(m_pppSecret.wifi5SSID(),m_pppSecret.wifi5WPA()) );
+		txt.append( tr("\nInstalado por: %1").arg(ui->installerComboBox->currentText()) );
 
-	if( m_pppSecret.installLANIP().isValid() )
-		txt.append( tr("\nLAN IP: %1 ").arg(m_pppSecret.installLANIP().toString()) );
-	if( m_pppSecret.installLANDMZ().isValid() )
-		txt.append( tr("\nDMZ: %1 ").arg(m_pppSecret.installLANDMZ().toString()) );
-	foreach( auto port, m_pppSecret.portForwardList() )
-		txt.append( tr("\nPuerto %1").arg(port.toSaveString()) );
+		for( const QString &phone : ui->voipTableWidget->sipPhones(err) )
+		{
+			VoIPData voipData = gVoipData.voipData(phone);
+			txt.append( tr("\nVoIP: %1 ").arg(voipData.mSipPhone) );
+			if( voipData.mSipPhone != voipData.mSipUsername )
+				txt.append( QString("(%1/%2)").arg(voipData.mSipUsername, voipData.mSipPassword) );
+			else
+				txt.append( QString("(%1)").arg(voipData.mSipPassword) );
+		}
+		if( !m_pppSecret.wifi2SSID().isEmpty() )
+			txt.append( tr("\nWiFi2: SSID=%1 PASS=%2").arg(m_pppSecret.wifi2SSID(),m_pppSecret.wifi2WPA()) );
 
-    foreach( QString note, ui->installNotesTextEdit->toPlainText().split('\n') )
-    {
-		if( !note.isEmpty() )
-			txt.append( tr("\nNota: %1").arg(note) );
-    }
+		if( !m_pppSecret.wifi5SSID().isEmpty() )
+			txt.append( tr("\nWiFi5: SSID=%1 PASS=%2").arg(m_pppSecret.wifi5SSID(),m_pppSecret.wifi5WPA()) );
 
+		if( m_pppSecret.installLANIP().isValid() )
+			txt.append( tr("\nLAN IP: %1 ").arg(m_pppSecret.installLANIP().toString()) );
+		if( m_pppSecret.installLANDMZ().isValid() )
+			txt.append( tr("\nDMZ: %1 ").arg(m_pppSecret.installLANDMZ().toString()) );
+		foreach( auto port, m_pppSecret.portForwardList() )
+			txt.append( tr("\nPuerto %1").arg(port.toSaveString()) );
+
+		foreach( QString note, ui->installNotesTextEdit->toPlainText().split('\n') )
+		{
+			if( !note.isEmpty() )
+				txt.append( tr("\nNota: %1").arg(note) );
+		}
+	}
 	QGuiApplication::clipboard()->setText(txt);
 }
 

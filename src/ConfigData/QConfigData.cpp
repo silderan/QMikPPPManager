@@ -20,6 +20,8 @@
 
 #include "QConfigData.h"
 
+#include <QDateTime>
+
 QConfigData gGlobalConfig;
 OpenBrowserInfoList QConfigData::openBrowserInfoList()
 {
@@ -34,6 +36,26 @@ OpenBrowserInfoList QConfigData::openBrowserInfoList()
 	return rtn;
 }
 
+QString QConfigData::currentTimeToUserPass()
+{
+	QDateTime d = QDateTime::currentDateTime();
+
+	return d.toString("ddMMyyyyhhmm");
+}
+
+QDateTime QConfigData::userPassToTime(const QString &upass)
+{
+	return QDateTime::fromString(upass, "ddMMyyyyhhmm");
+}
+
+const QStringList gInstallTypeNameList = {"No definida",
+										  "WiFi (Antena WiFi directa cliente)",
+										  "FTTH (Fibra directa cliente)",
+										  "WTTB (Antena WiFi al edificio)",
+										  "FTTB (Fibra al edificio)",
+										  "PtP WiFi (PtP WiFi dedicado)",
+										  "PtP FO (PtP fibra óptica dedicado)"};
+
 // Local user data keys.
 #define LKEY_USERNAME		("user-name")
 #define LKEY_USERPASS		("user-password")
@@ -47,6 +69,7 @@ OpenBrowserInfoList QConfigData::openBrowserInfoList()
 // Global protected data keys.
 #define GPKEY_COMERCIALES		("comerciales")
 #define GPKEY_INSTALADORES		("instaladores")
+#define GPKEY_PERMANENCIA		("permanencia")
 #ifdef USE_RADIUS
 #define GKEY_RADIUS_USER_NAME	("radius-user-name")
 #define GKEY_RADIUS_USER_PASS	("radius-user-pass")
@@ -82,6 +105,7 @@ void QConfigData::loadGlobalProtectedData()
 
 	m_instaladores	= cnfgData[GPKEY_INSTALADORES].split(',', Qt::SkipEmptyParts);
 	m_comerciales	= cnfgData[GPKEY_COMERCIALES].split(',', Qt::SkipEmptyParts);
+	ServicePerm::fromSaveString( cnfgData[GPKEY_PERMANENCIA] );
 
 	m_clientProfileMap.load(cnfgData);
 	m_staticIPv4RangeListMap.load(cnfgData);
@@ -129,6 +153,7 @@ void QConfigData::saveGlobalProtectedData() const
 
 	cnfgData[GPKEY_COMERCIALES]	= m_comerciales.join(',');
 	cnfgData[GPKEY_INSTALADORES]= m_instaladores.join(',');
+	cnfgData[GPKEY_PERMANENCIA] = ServicePerm::toSaveString();
 
 	m_clientProfileMap.save(cnfgData);
 	m_staticIPv4RangeListMap.save(cnfgData);

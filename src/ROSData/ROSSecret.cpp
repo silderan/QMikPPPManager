@@ -27,20 +27,6 @@ bool ServiceState::isCanceledState(ServiceState::Type type)
 	return  type > ServiceState::ActiveTemporally;
 }
 
-
-const QStringList gInstallTypeNameList = {"No definida",
-										  "WiFi (Antena WiFi directa cliente)",
-										  "FTTH (Fibra directa cliente)",
-										  "WTTB (Antena WiFi al edificio)",
-										  "FTTB (Fibra al edificio)",
-										  "PtP WiFi (PtP WiFi dedicado)",
-										  "PtP FO (PtP fibra óptica dedicado)"};
-const QStringList &ServiceInfo::serviceTypeNameList()
-{
-	return gInstallTypeNameList;
-}
-
-
 QString ServiceState::toSaveString(const ServiceState::Type type)
 {
 	switch( type )

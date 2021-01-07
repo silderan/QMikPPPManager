@@ -90,6 +90,15 @@ DlgConfiguracion::DlgConfiguracion(const QStringList &installerList, const QStri
 
 	refillDialogUsedData();
 
+	for( int st = ServiceInfo::ServiceType::Unk + 1; st < ServiceInfo::ServiceType::Cantidad; ++st  )
+	{
+		ui->permTable->insertRow(st-1);
+		ui->permTable->setItem( st-1, 0, new QTableWidgetItem(ServiceInfo::serviceTypeName(st)) );
+		QSpinBox *meses = new QSpinBox();
+		meses->setRange(0, 36);
+		meses->setValue( gGlobalConfig.getPermanencia( static_cast<ServiceInfo::ServiceType>(st)) );
+		ui->permTable->setCellWidget( st-1, 1, meses);
+	}
 //	switch( m_configData.nivelUsuario() )
 //	{
 //	case QConfigData::SinPermisos:
@@ -247,6 +256,10 @@ void DlgConfiguracion::on_btAceptar_clicked()
 		if( (ui->listaInstaladores->item(row, 1) != Q_NULLPTR) && !(s = ui->listaInstaladores->item(row, 1)->text()).isEmpty() )
 			m_comercialList.append(s);
 	}
+
+	for( int st = ServiceInfo::ServiceType::Unk + 1; st < ServiceInfo::ServiceType::Cantidad; ++st )
+		gGlobalConfig.setPermanencia(static_cast<ServiceInfo::ServiceType>(st), static_cast<QSpinBox*>(ui->permTable->cellWidget(st-1, 1))->value());
+
 	accept();
 }
 
@@ -279,8 +292,8 @@ void DlgConfiguracion::on_delStaticRangeButton_clicked()
 
 void DlgConfiguracion::on_profilesTable_cellChanged(int row, int column)
 {
-	Q_UNUSED(row);
-	Q_UNUSED(column);
+	Q_UNUSED(row)
+	Q_UNUSED(column)
 	// Need to redo all list because I cannot know the old group name and may be deleted.
 	refillDialogUsedData();
 }

@@ -52,6 +52,7 @@ class DlgPPPUser : public QDlgMultiDataBase
 	void updateDialog();
 	void updateUserData();
 	void updateDialogCaptionInfo();
+	void updatePermText();
 
 	bool currentEditing(const ROSPPPSecret &pppSecret);
 

@@ -742,18 +742,11 @@ bool QROSSecretTableWidget::allowCellChange(const QModelIndex &index, const QStr
 			{
 				newSecret.setServiceState( ServiceState::fromNameString(newText) );
 
-				switch( newSecret.serviceState() )
+				if( !ServiceState::isCanceledState(newSecret.serviceState()) && (newSecret.pppProfileName() == gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName()) )
+					newSecret.setPPPProfileName( newSecret.originalProfile() );
+				else
+				if( ServiceState::isCanceledState(newSecret.serviceState()) && (newSecret.pppProfileName() != gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName()) )
 				{
-				case ServiceState::Undefined:
-				case ServiceState::ActiveUndefined:
-				case ServiceState::ActiveTemporally:
-				case ServiceState::CanceledTemporally:
-				case ServiceState::CanceledTechnically:
-					break;
-				case ServiceState::CanceledNoPay:
-				case ServiceState::CanceledNoRetired:
-				case ServiceState::CanceledRetired:
-				case ServiceState::CanceledUndefined:
 					if( gVoipData.userWithVoIP(newSecret.userName()) )
 					{
 						QStringList phones = gVoipData.userPhones(newSecret.userName());
@@ -775,13 +768,41 @@ bool QROSSecretTableWidget::allowCellChange(const QModelIndex &index, const QStr
 							return false;
 						}
 					}
-					break;
-				}
-				if( !ServiceState::isCanceledState(newSecret.serviceState()) && (newSecret.pppProfileName() == gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName()) )
-					newSecret.setPPPProfileName( newSecret.originalProfile() );
-				else
-				if( ServiceState::isCanceledState(newSecret.serviceState()) && (newSecret.pppProfileName() != gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName()) )
+					if( newSecret.staticIP().isValid() )
+					{
+						QStringList phones = gVoipData.userPhones(newSecret.userName());
+						switch( QMessageBox::warning(this, tr("Cancelando servicios del cliente %1 (%2)").arg(newSecret.userName()).arg(newSecret.clientName()),
+													 tr("Este cliente tiene configurada la IP estática (fija) %1.\n"
+														"Al darlo de baja, esta configuración debería desaparecer por dos motivo:\n"
+														"1: Aunque se de de baja, igual le funcionará Internet.\n"
+														"2: Para que esa IP está disponible para otros clientes.\n\n"
+														"¿Quieres que se desconfigure la IP fija automáticamente? Escoge:\n"
+														"Sí: La IP quedará desconfigurada y podrá ser usada por otro cliente.\n"
+														"No: Dar de baja el cliente sin modificar la configuración de IP.\n"
+														"Cancelar: No hacer nada.")
+													.arg(newSecret.staticIP().toString()),
+												 QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel) )
+						{
+						case QMessageBox::Yes:
+							newSecret.setStaticIP( IPv4() );
+							break;
+						case QMessageBox::No:
+							break;
+						default:
+							return false;
+						}
+					}
+					if( gGlobalConfig.inPermTime( newSecret.serviceType(), gGlobalConfig.userPassToTime(newSecret.userPass()) ) )
+					{
+						if( QMessageBox::warning(this, tr("Cancelando servicios del cliente %1 (%2)").arg(newSecret.userName()).arg(newSecret.clientName()),
+													 tr("Este cliente tiene permanencia hasta el %1.\n"
+														"¿Quieres igualmente cancelar el servicio?")
+													.arg(gGlobalConfig.permDate(newSecret.serviceType(), gGlobalConfig.userPassToTime(newSecret.userPass())).toString("dd/MM/yyyy") )
+												 , QMessageBox::Yes | QMessageBox::No) == QMessageBox::No )
+						return false ;
+					}
 					newSecret.setPPPProfileName( gGlobalConfig.clientProfileMap().serviceCanceledProfile().pppProfileName() );
+				}
 				multiConnectionManager.updateRemoteData(newSecret, userNameItem->pppSecretMap.toRouterIDMap());
 				needReconect = true;
 			}

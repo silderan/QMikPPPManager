@@ -142,17 +142,7 @@
         <string>Identificación del cliente</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
-        <item row="2" column="0">
-         <widget class="QLabel" name="label_6">
-          <property name="text">
-           <string>Población</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0">
+        <item row="5" column="0">
          <widget class="QLabel" name="label_9">
           <property name="text">
            <string>Notas cliente</string>
@@ -162,20 +152,7 @@
           </property>
          </widget>
         </item>
-        <item row="1" column="1" colspan="4">
-         <widget class="QLineEdit" name="clientAddressLineEdit"/>
-        </item>
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>Nombre</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
+        <item row="3" column="1">
          <widget class="QFancyComboBox" name="clientCityComboBox">
           <property name="editable">
            <bool>true</bool>
@@ -185,17 +162,10 @@
           </property>
          </widget>
         </item>
-        <item row="4" column="1" colspan="4">
-         <widget class="QTextEdit" name="clientNotesTextEdit">
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>48</height>
-           </size>
-          </property>
-         </widget>
+        <item row="1" column="1" colspan="4">
+         <widget class="QLineEdit" name="clientNameLineEdit"/>
         </item>
-        <item row="1" column="0">
+        <item row="2" column="0">
          <widget class="QLabel" name="label_5">
           <property name="text">
            <string>Dirección</string>
@@ -205,20 +175,13 @@
           </property>
          </widget>
         </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_8">
-          <property name="text">
-           <string>Email</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1" colspan="4">
+        <item row="4" column="1" colspan="4">
          <widget class="QLineEdit" name="clientEmailLineEdit"/>
         </item>
-        <item row="2" column="3">
+        <item row="3" column="4">
+         <widget class="QLineEdit" name="clientPhonesLineEdit"/>
+        </item>
+        <item row="3" column="3">
          <widget class="QLabel" name="label_7">
           <property name="text">
            <string>Teléfonos</string>
@@ -228,11 +191,98 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="4">
-         <widget class="QLineEdit" name="clientPhonesLineEdit"/>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Nombre</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
         </item>
-        <item row="0" column="1" colspan="4">
-         <widget class="QLineEdit" name="clientNameLineEdit"/>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_6">
+          <property name="text">
+           <string>Población</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1" colspan="4">
+         <widget class="QTextEdit" name="clientNotesTextEdit">
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>48</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_8">
+          <property name="text">
+           <string>Email</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1" colspan="4">
+         <widget class="QLineEdit" name="clientAddressLineEdit"/>
+        </item>
+        <item row="0" column="0" colspan="5">
+         <widget class="QLabel" name="permLabel">
+          <property name="palette">
+           <palette>
+            <active>
+             <colorrole role="WindowText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>255</red>
+                <green>0</green>
+                <blue>0</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </active>
+            <inactive>
+             <colorrole role="WindowText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>255</red>
+                <green>0</green>
+                <blue>0</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </inactive>
+            <disabled>
+             <colorrole role="WindowText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>120</red>
+                <green>120</green>
+                <blue>120</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </disabled>
+           </palette>
+          </property>
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Info Permanencia</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -744,9 +794,9 @@
           <colorrole role="WindowText">
            <brush brushstyle="SolidPattern">
             <color alpha="255">
-             <red>255</red>
+             <red>0</red>
              <green>0</green>
-             <blue>0</blue>
+             <blue>127</blue>
             </color>
            </brush>
           </colorrole>
@@ -755,9 +805,9 @@
           <colorrole role="WindowText">
            <brush brushstyle="SolidPattern">
             <color alpha="255">
-             <red>255</red>
+             <red>0</red>
              <green>0</green>
-             <blue>0</blue>
+             <blue>127</blue>
             </color>
            </brush>
           </colorrole>
@@ -783,13 +833,6 @@
        </property>
        <property name="text">
         <string/>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="configFileButton">
-       <property name="text">
-        <string>Fichero Config</string>
        </property>
       </widget>
      </item>

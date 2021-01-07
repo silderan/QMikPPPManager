@@ -34,10 +34,11 @@
 #include "ConnectInfo.h"
 #include "ClientProfile.h"
 #include "TableCellLook.h"
+#include "ServiceInfo.h"
 #include "ROSData/ROSAPIUser.h"
 #include "Utils/OpenBrowserInfo.h"
 
-class QConfigData
+class QConfigData : public ServicePerm
 {
 private:
 	QString m_userFName;
@@ -74,12 +75,14 @@ private:
 public:
 #ifdef QT_DEBUG
 	QConfigData()
-		: m_userFName(QDir::homePath()+"/PPPManager64UserDebug.ini")
+		: ServicePerm()
+		, m_userFName(QDir::homePath()+"/PPPManager64UserDebug.ini")
 		, m_rosFName("PPPManager64ROSDebug.ini")
 		, m_rosProtectedFName("PPPManager64ROSProtectedDebug.ini")
 #else
 	QConfigData()
-		: m_userFName(QDir::homePath()+"/PPPManager64User.ini")
+		: ServicePerm()
+		, m_userFName(QDir::homePath()+"/PPPManager64User.ini")
 		, m_rosFName("PPPManager64ROS.ini")
 		, m_rosProtectedFName("PPPManager64ROSProtected.ini")
 #endif
@@ -142,6 +145,9 @@ public:
 
 	// TODO: Make it configurable!
 	OpenBrowserInfoList openBrowserInfoList();
+
+	static QString currentTimeToUserPass();
+	static QDateTime userPassToTime(const QString &upass);
 
 #ifdef USE_RADIUS
 	const ConnectInfo &radiusConnInfo() const		{ return m_radiusConnInfo;	}
