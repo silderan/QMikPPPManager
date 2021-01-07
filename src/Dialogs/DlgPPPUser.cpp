@@ -292,6 +292,8 @@ bool DlgPPPUser::getServiceInfo()
 		m_pppSecret.setHasIoC(false);
 		m_pppSecret.setHasToF(false);
 		break;
+	case ServiceInfo::Cantidad:
+		break;
 	}
 	m_pppSecret.setServiceType(newType);
 	return true;
