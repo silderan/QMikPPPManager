@@ -25,7 +25,7 @@
 #include <QString>
 #include <QFont>
 
-#include "Utils/QIniFile.h"
+#include "../../SildeQtUtils/src/QIniFile.h"
 
 struct CellLook
 {

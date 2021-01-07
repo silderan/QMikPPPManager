@@ -26,8 +26,8 @@
 #include <QDir>
 #include <QColor>
 
-#include "../Utils/IPv4Range.h"
-#include "../Utils/QIniFile.h"
+#include "../../SildeQtUtils/src/IPv4Range.h"
+#include "../../SildeQtUtils/src/QIniFile.h"
 #include "../ROSAPI/QSentences.h"
 #include "../RadiusManager/QRadiusManager.h"
 

@@ -27,7 +27,7 @@
 #include "ROSDataBasics.h"
 #include "ConfigData/ServiceInfo.h"
 #include "../UnitTests.h"
-#include "../Utils/IPv4Range.h"
+#include "../../SildeQtUtils/src/IPv4Range.h"
 #include "../Utils/PortForward.h"
 
 struct ServiceState

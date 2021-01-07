@@ -14,6 +14,7 @@ win32:RC_ICONS += img/main.ico
 
 
 SOURCES += main.cpp\
+    ../../SildeQtUtils/src/IPv4Range.cpp \
     ConfigData/SchedulerData.cpp \
     ConfigData/ServiceInfo.cpp \
     ConfigData/VoIPData.cpp \
@@ -21,10 +22,8 @@ SOURCES += main.cpp\
     Dialogs/DlgPortEdit.cpp \
     Dialogs/DlgServiceScheduler.cpp \
     Dialogs/DlgVoIPData.cpp \
-    Utils/IPv4Range.cpp \
 	Utils/ROSSpeed.cpp \
 	Utils/ROSRateLimit.cpp \
-	Utils/QIniFile.cpp \
     QMikPPPManager.cpp \
     ROSAPI/QMD5.cpp \
     ROSAPI/QSentences.cpp \
@@ -78,6 +77,7 @@ SOURCES += main.cpp\
     Widgets/QUserVoIPDataTableWidget.cpp
 
 HEADERS  += QMikPPPManager.h \
+    ../../SildeQtUtils/src/IPv4Range.h \
     ConfigData/SchedulerData.h \
     ConfigData/ServiceInfo.h \
     ConfigData/VoIPData.h \
@@ -85,10 +85,8 @@ HEADERS  += QMikPPPManager.h \
     Dialogs/DlgPortEdit.h \
     Dialogs/DlgServiceScheduler.h \
     Dialogs/DlgVoIPData.h \
-    Utils/IPv4Range.h \
 	Utils/ROSSpeed.h \
 	Utils/ROSRateLimit.h \
-	Utils/QIniFile.h \
     ROSAPI/QMD5.h \
     ROSAPI/QSentences.h \
     ROSAPI/Comm.h \

@@ -2,7 +2,7 @@
 #define QREMOTEIPCELLITEM_H
 
 #include <QTableWidgetItem>
-#include "../Utils/IPv4Range.h"
+#include "../../SildeQtUtils/src/IPv4Range.h"
 
 class QRemoteIPCellItem : public QTableWidgetItem
 {

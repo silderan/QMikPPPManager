@@ -891,7 +891,7 @@
   <customwidget>
    <class>QFancyComboBox</class>
    <extends>QComboBox</extends>
-   <header>../../Utils/src/QFancyComboBox.h</header>
+   <header>../../SildeQtUtils/src/QFancyComboBox.h</header>
   </customwidget>
   <customwidget>
    <class>QPortForwardListWidget</class>

@@ -27,8 +27,8 @@
 #include <QRegExp>
 #include <QTableWidgetItem>
 
+#include "../../SildeQtUtils/src/IPv4Range.h"
 #include "../Utils/Utils.h"
-#include "../Utils/IPv4Range.h"
 #include "../ConfigData/QConfigData.h"
 #include "../RadiusManager/QRadiusManager.h"
 

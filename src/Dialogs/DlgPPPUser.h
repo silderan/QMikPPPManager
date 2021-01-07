@@ -128,8 +128,6 @@ private slots:
 	void on_delSIPButton_clicked();
 	void on_editPortButton_clicked();
 
-	void on_configFileButton_clicked();
-
 	void on_fileConfigButton_clicked();
 
 public slots:
